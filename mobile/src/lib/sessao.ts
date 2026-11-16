@@ -1,10 +1,21 @@
 import * as SecureStore from "expo-secure-store";
 import { useSyncExternalStore } from "react";
+import { Platform } from "react-native";
 
-export type Tokens = { access: string; refresh: string };
+type Tokens = { access: string; refresh: string };
 type Estado = { carregada: boolean; tokens: Tokens | null };
 
 const CHAVE = "kamby.tokens";
+
+// SecureStore não existe no navegador; a versão web serve só para pré-visualizar telas.
+const cofre =
+  Platform.OS === "web"
+    ? {
+        getItemAsync: async (k: string) => localStorage.getItem(k),
+        setItemAsync: async (k: string, v: string) => localStorage.setItem(k, v),
+        deleteItemAsync: async (k: string) => localStorage.removeItem(k),
+      }
+    : SecureStore;
 const ouvintes = new Set<() => void>();
 let estado: Estado = { carregada: false, tokens: null };
 
@@ -15,13 +26,13 @@ function definir(novo: Estado) {
 }
 
 export async function carregarSessao() {
-  const salvo = await SecureStore.getItemAsync(CHAVE);
+  const salvo = await cofre.getItemAsync(CHAVE);
   definir({ carregada: true, tokens: salvo ? JSON.parse(salvo) : null });
 }
 
 export async function salvarTokens(tokens: Tokens | null) {
-  if (tokens) await SecureStore.setItemAsync(CHAVE, JSON.stringify(tokens));
-  else await SecureStore.deleteItemAsync(CHAVE);
+  if (tokens) await cofre.setItemAsync(CHAVE, JSON.stringify(tokens));
+  else await cofre.deleteItemAsync(CHAVE);
   definir({ carregada: true, tokens });
 }
 

@@ -4,6 +4,7 @@
   "workspaces": ["mobile", "web", "packages/*"],
   "scripts": {
     "mobile": "npm run start -w mobile",
+    "mobile:web": "npm run web -w mobile",
     "web": "npm run dev -w web",
     "api:tipos": "docker compose exec -T api python manage.py export_openapi_schema --api config.api.api --output /packages/api/openapi.json --indent 2 && npm run gerar -w @kamby/api"
   },

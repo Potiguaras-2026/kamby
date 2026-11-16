@@ -1,9 +1,12 @@
 import type { ErroApi, paths } from "@kamby/api";
 import createClient from "openapi-fetch";
+import { Platform } from "react-native";
 
 import { lerTokens, salvarTokens } from "./sessao";
 
-const baseUrl = process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8000";
+// No navegador a API está no mesmo computador; no celular, no IP definido em mobile/.env.
+const baseUrl =
+  Platform.OS === "web" ? `${location.protocol}//${location.hostname}:8000` : (process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8000");
 
 export const api = createClient<paths>({ baseUrl });
 
