@@ -40,6 +40,8 @@ Mobile:
 - Touch targets at least 48x48 dp. Primary action pinned to the bottom, within thumb reach.
 - Text scales with the system font. Never `allowFontScaling={false}`.
 - Contrast 4.5:1 for text, 3:1 for icons and borders. Status is never color alone: color + text + icon.
+- Brand pink and teal fail text contrast. Text and filled buttons use `primaria` and `turquesaTexto`; `rosa` and `turquesa` are for decoration.
+- Motion: springs from `mola` in `tema.ts`; Reanimated layout animations follow the system reduce-motion setting. Haptics only through `lib/haptico.ts`. Icons: `lucide-react-native`.
 - Field errors appear below the field and are announced to screen readers.
 - Inputs set `keyboardType`, `textContentType` and `autoComplete`.
 - Dates are picked from buttons for the next days, not a calendar grid.

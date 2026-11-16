@@ -22,6 +22,7 @@ commands:  # from repo root; Docker is the default flow (compose.yaml = dev)
   api_types: npm run api:tipos          # needs the stack up; after any API change
   install_js: npm install               # host only, for mobile and editor types
   mobile: npm run mobile                # outside Docker: Expo Go needs the LAN
+  mobile_web: npm run mobile:web        # donor app in the browser at :8081, talks to the api on :8000
   typecheck_mobile: npm run typecheck -w mobile
   build_web: docker compose exec web npm run build -w web
   web_deps_changed: docker compose run --rm web npm ci -w web -w @kamby/api

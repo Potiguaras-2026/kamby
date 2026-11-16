@@ -8,6 +8,12 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 - API da doadora: cadastro, login, perguntas de saúde, pedido de frascos, agendamento e cancelamento de coleta, tela Início com próxima ação e impacto.
 - Admin para a equipe do banco: aprovar doadoras, mudar status de frascos e coletas, registrar volume coletado.
 - App mobile: login e tela Início ligados à API.
+- App mobile no visual do Figma: marca, splash, abas, Início com histórico de doações, agendar coleta, acompanhar e cancelar coleta, solicitar kit, perfil, endereço, bancos de leite, dicas, guias e Por trás do Kamby.
+- Acabamento do app: animações de entrada e toque, vibração leve, gráfico tocável, celebração ao agendar, confirmações em folha e carregamento em esqueleto.
+- Ilustrações e fotos do protótipo no app (mãe com bebê, itens do kit, dicas com página própria) e visual mais próximo do Figma.
+- App da doadora abre no navegador do computador (`npm run mobile:web`), em coluna com largura de celular.
+- Horários de coleta por banco de leite, cadastrados no admin. Ao agendar, a doadora escolhe a data no calendário e o horário num select, como no protótipo (substitui manhã/tarde).
+- Vários endereços por doadora: adicionar, editar, excluir e escolher o ativo. A coleta guarda o endereço do agendamento.
 - Painel web: base com layout acessível e conexão com a API.
 - Dados de demonstração (`seed_demo`) e deploy com Docker Compose e Caddy.
 - Ambiente de desenvolvimento em Docker (Postgres, API e painel com hot reload).

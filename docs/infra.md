@@ -14,6 +14,7 @@ Docker is the default for backend and web from day 1, so every developer runs th
 - `api`: same image as production, but `runserver` with `./backend` mounted for hot reload. Migrates on start. Port 8000.
 - `web`: Vite dev server on port 5173, proxying `/api`, `/admin` and `/static` to `api`. Its `node_modules` live in Docker volumes, never shared with the host (Linux vs Windows binaries). File polling is on because Windows bind mounts do not emit change events.
 - `mobile` stays on the host: Expo Go needs the LAN. `EXPO_PUBLIC_API_URL` points to the computer's port 8000.
+- `npm run mobile:web` serves the donor app in the browser on port 8081. It calls the API on port 8000 of the same host; `DJANGO_CORS_DEV` lists the allowed origins, and the CORS middleware only runs with `DJANGO_DEBUG=1`.
 
 ## Production (`compose.prod.yaml`)
 
