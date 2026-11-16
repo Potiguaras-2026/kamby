@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from typing import Literal
 from uuid import UUID
 
@@ -36,25 +36,32 @@ class KitEntrada(Schema):
 
 class ColetaSaida(ModelSchema):
     status_rotulo: str
-    janela_rotulo: str
+    horario_rotulo: str
 
     class Meta:
         model = Coleta
-        fields = ["id", "data", "janela", "quantidade_frascos", "status", "volume_ml", "motivo_cancelamento", "criado_em"]
+        fields = ["id", "data", "horario_inicio", "horario_fim", "endereco", "quantidade_frascos", "status", "volume_ml", "motivo_cancelamento", "criado_em"]
 
     @staticmethod
     def resolve_status_rotulo(obj):
         return obj.get_status_display()
 
     @staticmethod
-    def resolve_janela_rotulo(obj):
-        return obj.get_janela_display()
+    def resolve_horario_rotulo(obj):
+        return obj.horario_rotulo
 
 
 class ColetaEntrada(Schema):
     data: date
-    janela: Literal["manha", "tarde"]
+    horario_id: UUID
     quantidade_frascos: int = Field(ge=1, le=20)
+
+
+class HorarioSaida(Schema):
+    id: UUID
+    inicio: time
+    fim: time
+    rotulo: str
 
 
 class CancelamentoEntrada(Schema):
@@ -65,6 +72,11 @@ class ImpactoSaida(Schema):
     volume_total_ml: int
     recem_nascidos_dia: int
     coletas: int
+
+
+class MesSaida(Schema):
+    mes: date
+    volume_ml: int
 
 
 class DoadoraResumo(Schema):
@@ -84,4 +96,5 @@ class InicioSaida(Schema):
     coleta_ativa: ColetaSaida | None
     kit_aberto: KitSaida | None
     impacto: ImpactoSaida
+    historico: list[MesSaida]
     banco: BancoSaida

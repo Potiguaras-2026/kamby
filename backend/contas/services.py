@@ -6,7 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from bancos.models import BancoDeLeite
-from contas.models import Doadora, Triagem, Usuario
+from contas.models import Doadora, Endereco, Triagem, Usuario
 from contas.triagem import CODIGOS
 from core.erros import ErroDominio
 
@@ -45,9 +45,56 @@ def cadastrar_doadora(*, senha: str, telefone: str, nome_completo: str, banco_id
     usuario.set_password(senha)
     usuario.save()
 
-    endereco_e_datas["cep"] = so_digitos(endereco_e_datas["cep"])
-    Doadora.objects.create(usuario=usuario, banco=banco, consentimento_em=timezone.now(), **endereco_e_datas)
+    endereco = {c: endereco_e_datas.pop(c) for c in CAMPOS_ENDERECO if c in endereco_e_datas}
+    doadora = Doadora.objects.create(usuario=usuario, banco=banco, consentimento_em=timezone.now(), **endereco_e_datas)
+    criar_endereco(doadora, **endereco)
     return usuario
+
+
+CAMPOS_ENDERECO = ["apelido", "cep", "logradouro", "numero", "complemento", "bairro", "cidade", "uf", "referencia"]
+
+
+def _limpar_endereco(dados: dict) -> dict:
+    dados = {c: str(v).strip() for c, v in dados.items() if c in CAMPOS_ENDERECO}
+    dados["cep"] = so_digitos(dados["cep"])
+    if len(dados["cep"]) != 8:
+        raise ErroDominio("validacao", "Confira o CEP.", {"cep": ["Use os 8 números do CEP."]})
+    dados["uf"] = dados["uf"].upper()
+    dados["apelido"] = dados.get("apelido") or "Casa"
+    return dados
+
+
+def criar_endereco(doadora: Doadora, **dados) -> Endereco:
+    """O primeiro endereço já nasce ativo: a coleta sempre tem para onde ir."""
+    primeiro = not doadora.enderecos.exists()
+    return Endereco.objects.create(doadora=doadora, ativo=primeiro, **_limpar_endereco(dados))
+
+
+def editar_endereco(endereco: Endereco, **dados) -> Endereco:
+    for campo, valor in _limpar_endereco(dados).items():
+        setattr(endereco, campo, valor)
+    endereco.save()
+    return endereco
+
+
+@transaction.atomic
+def ativar_endereco(endereco: Endereco) -> Endereco:
+    # Desativa os outros antes: a restrição do banco permite um só ativo por doadora.
+    Endereco.objects.filter(doadora=endereco.doadora, ativo=True).exclude(pk=endereco.pk).update(ativo=False)
+    endereco.ativo = True
+    endereco.save(update_fields=["ativo", "atualizado_em"])
+    return endereco
+
+
+@transaction.atomic
+def excluir_endereco(endereco: Endereco):
+    outros = endereco.doadora.enderecos.exclude(pk=endereco.pk)
+    if not outros.exists():
+        raise ErroDominio("conflito", "Você precisa de pelo menos um endereço para a equipe buscar o leite.")
+    era_ativo = endereco.ativo
+    endereco.delete()
+    if era_ativo:
+        ativar_endereco(outros.order_by("criado_em").first())
 
 
 @transaction.atomic

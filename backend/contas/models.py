@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.db.models import Q
 
 from core.models import ModeloBase
 
@@ -63,16 +64,6 @@ class Doadora(ModeloBase):
     banco = models.ForeignKey("bancos.BancoDeLeite", on_delete=models.PROTECT, related_name="doadoras")
     data_nascimento = models.DateField()
     data_parto = models.DateField(help_text="Pode ser futura, se ainda estiver grávida.")
-    cep = models.CharField(max_length=8)
-    logradouro = models.CharField(max_length=150)
-    numero = models.CharField(max_length=10)
-    complemento = models.CharField(max_length=60, blank=True)
-    bairro = models.CharField(max_length=80)
-    cidade = models.CharField(max_length=80)
-    uf = models.CharField(max_length=2)
-    referencia = models.CharField(max_length=150, blank=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.CADASTRADA)
     consentimento_em = models.DateTimeField()
 
@@ -81,6 +72,38 @@ class Doadora(ModeloBase):
 
     def __str__(self):
         return self.usuario.nome_completo
+
+
+class Endereco(ModeloBase):
+    """Onde a equipe busca o leite. A doadora pode ter vários; a coleta usa o ativo."""
+
+    doadora = models.ForeignKey(Doadora, on_delete=models.CASCADE, related_name="enderecos")
+    apelido = models.CharField(max_length=40, default="Casa")
+    cep = models.CharField(max_length=8)
+    logradouro = models.CharField(max_length=150)
+    numero = models.CharField(max_length=10)
+    complemento = models.CharField(max_length=60, blank=True)
+    bairro = models.CharField(max_length=80)
+    cidade = models.CharField(max_length=80)
+    uf = models.CharField(max_length=2)
+    referencia = models.CharField(max_length=150, blank=True)
+    ativo = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "endereço"
+        verbose_name_plural = "endereços"
+        ordering = ["-ativo", "criado_em"]
+        constraints = [
+            models.UniqueConstraint(fields=["doadora"], condition=Q(ativo=True), name="um_endereco_ativo_por_doadora")
+        ]
+
+    def __str__(self):
+        return f"{self.apelido}: {self.linha}"
+
+    @property
+    def linha(self) -> str:
+        complemento = f" - {self.complemento}" if self.complemento else ""
+        return f"{self.logradouro}, {self.numero}{complemento}, {self.bairro}, {self.cidade}-{self.uf}"
 
 
 class Triagem(ModeloBase):

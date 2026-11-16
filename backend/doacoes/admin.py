@@ -17,11 +17,15 @@ def aplicar(modeladmin, request, queryset, funcao):
 # shortcut: admin sem filtro por banco; usar só com superusuário até o painel web existir.
 @admin.register(Coleta)
 class ColetaAdmin(admin.ModelAdmin):
-    list_display = ["doadora", "data", "janela", "quantidade_frascos", "status", "volume_ml"]
+    list_display = ["doadora", "data", "horario_rotulo", "quantidade_frascos", "status", "volume_ml"]
     list_filter = ["status", "data", "banco"]
     list_editable = ["volume_ml"]
-    readonly_fields = ["status", "coletada_em"]
+    readonly_fields = ["status", "coletada_em", "endereco"]
     actions = ["confirmar", "a_caminho", "coletada", "cancelar"]
+
+    @admin.display(description="Horário")
+    def horario_rotulo(self, obj):
+        return obj.horario_rotulo
 
     @admin.action(description="Confirmar")
     def confirmar(self, request, qs):

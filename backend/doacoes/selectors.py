@@ -1,11 +1,20 @@
-from django.db.models import Count, Sum
+from datetime import date
 
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncMonth
+from django.utils import timezone
+
+from bancos.models import BancoDeLeite, HorarioColeta
 from contas.models import Doadora
 from core.erros import ErroDominio
 from doacoes.models import Coleta, SolicitacaoKit
 
 # Referência de campanha: 1 litro alimenta até 10 recém-nascidos por dia. Confirmar a fonte com o banco de leite.
 ML_POR_RECEM_NASCIDO_DIA = 100
+
+
+def horarios_do_banco(banco: BancoDeLeite):
+    return HorarioColeta.objects.filter(banco=banco, ativo=True)
 
 
 def coletas_da_doadora(doadora: Doadora):
@@ -48,6 +57,21 @@ def impacto(doadora: Doadora) -> dict:
     }
 
 
+def historico(doadora: Doadora, hoje: date, meses: int = 6) -> list[dict]:
+    """Volume coletado por mês, do mais antigo ao atual, com zero nos meses sem coleta."""
+    indices = [hoje.year * 12 + hoje.month - 1 - i for i in reversed(range(meses))]
+    primeiros = [date(i // 12, i % 12 + 1, 1) for i in indices]
+    volumes = dict(
+        coletas_da_doadora(doadora)
+        .filter(status=Coleta.Status.COLETADA, data__gte=primeiros[0])
+        .annotate(mes=TruncMonth("data"))
+        .values("mes")
+        .annotate(volume=Sum("volume_ml"))
+        .values_list("mes", "volume")
+    )
+    return [{"mes": mes, "volume_ml": volumes.get(mes) or 0} for mes in primeiros]
+
+
 def proxima_acao(doadora: Doadora, ativa: Coleta | None, kit: SolicitacaoKit | None) -> str:
     """Única ação principal da tela Início."""
     status = Doadora.Status
@@ -74,5 +98,6 @@ def inicio(doadora: Doadora) -> dict:
         "coleta_ativa": ativa,
         "kit_aberto": kit,
         "impacto": impacto(doadora),
+        "historico": historico(doadora, timezone.localdate()),
         "banco": doadora.banco,
     }

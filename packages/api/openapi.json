@@ -216,6 +216,187 @@
         ]
       }
     },
+    "/api/v1/enderecos": {
+      "get": {
+        "operationId": "contas_api_listar_enderecos",
+        "summary": "Listar Enderecos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EnderecoSaida"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "contas_api_criar_endereco",
+        "summary": "Criar Endereco",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnderecoSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnderecoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/enderecos/{endereco_id}": {
+      "put": {
+        "operationId": "contas_api_editar_endereco",
+        "summary": "Editar Endereco",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endereco_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Endereco Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnderecoSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnderecoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "contas_api_excluir_endereco",
+        "summary": "Excluir Endereco",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endereco_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Endereco Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/enderecos/{endereco_id}/ativar": {
+      "post": {
+        "operationId": "contas_api_ativar_endereco",
+        "summary": "Ativar Endereco",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endereco_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Endereco Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnderecoSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/inicio": {
       "get": {
         "operationId": "doacoes_api_inicio",
@@ -348,6 +529,37 @@
                   "items": {
                     "format": "date",
                     "type": "string"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coletas/horarios": {
+      "get": {
+        "operationId": "doacoes_api_horarios",
+        "summary": "Horarios",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HorarioSaida"
                   },
                   "title": "Response",
                   "type": "array"
@@ -781,40 +993,23 @@
             "title": "Data Parto",
             "type": "string"
           },
-          "cep": {
-            "title": "Cep",
-            "type": "string"
-          },
-          "logradouro": {
-            "title": "Logradouro",
-            "type": "string"
-          },
-          "numero": {
-            "title": "Numero",
-            "type": "string"
-          },
-          "complemento": {
-            "title": "Complemento",
-            "type": "string"
-          },
-          "bairro": {
-            "title": "Bairro",
-            "type": "string"
-          },
-          "cidade": {
-            "title": "Cidade",
-            "type": "string"
-          },
-          "uf": {
-            "title": "Uf",
-            "type": "string"
-          },
-          "referencia": {
-            "title": "Referencia",
-            "type": "string"
+          "endereco_ativo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EnderecoSaida"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "banco": {
             "$ref": "#/components/schemas/BancoSaida"
+          },
+          "criado_em": {
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
           }
         },
         "required": [
@@ -824,17 +1019,102 @@
           "status",
           "status_rotulo",
           "data_parto",
+          "endereco_ativo",
+          "banco",
+          "criado_em"
+        ],
+        "title": "DoadoraSaida",
+        "type": "object"
+      },
+      "EnderecoSaida": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "apelido": {
+            "default": "Casa",
+            "maxLength": 40,
+            "title": "Apelido",
+            "type": "string"
+          },
+          "cep": {
+            "maxLength": 8,
+            "title": "Cep",
+            "type": "string"
+          },
+          "logradouro": {
+            "maxLength": 150,
+            "title": "Logradouro",
+            "type": "string"
+          },
+          "numero": {
+            "maxLength": 10,
+            "title": "Numero",
+            "type": "string"
+          },
+          "complemento": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Complemento"
+          },
+          "bairro": {
+            "maxLength": 80,
+            "title": "Bairro",
+            "type": "string"
+          },
+          "cidade": {
+            "maxLength": 80,
+            "title": "Cidade",
+            "type": "string"
+          },
+          "uf": {
+            "maxLength": 2,
+            "title": "Uf",
+            "type": "string"
+          },
+          "referencia": {
+            "anyOf": [
+              {
+                "maxLength": 150,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referencia"
+          },
+          "ativo": {
+            "default": false,
+            "title": "Ativo",
+            "type": "boolean"
+          }
+        },
+        "required": [
           "cep",
           "logradouro",
           "numero",
-          "complemento",
           "bairro",
           "cidade",
-          "uf",
-          "referencia",
-          "banco"
+          "uf"
         ],
-        "title": "DoadoraSaida",
+        "title": "EnderecoSaida",
         "type": "object"
       },
       "PerguntaSaida": {
@@ -871,6 +1151,73 @@
         "title": "TriagemEntrada",
         "type": "object"
       },
+      "EnderecoEntrada": {
+        "properties": {
+          "apelido": {
+            "default": "Casa",
+            "maxLength": 40,
+            "title": "Apelido",
+            "type": "string"
+          },
+          "cep": {
+            "maxLength": 9,
+            "title": "Cep",
+            "type": "string"
+          },
+          "logradouro": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Logradouro",
+            "type": "string"
+          },
+          "numero": {
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Numero",
+            "type": "string"
+          },
+          "complemento": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Complemento",
+            "type": "string"
+          },
+          "bairro": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Bairro",
+            "type": "string"
+          },
+          "cidade": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Cidade",
+            "type": "string"
+          },
+          "uf": {
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Uf",
+            "type": "string"
+          },
+          "referencia": {
+            "default": "",
+            "maxLength": 150,
+            "title": "Referencia",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cep",
+          "logradouro",
+          "numero",
+          "bairro",
+          "cidade",
+          "uf"
+        ],
+        "title": "EnderecoEntrada",
+        "type": "object"
+      },
       "ColetaSaida": {
         "properties": {
           "id": {
@@ -890,10 +1237,27 @@
             "title": "Data",
             "type": "string"
           },
-          "janela": {
-            "maxLength": 5,
-            "title": "Janela",
+          "horario_inicio": {
+            "format": "time",
+            "title": "Início Do Horário",
             "type": "string"
+          },
+          "horario_fim": {
+            "format": "time",
+            "title": "Fim Do Horário",
+            "type": "string"
+          },
+          "endereco": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "",
+            "title": "Endereço Da Coleta"
           },
           "quantidade_frascos": {
             "title": "Quantidade Frascos",
@@ -937,18 +1301,19 @@
             "title": "Status Rotulo",
             "type": "string"
           },
-          "janela_rotulo": {
-            "title": "Janela Rotulo",
+          "horario_rotulo": {
+            "title": "Horario Rotulo",
             "type": "string"
           }
         },
         "required": [
           "data",
-          "janela",
+          "horario_inicio",
+          "horario_fim",
           "quantidade_frascos",
           "criado_em",
           "status_rotulo",
-          "janela_rotulo"
+          "horario_rotulo"
         ],
         "title": "ColetaSaida",
         "type": "object"
@@ -1046,6 +1411,13 @@
           "impacto": {
             "$ref": "#/components/schemas/ImpactoSaida"
           },
+          "historico": {
+            "items": {
+              "$ref": "#/components/schemas/MesSaida"
+            },
+            "title": "Historico",
+            "type": "array"
+          },
           "banco": {
             "$ref": "#/components/schemas/BancoSaida"
           }
@@ -1056,6 +1428,7 @@
           "coleta_ativa",
           "kit_aberto",
           "impacto",
+          "historico",
           "banco"
         ],
         "title": "InicioSaida",
@@ -1101,6 +1474,25 @@
           "status_rotulo"
         ],
         "title": "KitSaida",
+        "type": "object"
+      },
+      "MesSaida": {
+        "properties": {
+          "mes": {
+            "format": "date",
+            "title": "Mes",
+            "type": "string"
+          },
+          "volume_ml": {
+            "title": "Volume Ml",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mes",
+          "volume_ml"
+        ],
+        "title": "MesSaida",
         "type": "object"
       },
       "Input": {
@@ -1163,6 +1555,37 @@
         "title": "KitEntrada",
         "type": "object"
       },
+      "HorarioSaida": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "inicio": {
+            "format": "time",
+            "title": "Inicio",
+            "type": "string"
+          },
+          "fim": {
+            "format": "time",
+            "title": "Fim",
+            "type": "string"
+          },
+          "rotulo": {
+            "title": "Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "inicio",
+          "fim",
+          "rotulo"
+        ],
+        "title": "HorarioSaida",
+        "type": "object"
+      },
       "PagedColetaSaida": {
         "properties": {
           "items": {
@@ -1191,12 +1614,9 @@
             "title": "Data",
             "type": "string"
           },
-          "janela": {
-            "enum": [
-              "manha",
-              "tarde"
-            ],
-            "title": "Janela",
+          "horario_id": {
+            "format": "uuid",
+            "title": "Horario Id",
             "type": "string"
           },
           "quantidade_frascos": {
@@ -1208,7 +1628,7 @@
         },
         "required": [
           "data",
-          "janela",
+          "horario_id",
           "quantidade_frascos"
         ],
         "title": "ColetaEntrada",

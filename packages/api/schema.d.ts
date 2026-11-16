@@ -123,6 +123,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/enderecos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Enderecos */
+        get: operations["contas_api_listar_enderecos"];
+        put?: never;
+        /** Criar Endereco */
+        post: operations["contas_api_criar_endereco"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/enderecos/{endereco_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Editar Endereco */
+        put: operations["contas_api_editar_endereco"];
+        post?: never;
+        /** Excluir Endereco */
+        delete: operations["contas_api_excluir_endereco"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/enderecos/{endereco_id}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ativar Endereco */
+        post: operations["contas_api_ativar_endereco"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inicio": {
         parameters: {
             query?: never;
@@ -167,6 +220,23 @@ export interface paths {
         };
         /** Dias Disponiveis */
         get: operations["doacoes_api_dias_disponiveis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coletas/horarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Horarios */
+        get: operations["doacoes_api_horarios"];
         put?: never;
         post?: never;
         delete?: never;
@@ -336,6 +406,23 @@ export interface components {
              * Format: date
              */
             data_parto: string;
+            endereco_ativo: components["schemas"]["EnderecoSaida"] | null;
+            banco: components["schemas"]["BancoSaida"];
+            /**
+             * Criado Em
+             * Format: date-time
+             */
+            criado_em: string;
+        };
+        /** EnderecoSaida */
+        EnderecoSaida: {
+            /** Id */
+            id?: string | null;
+            /**
+             * Apelido
+             * @default Casa
+             */
+            apelido: string;
             /** Cep */
             cep: string;
             /** Logradouro */
@@ -343,7 +430,7 @@ export interface components {
             /** Numero */
             numero: string;
             /** Complemento */
-            complemento: string;
+            complemento?: string | null;
             /** Bairro */
             bairro: string;
             /** Cidade */
@@ -351,8 +438,12 @@ export interface components {
             /** Uf */
             uf: string;
             /** Referencia */
-            referencia: string;
-            banco: components["schemas"]["BancoSaida"];
+            referencia?: string | null;
+            /**
+             * Ativo
+             * @default false
+             */
+            ativo: boolean;
         };
         /** PerguntaSaida */
         PerguntaSaida: {
@@ -368,6 +459,36 @@ export interface components {
                 [key: string]: boolean;
             };
         };
+        /** EnderecoEntrada */
+        EnderecoEntrada: {
+            /**
+             * Apelido
+             * @default Casa
+             */
+            apelido: string;
+            /** Cep */
+            cep: string;
+            /** Logradouro */
+            logradouro: string;
+            /** Numero */
+            numero: string;
+            /**
+             * Complemento
+             * @default
+             */
+            complemento: string;
+            /** Bairro */
+            bairro: string;
+            /** Cidade */
+            cidade: string;
+            /** Uf */
+            uf: string;
+            /**
+             * Referencia
+             * @default
+             */
+            referencia: string;
+        };
         /** ColetaSaida */
         ColetaSaida: {
             /** Id */
@@ -377,8 +498,21 @@ export interface components {
              * Format: date
              */
             data: string;
-            /** Janela */
-            janela: string;
+            /**
+             * Início Do Horário
+             * Format: time
+             */
+            horario_inicio: string;
+            /**
+             * Fim Do Horário
+             * Format: time
+             */
+            horario_fim: string;
+            /**
+             * Endereço Da Coleta
+             * @default
+             */
+            endereco: string | null;
             /** Quantidade Frascos */
             quantidade_frascos: number;
             /**
@@ -397,8 +531,8 @@ export interface components {
             criado_em: string;
             /** Status Rotulo */
             status_rotulo: string;
-            /** Janela Rotulo */
-            janela_rotulo: string;
+            /** Horario Rotulo */
+            horario_rotulo: string;
         };
         /** DoadoraResumo */
         DoadoraResumo: {
@@ -434,6 +568,8 @@ export interface components {
             coleta_ativa: components["schemas"]["ColetaSaida"] | null;
             kit_aberto: components["schemas"]["KitSaida"] | null;
             impacto: components["schemas"]["ImpactoSaida"];
+            /** Historico */
+            historico: components["schemas"]["MesSaida"][];
             banco: components["schemas"]["BancoSaida"];
         };
         /** KitSaida */
@@ -454,6 +590,16 @@ export interface components {
             criado_em: string;
             /** Status Rotulo */
             status_rotulo: string;
+        };
+        /** MesSaida */
+        MesSaida: {
+            /**
+             * Mes
+             * Format: date
+             */
+            mes: string;
+            /** Volume Ml */
+            volume_ml: number;
         };
         /** Input */
         Input: {
@@ -477,6 +623,26 @@ export interface components {
             /** Quantidade Frascos */
             quantidade_frascos: number;
         };
+        /** HorarioSaida */
+        HorarioSaida: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Inicio
+             * Format: time
+             */
+            inicio: string;
+            /**
+             * Fim
+             * Format: time
+             */
+            fim: string;
+            /** Rotulo */
+            rotulo: string;
+        };
         /** PagedColetaSaida */
         PagedColetaSaida: {
             /** Items */
@@ -492,10 +658,10 @@ export interface components {
              */
             data: string;
             /**
-             * Janela
-             * @enum {string}
+             * Horario Id
+             * Format: uuid
              */
-            janela: "manha" | "tarde";
+            horario_id: string;
             /** Quantidade Frascos */
             quantidade_frascos: number;
         };
@@ -670,6 +836,118 @@ export interface operations {
             };
         };
     };
+    contas_api_listar_enderecos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnderecoSaida"][];
+                };
+            };
+        };
+    };
+    contas_api_criar_endereco: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnderecoEntrada"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnderecoSaida"];
+                };
+            };
+        };
+    };
+    contas_api_editar_endereco: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endereco_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnderecoEntrada"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnderecoSaida"];
+                };
+            };
+        };
+    };
+    contas_api_excluir_endereco: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endereco_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    contas_api_ativar_endereco: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endereco_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnderecoSaida"];
+                };
+            };
+        };
+    };
     doacoes_api_inicio: {
         parameters: {
             query?: never;
@@ -753,6 +1031,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": string[];
+                };
+            };
+        };
+    };
+    doacoes_api_horarios: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HorarioSaida"][];
                 };
             };
         };

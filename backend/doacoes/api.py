@@ -7,7 +7,7 @@ from ninja.pagination import PageNumberPagination, paginate
 
 from contas.selectors import doadora_do_usuario
 from doacoes import selectors, services
-from doacoes.schemas import CancelamentoEntrada, ColetaEntrada, ColetaSaida, InicioSaida, KitEntrada, KitSaida
+from doacoes.schemas import CancelamentoEntrada, ColetaEntrada, ColetaSaida, HorarioSaida, InicioSaida, KitEntrada, KitSaida
 
 router = Router(tags=["doacoes"])
 
@@ -31,6 +31,11 @@ def pedir_kit(request, dados: KitEntrada):
 @router.get("/coletas/dias-disponiveis", response=list[date])
 def dias_disponiveis(request):
     return services.dias_disponiveis(timezone.localdate())
+
+
+@router.get("/coletas/horarios", response=list[HorarioSaida])
+def horarios(request):
+    return selectors.horarios_do_banco(doadora_do_usuario(request.auth).banco)
 
 
 @router.get("/coletas", response=list[ColetaSaida])

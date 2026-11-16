@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
 from django.utils.html import format_html_join
 
 from contas import services
-from contas.models import Doadora, Triagem, Usuario
+from contas.models import Doadora, Endereco, Triagem, Usuario
 from contas.triagem import TEXTOS
 from core.erros import ErroDominio
 
@@ -37,6 +37,13 @@ class UsuarioAdmin(UserAdmin):
     add_fieldsets = [
         (None, {"fields": ["telefone", "nome_completo", "password1", "password2"]}),
     ]
+
+
+class EnderecoInline(admin.StackedInline):
+    model = Endereco
+    extra = 0
+    # Trocar o ativo passa pelo service, que respeita "um ativo por doadora"; aqui só leitura.
+    readonly_fields = ["ativo"]
 
 
 class TriagemInline(admin.TabularInline):
@@ -74,7 +81,7 @@ class DoadoraAdmin(admin.ModelAdmin):
     list_filter = ["status", "banco"]
     search_fields = ["usuario__nome_completo", "usuario__telefone"]
     readonly_fields = ["status", "consentimento_em"]
-    inlines = [TriagemInline]
+    inlines = [EnderecoInline, TriagemInline]
     actions = ["aprovar", "reprovar"]
 
     @admin.display(description="Telefone")

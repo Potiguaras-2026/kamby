@@ -2,6 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
+from bancos.models import rotulo_horario
 from core.models import ModeloBase
 
 
@@ -35,17 +36,17 @@ class Coleta(ModeloBase):
         COLETADA = "coletada", "Coletada"
         CANCELADA = "cancelada", "Cancelada"
 
-    class Janela(models.TextChoices):
-        MANHA = "manha", "Manhã"
-        TARDE = "tarde", "Tarde"
-
     ATIVAS = [Status.AGENDADA, Status.CONFIRMADA, Status.A_CAMINHO]
 
     doadora = models.ForeignKey("contas.Doadora", on_delete=models.CASCADE, related_name="coletas")
     # Cópia do banco da doadora no agendamento: a coleta continua no banco que a aceitou.
     banco = models.ForeignKey("bancos.BancoDeLeite", on_delete=models.PROTECT, related_name="coletas")
     data = models.DateField()
-    janela = models.CharField(max_length=5, choices=Janela.choices)
+    # Cópia do horário escolhido: a coleta não muda se o banco editar ou desativar o horário depois.
+    horario_inicio = models.TimeField("início do horário")
+    horario_fim = models.TimeField("fim do horário")
+    # Cópia em texto: trocar ou excluir o endereço depois não muda onde a equipe vai.
+    endereco = models.TextField("endereço da coleta", blank=True, default="")
     quantidade_frascos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(20)])
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.AGENDADA)
     volume_ml = models.PositiveIntegerField(null=True, blank=True)
@@ -63,4 +64,8 @@ class Coleta(ModeloBase):
         ]
 
     def __str__(self):
-        return f"{self.doadora} em {self.data:%d/%m} ({self.get_janela_display()})"
+        return f"{self.doadora} em {self.data:%d/%m} ({self.horario_rotulo})"
+
+    @property
+    def horario_rotulo(self) -> str:
+        return rotulo_horario(self.horario_inicio, self.horario_fim)

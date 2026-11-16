@@ -44,7 +44,7 @@ def pedir_kit(doadora: Doadora, quantidade_frascos: int) -> SolicitacaoKit:
         raise ErroDominio("conflito", "Você já tem um pedido de frascos em andamento.")
 
 
-def agendar_coleta(doadora: Doadora, *, data: date, janela: str, quantidade_frascos: int) -> Coleta:
+def agendar_coleta(doadora: Doadora, *, data: date, horario_id, quantidade_frascos: int) -> Coleta:
     exigir_apta(doadora, "agendar coletas")
     if not selectors.tem_kit_entregue(doadora):
         raise ErroDominio("conflito", "Peça seus frascos antes de agendar a coleta.")
@@ -52,12 +52,24 @@ def agendar_coleta(doadora: Doadora, *, data: date, janela: str, quantidade_fras
         raise ErroDominio(
             "validacao", "Escolha um dia útil nas próximas duas semanas.", {"data": ["Dia indisponível."]}
         )
+    horario = selectors.horarios_do_banco(doadora.banco).filter(id=horario_id).first()
+    if horario is None:
+        raise ErroDominio("validacao", "Escolha um dos horários disponíveis.", {"horario_id": ["Horário indisponível."]})
+    endereco = doadora.enderecos.filter(ativo=True).first()
+    if endereco is None:
+        raise ErroDominio("conflito", "Cadastre um endereço para a equipe buscar o leite.")
     if selectors.coleta_ativa(doadora):
         raise ErroDominio("conflito", "Você já tem uma coleta agendada.")
     try:
         with transaction.atomic():
             return Coleta.objects.create(
-                doadora=doadora, banco=doadora.banco, data=data, janela=janela, quantidade_frascos=quantidade_frascos
+                doadora=doadora,
+                banco=doadora.banco,
+                data=data,
+                horario_inicio=horario.inicio,
+                horario_fim=horario.fim,
+                endereco=endereco.linha + (f" (Ref.: {endereco.referencia})" if endereco.referencia else ""),
+                quantidade_frascos=quantidade_frascos,
             )
     except IntegrityError:
         raise ErroDominio("conflito", "Você já tem uma coleta agendada.")
