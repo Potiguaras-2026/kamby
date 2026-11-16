@@ -10,4 +10,5 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 - App mobile: login e tela Início ligados à API.
 - Painel web: base com layout acessível e conexão com a API.
 - Dados de demonstração (`seed_demo`) e deploy com Docker Compose e Caddy.
+- Ambiente de desenvolvimento em Docker (Postgres, API e painel com hot reload).
 - AGENTS.md e docs de arquitetura, design e infraestrutura.

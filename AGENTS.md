@@ -3,7 +3,7 @@
 Connects mothers who donate breast milk with human milk banks in Natal, Brazil. Mothers use the mobile app to register, request sterilized bottles and schedule home pickups. Milk bank staff use the web panel.
 
 ```yaml
-backend: Django 6, Django Ninja, PostgreSQL (SQLite locally)   # backend/
+backend: Django 6, Django Ninja, PostgreSQL                    # backend/
 mobile: Expo SDK 58, Expo Router, TanStack Query, openapi-fetch  # mobile/  donor app
 web: Vite, React, React Router, TanStack Query, Tailwind         # web/     milk bank panel
 api_types: generated from OpenAPI                                # packages/api/  do not edit schema.d.ts
@@ -13,16 +13,18 @@ naming:
   technical: English                    # models.py, services.py, hooks, screens
   ui_text: pt-BR
 
-commands:  # from repo root; activate backend/.venv first for python
-  install: npm install && pip install -r backend/requirements.txt
-  backend: cd backend && python manage.py migrate && python manage.py runserver 0.0.0.0:8000
-  seed: cd backend && python manage.py seed_demo
-  test_backend: cd backend && python manage.py test
-  api_types: npm run api:tipos          # after any API change
-  mobile: npm run mobile
+commands:  # from repo root; Docker is the default flow (compose.yaml = dev)
+  up: docker compose up --build         # db, api :8000, web :5173 with hot reload
+  manage: docker compose exec api python manage.py <cmd>
+  seed: docker compose exec api python manage.py seed_demo
+  test_backend: docker compose exec api python manage.py test
+  migrations: docker compose exec api python manage.py makemigrations
+  api_types: npm run api:tipos          # needs the stack up; after any API change
+  install_js: npm install               # host only, for mobile and editor types
+  mobile: npm run mobile                # outside Docker: Expo Go needs the LAN
   typecheck_mobile: npm run typecheck -w mobile
-  web: npm run web
-  build_web: npm run build -w web
+  build_web: docker compose exec web npm run build -w web
+  web_deps_changed: docker compose run --rm web npm ci -w web -w @kamby/api
 ```
 
 ## Read first

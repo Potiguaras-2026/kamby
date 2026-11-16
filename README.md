@@ -14,28 +14,24 @@ Projeto da equipe Potiguaras (IFRN Natal).
 
 ## Rodar local
 
-Pré-requisitos: Python 3.13, Node 24, app Expo Go no celular.
+Pré-requisitos: Docker, Node 24, app Expo Go no celular.
+
+```bash
+docker compose up --build                          # API em :8000, painel em :5173
+docker compose exec api python manage.py seed_demo # dados de demonstração
+```
+
+O mobile roda fora do Docker, porque o Expo Go precisa da rede local:
 
 ```bash
 npm install
-cd backend
-python -m venv .venv
-.venv\Scripts\activate          # Linux/macOS: source .venv/bin/activate
-pip install -r requirements.txt
-copy .env.example .env          # Linux/macOS: cp
-python manage.py migrate
-python manage.py seed_demo
-python manage.py runserver 0.0.0.0:8000
-```
-
-Em outro terminal, na raiz:
-
-```bash
-npm run mobile    # escaneie o QR code com o Expo Go
-npm run web       # painel em http://localhost:5173
+copy mobile\.env.example mobile\.env   # Linux/macOS: cp mobile/.env.example mobile/.env
+npm run mobile                         # escaneie o QR code com o Expo Go
 ```
 
 No celular físico, ajuste `EXPO_PUBLIC_API_URL` em `mobile/.env` para o IP do computador na rede.
+
+Testes do backend: `docker compose exec api python manage.py test`. Mais comandos em [AGENTS.md](AGENTS.md).
 
 Usuários do `seed_demo` (senha em `SEED_SENHA`): equipe `84900000000` (admin em `/admin`), doadora apta `84911111111`.
 

@@ -1,0 +1,59 @@
+# Desenvolvimento: docker compose up --build
+# O mobile roda fora do Docker (Expo Go precisa da rede local); aponte EXPO_PUBLIC_API_URL para a porta 8000.
+x-postgres: &postgres
+  POSTGRES_DB: kamby
+  POSTGRES_USER: kamby
+  POSTGRES_PASSWORD: kamby-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment: *postgres
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kamby -d kamby"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      <<: *postgres
+      POSTGRES_HOST: db
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: "*"
+      SEED_SENHA: kamby-demo-2026
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./packages/api:/packages/api
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: node:24-alpine
+    working_dir: /repo
+    # Dependências ficam em volumes: binários Linux não podem misturar com o node_modules do host.
+    command: sh -c "test -x node_modules/.bin/vite || npm ci -w web -w @kamby/api; npm run dev -w web -- --host 0.0.0.0"
+    environment:
+      API_URL: http://api:8000
+      WATCH_POLLING: "1"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/repo
+      - node_modules:/repo/node_modules
+      - web_node_modules:/repo/web/node_modules
+      - api_node_modules:/repo/packages/api/node_modules
+    depends_on:
+      - api
+
+volumes:
+  pgdata_dev:
+  node_modules:
+  web_node_modules:
+  api_node_modules:

@@ -1,4 +1,4 @@
-# Produção. Local: backend com SQLite (runserver), mobile e web com npm.
+# Produção: docker compose -f compose.prod.yaml up -d --build
 services:
   db:
     image: postgres:17-alpine
