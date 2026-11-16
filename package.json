@@ -1,0 +1,14 @@
+{
+  "name": "kamby",
+  "private": true,
+  "workspaces": ["mobile", "web", "packages/*"],
+  "scripts": {
+    "mobile": "npm run start -w mobile",
+    "web": "npm run dev -w web",
+    "api:tipos": "cd backend && python manage.py export_openapi_schema --api config.api.api --output ../packages/api/openapi.json --indent 2 && cd .. && npm run gerar -w @kamby/api"
+  },
+  "overrides": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}

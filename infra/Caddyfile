@@ -1,0 +1,18 @@
+{$DOMINIO} {
+	encode gzip
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	handle /admin* {
+		reverse_proxy api:8000
+	}
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+	handle {
+		root * /srv/web
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Substituir pelos tokens do Figma. */
+@theme {
+  --color-primaria: #7a2e55;
+  --color-fundo: #fff8f5;
+  --color-texto: #1f1a1c;
+  --color-texto-suave: #5c5458;
+  --color-borda: #8c8286;
+}
+
+body {
+  @apply bg-fundo text-texto antialiased;
+}

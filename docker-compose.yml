@@ -1,0 +1,45 @@
+# Produção. Local: backend com SQLite (runserver), mobile e web com npm.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: backend/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file: backend/.env
+    environment:
+      POSTGRES_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - static:/app/staticfiles
+
+  caddy:
+    build:
+      context: .
+      dockerfile: infra/caddy.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no .env da raiz}
+    volumes:
+      - static:/srv/static:ro
+      - caddy_data:/data
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  static:
+  caddy_data:

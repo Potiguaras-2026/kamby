@@ -1,0 +1,1238 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Kamby API",
+    "version": "1",
+    "description": ""
+  },
+  "paths": {
+    "/api/v1/auth/cadastro": {
+      "post": {
+        "operationId": "contas_api_cadastro",
+        "summary": "Cadastro",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CadastroEntrada"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/auth/entrar": {
+      "post": {
+        "operationId": "contas_api_entrar",
+        "summary": "Entrar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntrarEntrada"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/auth/renovar": {
+      "post": {
+        "operationId": "contas_api_renovar",
+        "summary": "Renovar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenovarEntrada"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/bancos": {
+      "get": {
+        "operationId": "bancos_api_listar_bancos",
+        "summary": "Listar Bancos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BancoSaida"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "bancos"
+        ]
+      }
+    },
+    "/api/v1/eu": {
+      "get": {
+        "operationId": "contas_api_eu",
+        "summary": "Eu",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoadoraSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/triagem/perguntas": {
+      "get": {
+        "operationId": "contas_api_perguntas",
+        "summary": "Perguntas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PerguntaSaida"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/triagem": {
+      "post": {
+        "operationId": "contas_api_responder_triagem",
+        "summary": "Responder Triagem",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriagemEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/inicio": {
+      "get": {
+        "operationId": "doacoes_api_inicio",
+        "summary": "Inicio",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InicioSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/kits": {
+      "get": {
+        "operationId": "doacoes_api_listar_kits",
+        "summary": "Listar Kits",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page Size"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedKitSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "doacoes_api_pedir_kit",
+        "summary": "Pedir Kit",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KitEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coletas/dias-disponiveis": {
+      "get": {
+        "operationId": "doacoes_api_dias_disponiveis",
+        "summary": "Dias Disponiveis",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coletas": {
+      "get": {
+        "operationId": "doacoes_api_listar_coletas",
+        "summary": "Listar Coletas",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page Size"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedColetaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "doacoes_api_agendar_coleta",
+        "summary": "Agendar Coleta",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColetaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColetaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coletas/{coleta_id}": {
+      "get": {
+        "operationId": "doacoes_api_detalhar_coleta",
+        "summary": "Detalhar Coleta",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coleta_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Coleta Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColetaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coletas/{coleta_id}/cancelar": {
+      "post": {
+        "operationId": "doacoes_api_cancelar_coleta",
+        "summary": "Cancelar Coleta",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coleta_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Coleta Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColetaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelamentoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TokensSaida": {
+        "properties": {
+          "access": {
+            "title": "Access",
+            "type": "string"
+          },
+          "refresh": {
+            "title": "Refresh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access",
+          "refresh"
+        ],
+        "title": "TokensSaida",
+        "type": "object"
+      },
+      "CadastroEntrada": {
+        "properties": {
+          "nome_completo": {
+            "maxLength": 150,
+            "minLength": 3,
+            "title": "Nome Completo",
+            "type": "string"
+          },
+          "telefone": {
+            "maxLength": 20,
+            "title": "Telefone",
+            "type": "string"
+          },
+          "senha": {
+            "maxLength": 128,
+            "title": "Senha",
+            "type": "string"
+          },
+          "data_nascimento": {
+            "format": "date",
+            "title": "Data Nascimento",
+            "type": "string"
+          },
+          "data_parto": {
+            "format": "date",
+            "title": "Data Parto",
+            "type": "string"
+          },
+          "banco_id": {
+            "format": "uuid",
+            "title": "Banco Id",
+            "type": "string"
+          },
+          "cep": {
+            "maxLength": 9,
+            "title": "Cep",
+            "type": "string"
+          },
+          "logradouro": {
+            "maxLength": 150,
+            "title": "Logradouro",
+            "type": "string"
+          },
+          "numero": {
+            "maxLength": 10,
+            "title": "Numero",
+            "type": "string"
+          },
+          "complemento": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Complemento",
+            "type": "string"
+          },
+          "bairro": {
+            "maxLength": 80,
+            "title": "Bairro",
+            "type": "string"
+          },
+          "cidade": {
+            "maxLength": 80,
+            "title": "Cidade",
+            "type": "string"
+          },
+          "uf": {
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Uf",
+            "type": "string"
+          },
+          "referencia": {
+            "default": "",
+            "maxLength": 150,
+            "title": "Referencia",
+            "type": "string"
+          },
+          "consentimento": {
+            "title": "Consentimento",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "nome_completo",
+          "telefone",
+          "senha",
+          "data_nascimento",
+          "data_parto",
+          "banco_id",
+          "cep",
+          "logradouro",
+          "numero",
+          "bairro",
+          "cidade",
+          "uf",
+          "consentimento"
+        ],
+        "title": "CadastroEntrada",
+        "type": "object"
+      },
+      "EntrarEntrada": {
+        "properties": {
+          "telefone": {
+            "maxLength": 20,
+            "title": "Telefone",
+            "type": "string"
+          },
+          "senha": {
+            "maxLength": 128,
+            "title": "Senha",
+            "type": "string"
+          }
+        },
+        "required": [
+          "telefone",
+          "senha"
+        ],
+        "title": "EntrarEntrada",
+        "type": "object"
+      },
+      "AccessSaida": {
+        "properties": {
+          "access": {
+            "title": "Access",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access"
+        ],
+        "title": "AccessSaida",
+        "type": "object"
+      },
+      "RenovarEntrada": {
+        "properties": {
+          "refresh": {
+            "title": "Refresh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh"
+        ],
+        "title": "RenovarEntrada",
+        "type": "object"
+      },
+      "BancoSaida": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "nome": {
+            "maxLength": 150,
+            "title": "Nome",
+            "type": "string"
+          },
+          "telefone": {
+            "maxLength": 15,
+            "title": "Telefone",
+            "type": "string"
+          },
+          "endereco": {
+            "maxLength": 200,
+            "title": "Endereco",
+            "type": "string"
+          },
+          "cidade": {
+            "maxLength": 80,
+            "title": "Cidade",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome",
+          "telefone",
+          "endereco",
+          "cidade"
+        ],
+        "title": "BancoSaida",
+        "type": "object"
+      },
+      "DoadoraSaida": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nome_completo": {
+            "title": "Nome Completo",
+            "type": "string"
+          },
+          "telefone": {
+            "title": "Telefone",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "status_rotulo": {
+            "title": "Status Rotulo",
+            "type": "string"
+          },
+          "data_parto": {
+            "format": "date",
+            "title": "Data Parto",
+            "type": "string"
+          },
+          "cep": {
+            "title": "Cep",
+            "type": "string"
+          },
+          "logradouro": {
+            "title": "Logradouro",
+            "type": "string"
+          },
+          "numero": {
+            "title": "Numero",
+            "type": "string"
+          },
+          "complemento": {
+            "title": "Complemento",
+            "type": "string"
+          },
+          "bairro": {
+            "title": "Bairro",
+            "type": "string"
+          },
+          "cidade": {
+            "title": "Cidade",
+            "type": "string"
+          },
+          "uf": {
+            "title": "Uf",
+            "type": "string"
+          },
+          "referencia": {
+            "title": "Referencia",
+            "type": "string"
+          },
+          "banco": {
+            "$ref": "#/components/schemas/BancoSaida"
+          }
+        },
+        "required": [
+          "id",
+          "nome_completo",
+          "telefone",
+          "status",
+          "status_rotulo",
+          "data_parto",
+          "cep",
+          "logradouro",
+          "numero",
+          "complemento",
+          "bairro",
+          "cidade",
+          "uf",
+          "referencia",
+          "banco"
+        ],
+        "title": "DoadoraSaida",
+        "type": "object"
+      },
+      "PerguntaSaida": {
+        "properties": {
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "texto": {
+            "title": "Texto",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "texto"
+        ],
+        "title": "PerguntaSaida",
+        "type": "object"
+      },
+      "TriagemEntrada": {
+        "properties": {
+          "respostas": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Respostas",
+            "type": "object"
+          }
+        },
+        "required": [
+          "respostas"
+        ],
+        "title": "TriagemEntrada",
+        "type": "object"
+      },
+      "ColetaSaida": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "data": {
+            "format": "date",
+            "title": "Data",
+            "type": "string"
+          },
+          "janela": {
+            "maxLength": 5,
+            "title": "Janela",
+            "type": "string"
+          },
+          "quantidade_frascos": {
+            "title": "Quantidade Frascos",
+            "type": "integer"
+          },
+          "status": {
+            "default": "agendada",
+            "maxLength": 20,
+            "title": "Status",
+            "type": "string"
+          },
+          "volume_ml": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volume Ml"
+          },
+          "motivo_cancelamento": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motivo Cancelamento"
+          },
+          "criado_em": {
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "status_rotulo": {
+            "title": "Status Rotulo",
+            "type": "string"
+          },
+          "janela_rotulo": {
+            "title": "Janela Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "janela",
+          "quantidade_frascos",
+          "criado_em",
+          "status_rotulo",
+          "janela_rotulo"
+        ],
+        "title": "ColetaSaida",
+        "type": "object"
+      },
+      "DoadoraResumo": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nome_completo": {
+            "title": "Nome Completo",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "status_rotulo": {
+            "title": "Status Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nome_completo",
+          "status",
+          "status_rotulo"
+        ],
+        "title": "DoadoraResumo",
+        "type": "object"
+      },
+      "ImpactoSaida": {
+        "properties": {
+          "volume_total_ml": {
+            "title": "Volume Total Ml",
+            "type": "integer"
+          },
+          "recem_nascidos_dia": {
+            "title": "Recem Nascidos Dia",
+            "type": "integer"
+          },
+          "coletas": {
+            "title": "Coletas",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "volume_total_ml",
+          "recem_nascidos_dia",
+          "coletas"
+        ],
+        "title": "ImpactoSaida",
+        "type": "object"
+      },
+      "InicioSaida": {
+        "properties": {
+          "doadora": {
+            "$ref": "#/components/schemas/DoadoraResumo"
+          },
+          "proxima_acao": {
+            "enum": [
+              "responder_triagem",
+              "aguardar_analise",
+              "contatar_banco",
+              "pedir_kit",
+              "aguardar_kit",
+              "agendar_coleta",
+              "acompanhar_coleta"
+            ],
+            "title": "Proxima Acao",
+            "type": "string"
+          },
+          "coleta_ativa": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ColetaSaida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kit_aberto": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KitSaida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "impacto": {
+            "$ref": "#/components/schemas/ImpactoSaida"
+          },
+          "banco": {
+            "$ref": "#/components/schemas/BancoSaida"
+          }
+        },
+        "required": [
+          "doadora",
+          "proxima_acao",
+          "coleta_ativa",
+          "kit_aberto",
+          "impacto",
+          "banco"
+        ],
+        "title": "InicioSaida",
+        "type": "object"
+      },
+      "KitSaida": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "quantidade_frascos": {
+            "title": "Quantidade Frascos",
+            "type": "integer"
+          },
+          "status": {
+            "default": "solicitado",
+            "maxLength": 20,
+            "title": "Status",
+            "type": "string"
+          },
+          "criado_em": {
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "status_rotulo": {
+            "title": "Status Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quantidade_frascos",
+          "criado_em",
+          "status_rotulo"
+        ],
+        "title": "KitSaida",
+        "type": "object"
+      },
+      "Input": {
+        "properties": {
+          "page": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Size"
+          }
+        },
+        "title": "Input",
+        "type": "object"
+      },
+      "PagedKitSaida": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KitSaida"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "PagedKitSaida",
+        "type": "object"
+      },
+      "KitEntrada": {
+        "properties": {
+          "quantidade_frascos": {
+            "maximum": 10,
+            "minimum": 1,
+            "title": "Quantidade Frascos",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "quantidade_frascos"
+        ],
+        "title": "KitEntrada",
+        "type": "object"
+      },
+      "PagedColetaSaida": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ColetaSaida"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "PagedColetaSaida",
+        "type": "object"
+      },
+      "ColetaEntrada": {
+        "properties": {
+          "data": {
+            "format": "date",
+            "title": "Data",
+            "type": "string"
+          },
+          "janela": {
+            "enum": [
+              "manha",
+              "tarde"
+            ],
+            "title": "Janela",
+            "type": "string"
+          },
+          "quantidade_frascos": {
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Quantidade Frascos",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "janela",
+          "quantidade_frascos"
+        ],
+        "title": "ColetaEntrada",
+        "type": "object"
+      },
+      "CancelamentoEntrada": {
+        "properties": {
+          "motivo": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Motivo",
+            "type": "string"
+          }
+        },
+        "title": "CancelamentoEntrada",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "JWTAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": []
+}
