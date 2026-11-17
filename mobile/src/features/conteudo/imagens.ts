@@ -14,3 +14,6 @@ export const IMAGENS = {
   bancoFrascos: require("../../../assets/imagens/banco-frascos.jpg"),
   uti: require("../../../assets/imagens/uti.jpg"),
 };
+
+/** O admin escolhe a imagem pelo nome; nome desconhecido vira "sem imagem" em vez de quebrar a tela. */
+export const imagem = (nome?: string | null): number | undefined => (nome ? IMAGENS[nome as keyof typeof IMAGENS] : undefined);

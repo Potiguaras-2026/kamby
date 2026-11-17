@@ -4,9 +4,14 @@ import { Platform } from "react-native";
 
 import { lerTokens, salvarTokens } from "./sessao";
 
-// No navegador a API está no mesmo computador; no celular, no IP definido em mobile/.env.
+// Navegador: no dev (Expo na 8081) a API está na 8000 do mesmo computador; publicado em /app, no mesmo domínio.
+// Celular: no endereço definido em mobile/.env ou no perfil do EAS.
 const baseUrl =
-  Platform.OS === "web" ? `${location.protocol}//${location.hostname}:8000` : (process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8000");
+  Platform.OS === "web"
+    ? location.port === "8081"
+      ? `${location.protocol}//${location.hostname}:8000`
+      : location.origin
+    : (process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8000");
 
 export const api = createClient<paths>({ baseUrl });
 

@@ -44,7 +44,7 @@ Read these instead of describing them in docs.
 - Data model: `backend/*/models.py`
 - API contract: `/api/v1/openapi.json` (UI at `/api/v1/docs`)
 - Business rules: `backend/*/services.py` and `backend/*/tests.py`
-- Screens: Figma (link pending)
+- Screens: [Figma KAMBY V2](https://www.figma.com/design/uYRn0mrUuzEE1xWW5Kc9BI/KAMBY---V2)
 
 ## Rules
 

@@ -5,13 +5,20 @@ from django.utils import timezone
 
 from bancos.models import BancoDeLeite, HorarioColeta
 from contas import services as contas
-from contas.models import Doadora, Endereco, Usuario
-from contas.triagem import CODIGOS
+from contas.models import Doadora, Endereco, PerguntaSaude, Usuario
 from core.erros import ErroDominio
 from doacoes import selectors, services
 from doacoes.models import Coleta, SolicitacaoKit
 
 SENHA = "frasco-azul-2026"
+
+
+def respostas(valor=True) -> dict[str, bool]:
+    return {c: valor for c in PerguntaSaude.objects.filter(ativa=True).values_list("codigo", flat=True)}
+
+
+def dados_mae() -> dict:
+    return {"amamentando": True, "bebe_prematuro": False, "respostas": respostas()}
 
 
 def proximo_dia_util() -> date:
@@ -36,13 +43,13 @@ class Base(TestCase):
             bairro="Petrópolis",
             cidade="Natal",
             uf="RN",
+            **dados_mae(),
         )
         self.doadora = Doadora.objects.get(usuario__telefone="84999990000")
         self.equipe = Usuario.objects.create_user("84900000000", SENHA, nome_completo="Equipe")
 
     def aprovar(self):
-        triagem = contas.enviar_triagem(self.doadora, {c: True for c in CODIGOS})
-        contas.avaliar_triagem(triagem, apta=True, avaliada_por=self.equipe)
+        contas.avaliar_triagem(self.doadora.triagens.get(), apta=True, avaliada_por=self.equipe)
         self.doadora.refresh_from_db()
 
     def entregar_kit(self):
@@ -56,10 +63,8 @@ class Base(TestCase):
 
 class FluxoDaDoadoraTest(Base):
     def test_proxima_acao_acompanha_o_fluxo_completo(self):
-        self.assertEqual(self.acao(), "responder_triagem")
-        triagem = contas.enviar_triagem(self.doadora, {c: True for c in CODIGOS})
         self.assertEqual(self.acao(), "aguardar_analise")
-        contas.avaliar_triagem(triagem, apta=True, avaliada_por=self.equipe)
+        contas.avaliar_triagem(self.doadora.triagens.get(), apta=True, avaliada_por=self.equipe)
         self.doadora.refresh_from_db()
         self.assertEqual(self.acao(), "pedir_kit")
         kit = services.pedir_kit(self.doadora, 4)
@@ -76,8 +81,7 @@ class FluxoDaDoadoraTest(Base):
         self.assertEqual(selectors.impacto(self.doadora), {"volume_total_ml": 1200, "recem_nascidos_dia": 12, "coletas": 1})
 
     def test_inapta_vai_para_contato_com_banco(self):
-        triagem = contas.enviar_triagem(self.doadora, {c: False for c in CODIGOS})
-        contas.avaliar_triagem(triagem, apta=False, avaliada_por=self.equipe)
+        contas.avaliar_triagem(self.doadora.triagens.get(), apta=False, avaliada_por=self.equipe)
         self.doadora.refresh_from_db()
         self.assertEqual(self.acao(), "contatar_banco")
 
@@ -145,7 +149,7 @@ class RegrasTest(Base):
     def test_telefone_duplicado(self):
         with self.assertRaises(ErroDominio) as erro:
             contas.cadastrar_doadora(
-                senha=SENHA, telefone="84999990000", nome_completo="Outra", banco_id=self.banco.id, consentimento=True
+                senha=SENHA, telefone="84999990000", nome_completo="Outra", banco_id=self.banco.id, consentimento=True, respostas={}
             )
         self.assertEqual(erro.exception.codigo, "conflito")
 
@@ -158,7 +162,7 @@ class ApiTest(Base):
         self.assertEqual(r.status_code, 200)
         r = self.client.get("/api/v1/inicio", HTTP_AUTHORIZATION=f"Bearer {r.json()['access']}")
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json()["proxima_acao"], "responder_triagem")
+        self.assertEqual(r.json()["proxima_acao"], "aguardar_analise")
         self.assertEqual(r.json()["doadora"]["nome_completo"], "Ana Souza")
 
     def test_erros_seguem_o_contrato(self):
@@ -207,7 +211,7 @@ class EnderecosTest(Base):
         auth = {"HTTP_AUTHORIZATION": f"Bearer {r.json()['access']}"}
         outra = contas.cadastrar_doadora(
             senha=SENHA, telefone="84988887777", nome_completo="Outra", banco_id=self.banco.id, consentimento=True,
-            data_nascimento=date(1990, 1, 1), data_parto=date(2026, 9, 1), **self.dados,
+            data_nascimento=date(1990, 1, 1), data_parto=date(2026, 9, 1), **self.dados, **dados_mae(),
         )
         alheio = Endereco.objects.get(doadora__usuario=outra)
         r = self.client.delete(f"/api/v1/enderecos/{alheio.id}", **auth)

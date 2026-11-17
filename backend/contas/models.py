@@ -64,6 +64,9 @@ class Doadora(ModeloBase):
     banco = models.ForeignKey("bancos.BancoDeLeite", on_delete=models.PROTECT, related_name="doadoras")
     data_nascimento = models.DateField()
     data_parto = models.DateField(help_text="Pode ser futura, se ainda estiver grávida.")
+    amamentando = models.BooleanField(null=True)
+    bebe_prematuro = models.BooleanField("bebê prematuro", null=True)
+    maternidade = models.CharField(max_length=150, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.CADASTRADA)
     consentimento_em = models.DateTimeField()
 
@@ -114,6 +117,7 @@ class Triagem(ModeloBase):
 
     doadora = models.ForeignKey(Doadora, on_delete=models.CASCADE, related_name="triagens")
     respostas = models.JSONField()
+    detalhes = models.JSONField(default=dict, blank=True, help_text="O que a doadora escreveu em cada pergunta.")
     resultado = models.CharField(max_length=10, choices=Resultado.choices, default=Resultado.PENDENTE)
     avaliada_por = models.ForeignKey(
         Usuario, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
@@ -123,3 +127,28 @@ class Triagem(ModeloBase):
     class Meta:
         verbose_name_plural = "triagens"
         ordering = ["-criado_em"]
+
+
+class PerguntaSaude(ModeloBase):
+    """Pergunta de saúde do cadastro. A equipe do banco edita no admin; o app mostra as ativas, na ordem."""
+
+    class DetalheSe(models.TextChoices):
+        NENHUM = "", "Não pede detalhe"
+        SIM = "sim", "Quando responder Sim"
+        NAO = "nao", "Quando responder Não"
+
+    codigo = models.SlugField(max_length=40, unique=True, help_text="Identifica a resposta salva. Não mude depois de usar.")
+    texto = models.CharField(max_length=150)
+    ajuda = models.CharField(max_length=200, blank=True)
+    detalhe_se = models.CharField("pedir detalhe", max_length=3, choices=DetalheSe.choices, blank=True)
+    detalhe_rotulo = models.CharField("rótulo do detalhe", max_length=120, blank=True)
+    ordem = models.PositiveSmallIntegerField(default=0)
+    ativa = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "pergunta de saúde"
+        verbose_name_plural = "perguntas de saúde"
+        ordering = ["ordem"]
+
+    def __str__(self):
+        return self.texto

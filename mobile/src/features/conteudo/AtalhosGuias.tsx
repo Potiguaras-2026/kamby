@@ -2,19 +2,20 @@ import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { CartaoOnda } from "@/components/CartaoOnda";
-
-import { GUIAS } from "./guias";
+import { useGuias } from "@/lib/consultas";
 
 export function AtalhosGuias() {
+  const { data: guias } = useGuias();
+  if (!guias?.length) return null;
   return (
     <View style={estilos.linha}>
-      {Object.entries(GUIAS).map(([tema, g]) => (
+      {guias.map((g) => (
         <CartaoOnda
-          key={tema}
+          key={g.slug}
           compacto
-          tom={g.tom}
+          tom={g.tom as "rosa" | "turquesa" | "azul"}
           titulo={g.titulo}
-          onPress={() => router.push({ pathname: "/guia/[tema]", params: { tema } })}
+          onPress={() => router.push({ pathname: "/guia/[tema]", params: { tema: g.slug } })}
         />
       ))}
     </View>

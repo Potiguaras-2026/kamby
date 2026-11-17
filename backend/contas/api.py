@@ -20,7 +20,7 @@ from contas.schemas import (
     TriagemEntrada,
 )
 from contas.selectors import doadora_do_usuario, endereco_da_doadora
-from contas.triagem import PERGUNTAS
+from contas.models import PerguntaSaude
 from core.erros import ErroDominio
 
 router_auth = Router(tags=["auth"], auth=None, throttle=AnonRateThrottle("10/m"))
@@ -60,14 +60,15 @@ def eu(request):
     return doadora_do_usuario(request.auth)
 
 
-@router_doadora.get("/triagem/perguntas", response=list[PerguntaSaida])
+# Pública: o cadastro mostra as perguntas antes de existir conta.
+@router_doadora.get("/triagem/perguntas", response=list[PerguntaSaida], auth=None)
 def perguntas(request):
-    return PERGUNTAS
+    return PerguntaSaude.objects.filter(ativa=True)
 
 
 @router_doadora.post("/triagem", response={201: None})
 def responder_triagem(request, dados: TriagemEntrada):
-    services.enviar_triagem(doadora_do_usuario(request.auth), dados.respostas)
+    services.enviar_triagem(doadora_do_usuario(request.auth), dados.respostas, dados.detalhes)
     return 201, None
 
 

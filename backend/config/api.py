@@ -5,6 +5,7 @@ from ninja_jwt.authentication import JWTAuth
 
 from bancos.api import router as bancos_router
 from contas.api import router_auth, router_doadora
+from conteudo.api import router as conteudo_router
 from core.erros import ErroDominio
 from doacoes.api import router as doacoes_router
 
@@ -12,6 +13,7 @@ api = NinjaAPI(title="Kamby API", version="1", auth=JWTAuth())
 
 api.add_router("/auth", router_auth)
 api.add_router("/bancos", bancos_router)
+api.add_router("/conteudo", conteudo_router)
 api.add_router("/", router_doadora)
 api.add_router("/", doacoes_router)
 

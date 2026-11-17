@@ -19,7 +19,7 @@
 - Never "mamãe", never blame. Health jargon only in the panel.
 - Buttons are verb + object ("Agendar coleta"). Never "OK" or "Enviar" alone.
 - Errors: what happened + what to do. Empty states: what this is + how to start.
-- Status labels live in code, next to the enum.
+- Donor-facing texts, tips, guides and health questions come from the API and are edited in the Django admin (`conteudo`, `PerguntaSaude`). The app keeps only layout and a short fallback.
 
 Glossary for donor-facing text:
 
@@ -56,5 +56,5 @@ Before merging a screen: run the main flow with TalkBack, check it at the larges
 
 ## Sources
 
-- Screens: Figma (link pending).
+- Screens: [Figma KAMBY V2](https://www.figma.com/design/uYRn0mrUuzEE1xWW5Kc9BI/KAMBY---V2).
 - Tokens: `mobile/src/lib/tema.ts`, web Tailwind config.

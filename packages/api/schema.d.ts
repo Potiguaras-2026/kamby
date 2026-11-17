@@ -72,6 +72,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/conteudo/textos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Textos */
+        get: operations["conteudo_api_textos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conteudo/dicas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dicas */
+        get: operations["conteudo_api_dicas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conteudo/dicas/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dica */
+        get: operations["conteudo_api_dica"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conteudo/guias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Guias */
+        get: operations["conteudo_api_guias"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conteudo/guias/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Guia */
+        get: operations["conteudo_api_guia"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/eu": {
         parameters: {
             query?: never;
@@ -314,6 +399,11 @@ export interface components {
             nome_completo: string;
             /** Telefone */
             telefone: string;
+            /**
+             * Email
+             * @default
+             */
+            email: string;
             /** Senha */
             senha: string;
             /**
@@ -326,6 +416,15 @@ export interface components {
              * Format: date
              */
             data_parto: string;
+            /** Amamentando */
+            amamentando: boolean;
+            /** Bebe Prematuro */
+            bebe_prematuro: boolean;
+            /**
+             * Maternidade
+             * @default
+             */
+            maternidade: string;
             /**
              * Banco Id
              * Format: uuid
@@ -355,6 +454,17 @@ export interface components {
             referencia: string;
             /** Consentimento */
             consentimento: boolean;
+            /** Respostas */
+            respostas: {
+                [key: string]: boolean;
+            };
+            /**
+             * Detalhes
+             * @default {}
+             */
+            detalhes: {
+                [key: string]: string;
+            };
         };
         /** EntrarEntrada */
         EntrarEntrada: {
@@ -385,6 +495,55 @@ export interface components {
             endereco: string;
             /** Cidade */
             cidade: string;
+        };
+        /** TextoSaida */
+        TextoSaida: {
+            /** Titulo */
+            titulo: string;
+            /** Corpo */
+            corpo: string;
+        };
+        /** DicaSaida */
+        DicaSaida: {
+            /** Slug */
+            slug: string;
+            /** Título */
+            titulo: string;
+            /** Resumo */
+            resumo: string;
+            /** Imagem */
+            imagem?: string | null;
+            /**
+             * Seção
+             * @default rapidas
+             */
+            secao: string;
+            /** Paragrafos */
+            paragrafos: string[];
+        };
+        /** GuiaSaida */
+        GuiaSaida: {
+            /** Slug */
+            slug: string;
+            /** Título */
+            titulo: string;
+            /** Resumo */
+            resumo?: string | null;
+            /**
+             * Tom
+             * @default rosa
+             */
+            tom: string;
+            /** Imagem */
+            imagem?: string | null;
+            /**
+             * Destaque
+             * @description Aparece em 'Em destaque' na aba Dicas.
+             * @default false
+             */
+            destaque: boolean;
+            /** Passos */
+            passos: string[];
         };
         /** DoadoraSaida */
         DoadoraSaida: {
@@ -451,12 +610,25 @@ export interface components {
             codigo: string;
             /** Texto */
             texto: string;
+            /** Ajuda */
+            ajuda: string;
+            /** Detalhe Se */
+            detalhe_se: string;
+            /** Detalhe Rotulo */
+            detalhe_rotulo: string;
         };
         /** TriagemEntrada */
         TriagemEntrada: {
             /** Respostas */
             respostas: {
                 [key: string]: boolean;
+            };
+            /**
+             * Detalhes
+             * @default {}
+             */
+            detalhes: {
+                [key: string]: string;
             };
         };
         /** EnderecoEntrada */
@@ -770,6 +942,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BancoSaida"][];
+                };
+            };
+        };
+    };
+    conteudo_api_textos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: components["schemas"]["TextoSaida"];
+                    };
+                };
+            };
+        };
+    };
+    conteudo_api_dicas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DicaSaida"][];
+                };
+            };
+        };
+    };
+    conteudo_api_dica: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DicaSaida"];
+                };
+            };
+        };
+    };
+    conteudo_api_guias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuiaSaida"][];
+                };
+            };
+        };
+    };
+    conteudo_api_guia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuiaSaida"];
                 };
             };
         };

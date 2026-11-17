@@ -128,6 +128,148 @@
         ]
       }
     },
+    "/api/v1/conteudo/textos": {
+      "get": {
+        "operationId": "conteudo_api_textos",
+        "summary": "Textos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/TextoSaida"
+                  },
+                  "title": "Response",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "conteudo"
+        ]
+      }
+    },
+    "/api/v1/conteudo/dicas": {
+      "get": {
+        "operationId": "conteudo_api_dicas",
+        "summary": "Dicas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DicaSaida"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "conteudo"
+        ]
+      }
+    },
+    "/api/v1/conteudo/dicas/{slug}": {
+      "get": {
+        "operationId": "conteudo_api_dica",
+        "summary": "Dica",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DicaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "conteudo"
+        ]
+      }
+    },
+    "/api/v1/conteudo/guias": {
+      "get": {
+        "operationId": "conteudo_api_guias",
+        "summary": "Guias",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GuiaSaida"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "conteudo"
+        ]
+      }
+    },
+    "/api/v1/conteudo/guias/{slug}": {
+      "get": {
+        "operationId": "conteudo_api_guia",
+        "summary": "Guia",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuiaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "conteudo"
+        ]
+      }
+    },
     "/api/v1/eu": {
       "get": {
         "operationId": "contas_api_eu",
@@ -178,11 +320,6 @@
         },
         "tags": [
           "doadora"
-        ],
-        "security": [
-          {
-            "JWTAuth": []
-          }
         ]
       }
     },
@@ -789,6 +926,12 @@
             "title": "Telefone",
             "type": "string"
           },
+          "email": {
+            "default": "",
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          },
           "senha": {
             "maxLength": 128,
             "title": "Senha",
@@ -802,6 +945,20 @@
           "data_parto": {
             "format": "date",
             "title": "Data Parto",
+            "type": "string"
+          },
+          "amamentando": {
+            "title": "Amamentando",
+            "type": "boolean"
+          },
+          "bebe_prematuro": {
+            "title": "Bebe Prematuro",
+            "type": "boolean"
+          },
+          "maternidade": {
+            "default": "",
+            "maxLength": 150,
+            "title": "Maternidade",
             "type": "string"
           },
           "banco_id": {
@@ -855,6 +1012,21 @@
           "consentimento": {
             "title": "Consentimento",
             "type": "boolean"
+          },
+          "respostas": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Respostas",
+            "type": "object"
+          },
+          "detalhes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "title": "Detalhes",
+            "type": "object"
           }
         },
         "required": [
@@ -863,6 +1035,8 @@
           "senha",
           "data_nascimento",
           "data_parto",
+          "amamentando",
+          "bebe_prematuro",
           "banco_id",
           "cep",
           "logradouro",
@@ -870,7 +1044,8 @@
           "bairro",
           "cidade",
           "uf",
-          "consentimento"
+          "consentimento",
+          "respostas"
         ],
         "title": "CadastroEntrada",
         "type": "object"
@@ -963,6 +1138,138 @@
           "cidade"
         ],
         "title": "BancoSaida",
+        "type": "object"
+      },
+      "TextoSaida": {
+        "properties": {
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          },
+          "corpo": {
+            "title": "Corpo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo",
+          "corpo"
+        ],
+        "title": "TextoSaida",
+        "type": "object"
+      },
+      "DicaSaida": {
+        "properties": {
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "titulo": {
+            "maxLength": 120,
+            "title": "Título",
+            "type": "string"
+          },
+          "resumo": {
+            "maxLength": 160,
+            "title": "Resumo",
+            "type": "string"
+          },
+          "imagem": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imagem"
+          },
+          "secao": {
+            "default": "rapidas",
+            "maxLength": 10,
+            "title": "Seção",
+            "type": "string"
+          },
+          "paragrafos": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Paragrafos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "slug",
+          "titulo",
+          "resumo",
+          "paragrafos"
+        ],
+        "title": "DicaSaida",
+        "type": "object"
+      },
+      "GuiaSaida": {
+        "properties": {
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "titulo": {
+            "maxLength": 120,
+            "title": "Título",
+            "type": "string"
+          },
+          "resumo": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resumo"
+          },
+          "tom": {
+            "default": "rosa",
+            "maxLength": 10,
+            "title": "Tom",
+            "type": "string"
+          },
+          "imagem": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imagem"
+          },
+          "destaque": {
+            "default": false,
+            "description": "Aparece em 'Em destaque' na aba Dicas.",
+            "title": "Destaque",
+            "type": "boolean"
+          },
+          "passos": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Passos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "slug",
+          "titulo",
+          "passos"
+        ],
+        "title": "GuiaSaida",
         "type": "object"
       },
       "DoadoraSaida": {
@@ -1126,11 +1433,26 @@
           "texto": {
             "title": "Texto",
             "type": "string"
+          },
+          "ajuda": {
+            "title": "Ajuda",
+            "type": "string"
+          },
+          "detalhe_se": {
+            "title": "Detalhe Se",
+            "type": "string"
+          },
+          "detalhe_rotulo": {
+            "title": "Detalhe Rotulo",
+            "type": "string"
           }
         },
         "required": [
           "codigo",
-          "texto"
+          "texto",
+          "ajuda",
+          "detalhe_se",
+          "detalhe_rotulo"
         ],
         "title": "PerguntaSaida",
         "type": "object"
@@ -1142,6 +1464,14 @@
               "type": "boolean"
             },
             "title": "Respostas",
+            "type": "object"
+          },
+          "detalhes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "title": "Detalhes",
             "type": "object"
           }
         },

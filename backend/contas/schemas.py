@@ -10,9 +10,13 @@ from contas.models import Endereco
 class CadastroEntrada(Schema):
     nome_completo: str = Field(min_length=3, max_length=150)
     telefone: str = Field(max_length=20)
+    email: str = Field("", max_length=254)
     senha: str = Field(max_length=128)
     data_nascimento: date
     data_parto: date
+    amamentando: bool
+    bebe_prematuro: bool
+    maternidade: str = Field("", max_length=150)
     banco_id: UUID
     cep: str = Field(max_length=9)
     logradouro: str = Field(max_length=150)
@@ -23,6 +27,8 @@ class CadastroEntrada(Schema):
     uf: str = Field(min_length=2, max_length=2)
     referencia: str = Field("", max_length=150)
     consentimento: bool
+    respostas: dict[str, bool]
+    detalhes: dict[str, str] = {}
 
 
 class EntrarEntrada(Schema):
@@ -84,7 +90,11 @@ class DoadoraSaida(Schema):
 class PerguntaSaida(Schema):
     codigo: str
     texto: str
+    ajuda: str
+    detalhe_se: str
+    detalhe_rotulo: str
 
 
 class TriagemEntrada(Schema):
     respostas: dict[str, bool]
+    detalhes: dict[str, str] = {}

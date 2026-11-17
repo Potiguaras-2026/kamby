@@ -2,12 +2,12 @@ import re
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
 
 from bancos.models import BancoDeLeite
-from contas.models import Doadora, Endereco, Triagem, Usuario
-from contas.triagem import CODIGOS
+from contas.models import Doadora, Endereco, PerguntaSaude, Triagem, Usuario
 from core.erros import ErroDominio
 
 
@@ -25,7 +25,19 @@ def normalizar_telefone(telefone: str) -> str:
 
 
 @transaction.atomic
-def cadastrar_doadora(*, senha: str, telefone: str, nome_completo: str, banco_id, consentimento: bool, **endereco_e_datas) -> Usuario:
+def cadastrar_doadora(
+    *,
+    senha: str,
+    telefone: str,
+    nome_completo: str,
+    banco_id,
+    consentimento: bool,
+    respostas: dict[str, bool],
+    detalhes: dict[str, str] | None = None,
+    email: str = "",
+    **endereco_e_dados,
+) -> Usuario:
+    """Conta, dados da mãe, endereço e perguntas de saúde num passo só: nunca fica conta pela metade."""
     if not consentimento:
         raise ErroDominio(
             "validacao", "Precisamos da sua autorização para continuar.", {"consentimento": ["Obrigatório."]}
@@ -37,7 +49,14 @@ def cadastrar_doadora(*, senha: str, telefone: str, nome_completo: str, banco_id
     if banco is None:
         raise ErroDominio("validacao", "Escolha um banco de leite da lista.", {"banco_id": ["Banco inválido."]})
 
-    usuario = Usuario(telefone=telefone, nome_completo=nome_completo.strip())
+    email = email.strip().lower()
+    if email:
+        try:
+            validate_email(email)
+        except ValidationError:
+            raise ErroDominio("validacao", "Confira o e-mail.", {"email": ["Use um e-mail como nome@exemplo.com."]})
+
+    usuario = Usuario(telefone=telefone, nome_completo=nome_completo.strip(), email=email)
     try:
         validate_password(senha, usuario)
     except ValidationError as e:
@@ -45,9 +64,10 @@ def cadastrar_doadora(*, senha: str, telefone: str, nome_completo: str, banco_id
     usuario.set_password(senha)
     usuario.save()
 
-    endereco = {c: endereco_e_datas.pop(c) for c in CAMPOS_ENDERECO if c in endereco_e_datas}
-    doadora = Doadora.objects.create(usuario=usuario, banco=banco, consentimento_em=timezone.now(), **endereco_e_datas)
+    endereco = {c: endereco_e_dados.pop(c) for c in CAMPOS_ENDERECO if c in endereco_e_dados}
+    doadora = Doadora.objects.create(usuario=usuario, banco=banco, consentimento_em=timezone.now(), **endereco_e_dados)
     criar_endereco(doadora, **endereco)
+    enviar_triagem(doadora, respostas, detalhes)
     return usuario
 
 
@@ -98,12 +118,14 @@ def excluir_endereco(endereco: Endereco):
 
 
 @transaction.atomic
-def enviar_triagem(doadora: Doadora, respostas: dict[str, bool]) -> Triagem:
+def enviar_triagem(doadora: Doadora, respostas: dict[str, bool], detalhes: dict[str, str] | None = None) -> Triagem:
     if doadora.status != Doadora.Status.CADASTRADA:
         raise ErroDominio("conflito", "Suas respostas já foram enviadas.")
-    if set(respostas) != CODIGOS:
-        raise ErroDominio("validacao", "Responda todas as perguntas.", {"respostas": ["Incompletas."]})
-    triagem = Triagem.objects.create(doadora=doadora, respostas=respostas)
+    codigos = set(PerguntaSaude.objects.filter(ativa=True).values_list("codigo", flat=True))
+    if set(respostas) != codigos:
+        raise ErroDominio("validacao", "Responda todas as perguntas de saúde.", {"respostas": ["Incompletas."]})
+    detalhes = {c: str(t).strip()[:500] for c, t in (detalhes or {}).items() if c in codigos and str(t).strip()}
+    triagem = Triagem.objects.create(doadora=doadora, respostas=respostas, detalhes=detalhes)
     doadora.status = Doadora.Status.EM_ANALISE
     doadora.save(update_fields=["status", "atualizado_em"])
     return triagem

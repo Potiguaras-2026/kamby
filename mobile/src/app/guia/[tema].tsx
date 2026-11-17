@@ -4,16 +4,27 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { Botao } from "@/components/Botao";
 import { Cartao } from "@/components/Cartao";
 import { Entrada } from "@/components/Entrada";
+import { Estado } from "@/components/Estado";
 import { Tela } from "@/components/Tela";
-import { GUIAS } from "@/features/conteudo/guias";
+import { imagem } from "@/features/conteudo/imagens";
+import { useGuias } from "@/lib/consultas";
 import { cores, familia, raio, tipo } from "@/lib/tema";
 
-const COR = { rosa: cores.primaria, turquesa: cores.turquesaTexto, azul: cores.azulTexto };
+const COR: Record<string, string> = { rosa: cores.primaria, turquesa: cores.turquesaTexto, azul: cores.azulTexto };
 
 export default function TelaGuia() {
   const { tema } = useLocalSearchParams<{ tema: string }>();
-  const guia = GUIAS[tema];
+  const guias = useGuias();
 
+  if (!guias.data) {
+    return (
+      <Tela voltar>
+        <Estado erro={guias.error} tentarDeNovo={() => guias.refetch()} />
+      </Tela>
+    );
+  }
+
+  const guia = guias.data.find((g) => g.slug === tema);
   if (!guia) {
     return (
       <Tela voltar titulo="Conteúdo não encontrado">
@@ -22,13 +33,14 @@ export default function TelaGuia() {
     );
   }
 
-  const cor = COR[guia.tom];
+  const cor = COR[guia.tom] ?? cores.primaria;
+  const foto = imagem(guia.imagem);
 
   return (
-    <Tela voltar titulo={guia.titulo}>
-      {guia.imagem ? (
+    <Tela voltar titulo={guia.titulo} subtitulo={guia.resumo || undefined}>
+      {foto ? (
         <Entrada ordem={1}>
-          <Image source={guia.imagem} style={estilos.imagem} resizeMode="cover" accessibilityIgnoresInvertColors />
+          <Image source={foto} style={estilos.imagem} resizeMode="cover" accessibilityIgnoresInvertColors />
         </Entrada>
       ) : null}
       <Entrada ordem={2}>

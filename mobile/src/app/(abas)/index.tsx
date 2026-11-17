@@ -12,17 +12,19 @@ import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
 import { AtalhosGuias } from "@/features/conteudo/AtalhosGuias";
 import { IMAGENS } from "@/features/conteudo/imagens";
-import { ACOES, estaApta } from "@/features/inicio/acoes";
 import { Historico } from "@/features/inicio/Historico";
-import { useInicio } from "@/lib/consultas";
+import { useInicio, useTexto } from "@/lib/consultas";
 import { diaRelativo, primeiroNome } from "@/lib/formato";
 import { cores, familia, raio, tipo } from "@/lib/tema";
 
 type Inicio = Schemas["InicioSaida"];
 type Rota = "/kit" | "/coleta" | "/coleta/agendar";
 
+const APTA: Inicio["proxima_acao"][] = ["pedir_kit", "aguardar_kit", "agendar_coleta", "acompanhar_coleta"];
+
 export default function TelaInicio() {
   const inicio = useInicio();
+  const texto = useTexto();
 
   if (!inicio.data) {
     return (
@@ -43,16 +45,16 @@ export default function TelaInicio() {
       </Entrada>
 
       <Entrada ordem={1}>
-        <Destaque />
+        <Destaque texto={texto("inicio.destaque", "Seu leite leva cuidado e esperança para quem mais precisa").corpo} />
       </Entrada>
 
       <Entrada ordem={2}>
-        {estaApta(proxima_acao) ? (
+        {APTA.includes(proxima_acao) ? (
           <Atalhos acao={proxima_acao} kit={kit_aberto} />
         ) : (
           <Cartao style={{ gap: 10 }}>
             <Text style={[tipo.subtitulo, { color: cores.primaria }]}>{doadora.status_rotulo}</Text>
-            <Text style={tipo.corpo}>{ACOES[proxima_acao]}</Text>
+            <Text style={tipo.corpo}>{texto(`inicio.${proxima_acao}`).corpo}</Text>
             {proxima_acao === "contatar_banco" ? (
               <Botao titulo="Ligar para o banco de leite" variante="secundaria" onPress={() => Linking.openURL(`tel:${banco.telefone}`)} />
             ) : null}
@@ -92,7 +94,7 @@ export default function TelaInicio() {
 }
 
 /** Sem fundo, borda nem toque: é mensagem, não botão. */
-function Destaque() {
+function Destaque({ texto }: { texto: string }) {
   return (
     <View style={estilos.destaque}>
       <View style={estilos.coracaoFora} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -100,7 +102,7 @@ function Destaque() {
           <Heart size={24} color={cores.rosa} fill={cores.rosa} />
         </View>
       </View>
-      <Text style={estilos.destaqueTexto}>Seu leite leva cuidado e esperança para quem mais precisa</Text>
+      <Text style={estilos.destaqueTexto}>{texto}</Text>
       <Image source={IMAGENS.maeBebe} style={estilos.ilustracao} resizeMode="contain" accessibilityIgnoresInvertColors />
     </View>
   );

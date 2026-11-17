@@ -4,8 +4,7 @@ from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
 from django.utils.html import format_html_join
 
 from contas import services
-from contas.models import Doadora, Endereco, Triagem, Usuario
-from contas.triagem import TEXTOS
+from contas.models import Doadora, Endereco, PerguntaSaude, Triagem, Usuario
 from core.erros import ErroDominio
 
 
@@ -58,8 +57,11 @@ class TriagemInline(admin.TabularInline):
 
     @admin.display(description="Respostas")
     def respostas_legiveis(self, obj):
+        textos = dict(PerguntaSaude.objects.values_list("codigo", "texto"))
         return format_html_join(
-            "", "<div>{}: <b>{}</b></div>", ((TEXTOS.get(c, c), "Sim" if v else "Não") for c, v in obj.respostas.items())
+            "",
+            "<div>{}: <b>{}</b> {}</div>",
+            ((textos.get(c, c), "Sim" if v else "Não", obj.detalhes.get(c, "")) for c, v in obj.respostas.items()),
         )
 
 
@@ -78,6 +80,7 @@ def avaliar(modeladmin, request, queryset, apta: bool):
 @admin.register(Doadora)
 class DoadoraAdmin(admin.ModelAdmin):
     list_display = ["__str__", "telefone", "banco", "status", "criado_em"]
+    fields = ["usuario", "banco", "status", "data_nascimento", "data_parto", "amamentando", "bebe_prematuro", "maternidade", "consentimento_em"]
     list_filter = ["status", "banco"]
     search_fields = ["usuario__nome_completo", "usuario__telefone"]
     readonly_fields = ["status", "consentimento_em"]
@@ -95,3 +98,9 @@ class DoadoraAdmin(admin.ModelAdmin):
     @admin.action(description="Marcar como inapta")
     def reprovar(self, request, queryset):
         avaliar(self, request, queryset, apta=False)
+
+
+@admin.register(PerguntaSaude)
+class PerguntaSaudeAdmin(admin.ModelAdmin):
+    list_display = ["texto", "codigo", "detalhe_se", "ordem", "ativa"]
+    list_editable = ["ordem", "ativa"]
