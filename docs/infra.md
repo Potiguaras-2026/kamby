@@ -20,9 +20,12 @@ Docker is the default for backend and web from day 1, so every developer runs th
 
 - `db`: Postgres, data in the `pgdata` volume, port not exposed.
 - `api`: Django on Gunicorn (`backend/Dockerfile`); runs migrations and collectstatic on start.
-- `caddy`: automatic TLS on `DOMINIO`. Builds the web panel (`infra/caddy.Dockerfile`) and routes by path (`infra/Caddyfile`): `/api` and `/admin` to Django, `/static` to collected static files, everything else to the panel.
+- `caddy`: automatic TLS on `DOMINIO`. Builds the web panel and the donor app web export (`infra/caddy.Dockerfile`) and routes by path (`infra/Caddyfile`): `/api` and `/admin` to Django, `/static` to collected static files, `/app` to the donor app, everything else to the panel.
 
-The mobile app is not hosted: Expo Go for demos, EAS Build for APK and stores.
+Donor app:
+- Web: `https://<DOMINIO>/app`, same origin as the API, so no production CORS. Also the iPhone option without an Apple account (Safari, "Adicionar à Tela de Início"). `mobile/app.config.js` sets the `/app` base only when `EXPO_BASE_URL` is set.
+- Android APK: `mobile/eas.json`, profile `preview`. Replace `DOMINIO` in `EXPO_PUBLIC_API_URL` with the real domain, then from `mobile/` run `npx eas login` once and `npx eas build -p android --profile preview`. A new domain needs a new build.
+- iOS: needs an Apple Developer account; `npx eas build -p ios` and `npx eas submit -p ios` to TestFlight.
 
 The VPS is small (1 vCPU). Keep 3 Gunicorn workers at most. Add no service (Redis, Celery, monitoring stack) without a concrete need.
 
