@@ -107,7 +107,7 @@ export default function TelaInicio() {
   );
 }
 
-/** Primeiro passo de quem acabou de ser aprovada: um botão só, que leva ao pedido do kit. */
+/** Primeiro passo de quem acabou de ser aprovada: um botão só, que leva à tela de doação (coleta com o kit junto). */
 function DoarLeite() {
   return (
     <Cartao tom="rosa" style={estilos.doar}>
@@ -116,10 +116,10 @@ function DoarLeite() {
         <Text accessibilityRole="header" style={[tipo.subtitulo, { color: cores.primaria }]}>
           Tudo pronto para começar!
         </Text>
-        <Text style={[tipo.legenda, { textAlign: "center" }]}>Peça seu kit de frascos e escolha o dia da entrega.</Text>
+        <Text style={[tipo.legenda, { textAlign: "center" }]}>Escolha o dia da coleta. Seu kit de frascos vai junto.</Text>
       </View>
       <View style={{ alignSelf: "stretch" }}>
-        <Botao titulo="Doar leite" onPress={() => router.push("/kit")} />
+        <Botao titulo="Doar leite" onPress={() => router.push("/coleta/agendar")} />
       </View>
     </Cartao>
   );

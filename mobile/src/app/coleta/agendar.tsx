@@ -1,9 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { AccessibilityInfo, Text } from "react-native";
+import { PackageCheck } from "lucide-react-native";
+import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
+import { Cartao } from "@/components/Cartao";
 import { Contador } from "@/components/Contador";
 import { Entrada } from "@/components/Entrada";
 import { Tela } from "@/components/Tela";
@@ -22,17 +24,21 @@ export default function TelaAgendarColeta() {
   const [comKit, setComKit] = useState(false);
   const queryClient = useQueryClient();
   const eu = useEu();
-  const kitAberto = useInicio().data?.kit_aberto;
+  const inicio = useInicio().data;
+  const kitAberto = inicio?.kit_aberto;
+  // Sem nenhum kit entregue nem pedido, a primeira doação leva o kit junto: sem frascos não há o que coletar.
+  const primeiroKit = !!inicio && !kitAberto && !inicio.jornada.some((e) => e.codigo === "kit_entregue" && e.estado === "feita");
+  const levarKit = primeiroKit || (comKit && !kitAberto);
   const horarios = useHorarios();
 
   const agendar = useMutation({
     mutationFn: () =>
-      chamar(api.POST("/api/v1/coletas", { body: { data: data!, horario_id: horario!, quantidade_frascos: frascos, com_kit: comKit && !kitAberto } })),
+      chamar(api.POST("/api/v1/coletas", { body: { data: data!, horario_id: horario!, quantidade_frascos: frascos, com_kit: levarKit } })),
     onSuccess: async () => {
       haptico.sucesso();
       await queryClient.invalidateQueries({ queryKey: ["inicio"] });
-      AccessibilityInfo.announceForAccessibility(comKit ? "Coleta e kit agendados." : "Coleta agendada.");
-      router.replace({ pathname: "/coleta", params: { nova: comKit ? "kit" : "1" } });
+      AccessibilityInfo.announceForAccessibility(levarKit ? "Coleta e kit agendados." : "Coleta agendada.");
+      router.replace({ pathname: "/coleta", params: { nova: levarKit ? "kit" : "1" } });
     },
     onError: () => haptico.aviso(),
   });
@@ -49,7 +55,17 @@ export default function TelaAgendarColeta() {
       <DiaHorario de="da coleta" data={data} horario={horario} mudarData={setData} mudarHorario={setHorario} />
 
       {/* Com um pedido de kit em andamento a API recusa outro; aí a opção nem aparece. */}
-      {!kitAberto ? (
+      {primeiroKit ? (
+        <Entrada ordem={4}>
+          <Cartao tom="turquesa" style={estilos.primeiro}>
+            <PackageCheck size={24} color={cores.turquesaTexto} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[tipo.corpoForte, { color: cores.turquesaTexto }]}>Seu primeiro kit vai junto</Text>
+              <Text style={[tipo.legenda, { fontSize: 13 }]}>A equipe leva os frascos esterilizados nesse dia e explica como usar.</Text>
+            </View>
+          </Cartao>
+        </Entrada>
+      ) : !kitAberto ? (
         <Entrada ordem={4} style={{ gap: 6 }}>
           <Concordo texto="Quero receber um kit novo de frascos no mesmo dia" marcado={comKit} onChange={setComKit} />
           <Text style={[tipo.legenda, { fontSize: 13, paddingHorizontal: 4 }]}>
@@ -87,3 +103,7 @@ export default function TelaAgendarColeta() {
     </Tela>
   );
 }
+
+const estilos = StyleSheet.create({
+  primeiro: { flexDirection: "row", alignItems: "center", gap: 12 },
+});

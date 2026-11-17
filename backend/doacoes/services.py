@@ -67,7 +67,8 @@ def pedir_kit(doadora: Doadora, quantidade_frascos: int, *, data: date, horario_
 def agendar_coleta(doadora: Doadora, *, data: date, horario_id, quantidade_frascos: int, com_kit: bool = False) -> Coleta:
     """com_kit: a equipe leva um kit novo na mesma visita. Coleta e kit são criados juntos ou nenhum."""
     exigir_apta(doadora, "agendar coletas")
-    if not selectors.tem_kit_entregue(doadora):
+    # Primeira doação: o kit pode ir junto, na mesma visita da coleta.
+    if not com_kit and not selectors.tem_kit_entregue(doadora):
         raise ErroDominio("conflito", "Peça seus frascos antes de agendar a coleta.")
     horario = escolher_dia_e_horario(doadora, data, horario_id)
     endereco = doadora.enderecos.filter(ativo=True).first()

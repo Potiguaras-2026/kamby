@@ -308,6 +308,12 @@ class KitAgendadoTest(Base):
         kit = selectors.kit_aberto(self.doadora)
         self.assertEqual((kit.data_entrega, kit.horario_inicio, kit.quantidade_frascos), (coleta.data, coleta.horario_inicio, 10))
 
+    def test_primeira_coleta_pode_levar_o_kit_junto(self):
+        with self.assertRaises(ErroDominio):
+            services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
+        services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2, com_kit=True)
+        self.assertEqual(selectors.kit_aberto(self.doadora).data_entrega, proximo_dia_util())
+
     def test_coleta_com_kit_nao_fica_pela_metade(self):
         self.entregar_kit()
         services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
