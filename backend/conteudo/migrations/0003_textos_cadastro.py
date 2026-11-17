@@ -18,7 +18,7 @@ TEXTOS = {
         "Quem pode ver?\n"
         "A equipe do banco de leite. A equipe que busca o leite recebe só o necessário: nome, telefone e endereço, sem suas respostas de saúde.\n\n"
         "Você decide\n"
-        "Pela LGPD, você pode pedir ao banco de leite para ver, corrigir ou apagar seus dados, ou retirar esta autorização.",
+        "Pela Lei Geral de Proteção de Dados (LGPD), você pode pedir ao banco de leite para ver, corrigir ou apagar seus dados, ou retirar esta autorização.",
     ),
     "cadastro.consentimento_aceite": ("", "Li e concordo com o uso dos meus dados, inclusive os de saúde, para esse cuidado."),
     "cadastro.enviado": (

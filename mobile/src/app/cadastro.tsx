@@ -196,7 +196,7 @@ export default function TelaCadastro() {
             onChangeText={(v) => mudar("data_nascimento", mascaraData(v))}
             keyboardType="number-pad"
             autoComplete="birthdate-full"
-            erro={erroCampo("data_nascimento") ?? (dados.data_nascimento.length === 10 && !dataIso(dados.data_nascimento) ? "Confira a data." : undefined)}
+            erro={erroCampo("data_nascimento") ?? (dados.data_nascimento.length === 10 && !dataIso(dados.data_nascimento) ? "Confira a data. Use dia, mês e ano, como 05/04/1996." : undefined)}
           />
           <View style={{ gap: 4 }}>
             <Campo rotulo="Crie uma senha" icone={LockKeyhole} value={dados.senha} onChangeText={(v) => mudar("senha", v)} secureTextEntry autoComplete="new-password" textContentType="newPassword" erro={erroCampo("senha")} />
@@ -223,7 +223,7 @@ export default function TelaCadastro() {
             value={dados.data_parto}
             onChangeText={(v) => mudar("data_parto", mascaraData(v))}
             keyboardType="number-pad"
-            erro={erroCampo("data_parto") ?? (dados.data_parto.length === 10 && !dataIso(dados.data_parto) ? "Confira a data." : undefined)}
+            erro={erroCampo("data_parto") ?? (dados.data_parto.length === 10 && !dataIso(dados.data_parto) ? "Confira a data. Use dia, mês e ano, como 05/04/1996." : undefined)}
           />
           <SimNao rotulo="Seu bebê nasceu prematuro?" valor={dados.bebe_prematuro} onChange={(v) => mudar("bebe_prematuro", v)} erro={erroCampo("bebe_prematuro")} />
           <Campo rotulo="Maternidade do parto" icone={Hospital} placeholder="Opcional" value={dados.maternidade} onChangeText={(v) => mudar("maternidade", v)} erro={erroCampo("maternidade")} />
