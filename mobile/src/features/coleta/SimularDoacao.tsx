@@ -9,7 +9,7 @@ import { useInicio } from "@/lib/consultas";
 import { haptico } from "@/lib/haptico";
 import { cores, familia, raio, tipo } from "@/lib/tema";
 
-import { etapaAtual } from "./Jornada";
+import { doacaoComecou, etapaAtual } from "./Jornada";
 
 const INTERVALO_MS = 2200;
 
@@ -57,7 +57,8 @@ export function SimularDoacao() {
     setAutomatico(false);
   }
 
-  if (!inicio.data?.demo) return null;
+  // A simulação só entra depois que a mãe começou a doar ("Doar leite" e pedido do kit).
+  if (!inicio.data?.demo || !doacaoComecou(inicio.data.jornada)) return null;
   const atual = etapaAtual(inicio.data.jornada);
 
   return (

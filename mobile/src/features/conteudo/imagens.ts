@@ -14,7 +14,7 @@ export const IMAGENS = {
   bancoFrascos: require("../../../assets/imagens/banco-frascos.jpg"),
   uti: require("../../../assets/imagens/uti.jpg"),
   // Equipe Potiguaras (IFRN), que criou o Kamby.
-  equipe: require("../../../assets/imagens/equipe-potiguaras.png"),
+  equipe: require("../../../assets/imagens/equipe.png"),
   potiguaras: require("../../../assets/imagens/potiguaras.png"),
 };
 

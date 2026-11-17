@@ -1,18 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { AccessibilityInfo, StyleSheet, Text } from "react-native";
+import { AccessibilityInfo, Text } from "react-native";
 
 import { Botao } from "@/components/Botao";
-import { Cartao } from "@/components/Cartao";
 import { Contador } from "@/components/Contador";
 import { Entrada } from "@/components/Entrada";
-import { Esqueleto } from "@/components/Esqueleto";
-import { Estado } from "@/components/Estado";
-import { Seletor, SeletorData } from "@/components/Seletores";
 import { Tela } from "@/components/Tela";
+import { Concordo } from "@/features/cadastro/partes";
+import { DiaHorario, useHorarios } from "@/features/coleta/DiaHorario";
 import { api, chamar, lerErro } from "@/lib/api";
-import { useEu } from "@/lib/consultas";
+import { useEu, useInicio } from "@/lib/consultas";
 import { diaCurto, linhaEndereco } from "@/lib/formato";
 import { haptico } from "@/lib/haptico";
 import { cores, familia, tipo } from "@/lib/tema";
@@ -21,18 +19,20 @@ export default function TelaAgendarColeta() {
   const [frascos, setFrascos] = useState(1);
   const [data, setData] = useState<string | null>(null);
   const [horario, setHorario] = useState<string | null>(null);
+  const [comKit, setComKit] = useState(false);
   const queryClient = useQueryClient();
   const eu = useEu();
-  const dias = useQuery({ queryKey: ["dias-disponiveis"], queryFn: () => chamar(api.GET("/api/v1/coletas/dias-disponiveis")) });
-  const horarios = useQuery({ queryKey: ["horarios"], queryFn: () => chamar(api.GET("/api/v1/coletas/horarios")) });
+  const kitAberto = useInicio().data?.kit_aberto;
+  const horarios = useHorarios();
 
   const agendar = useMutation({
-    mutationFn: () => chamar(api.POST("/api/v1/coletas", { body: { data: data!, horario_id: horario!, quantidade_frascos: frascos } })),
+    mutationFn: () =>
+      chamar(api.POST("/api/v1/coletas", { body: { data: data!, horario_id: horario!, quantidade_frascos: frascos, com_kit: comKit && !kitAberto } })),
     onSuccess: async () => {
       haptico.sucesso();
       await queryClient.invalidateQueries({ queryKey: ["inicio"] });
-      AccessibilityInfo.announceForAccessibility("Coleta agendada.");
-      router.replace({ pathname: "/coleta", params: { nova: "1" } });
+      AccessibilityInfo.announceForAccessibility(comKit ? "Coleta e kit agendados." : "Coleta agendada.");
+      router.replace({ pathname: "/coleta", params: { nova: comKit ? "kit" : "1" } });
     },
     onError: () => haptico.aviso(),
   });
@@ -46,44 +46,19 @@ export default function TelaAgendarColeta() {
         <Contador rotulo="Quantidade de frascos" valor={frascos} min={1} max={20} onChange={setFrascos} />
       </Entrada>
 
-      <Entrada ordem={2}>
-        <Cartao style={estilos.linha}>
-          {dias.data ? (
-            dias.data.length ? (
-              <SeletorData rotulo="Data da coleta" dias={dias.data} selecionado={data} onChange={setData} />
-            ) : (
-              <Text style={tipo.legenda}>Nenhum dia disponível agora. Ligue para o banco de leite.</Text>
-            )
-          ) : dias.error ? (
-            <Estado erro={dias.error} tentarDeNovo={() => dias.refetch()} />
-          ) : (
-            <Esqueleto altura={40} />
-          )}
-        </Cartao>
-      </Entrada>
+      <DiaHorario de="da coleta" data={data} horario={horario} mudarData={setData} mudarHorario={setHorario} />
 
-      <Entrada ordem={3}>
-        <Cartao style={estilos.linha}>
-          {horarios.data ? (
-            horarios.data.length ? (
-              <Seletor
-                rotulo="Horário da coleta"
-                opcoes={horarios.data.map((h) => ({ valor: h.id, rotulo: h.rotulo }))}
-                selecionado={horario}
-                onChange={setHorario}
-              />
-            ) : (
-              <Text style={tipo.legenda}>O banco de leite ainda não abriu horários. Tente mais tarde ou ligue para o banco.</Text>
-            )
-          ) : horarios.error ? (
-            <Estado erro={horarios.error} tentarDeNovo={() => horarios.refetch()} />
-          ) : (
-            <Esqueleto altura={40} />
-          )}
-        </Cartao>
-      </Entrada>
+      {/* Com um pedido de kit em andamento a API recusa outro; aí a opção nem aparece. */}
+      {!kitAberto ? (
+        <Entrada ordem={4} style={{ gap: 6 }}>
+          <Concordo texto="Quero receber um kit novo de frascos no mesmo dia" marcado={comKit} onChange={setComKit} />
+          <Text style={[tipo.legenda, { fontSize: 13, paddingHorizontal: 4 }]}>
+            A equipe leva os frascos vazios quando for buscar o leite{frascos > 10 ? " (até 10 por kit)" : ""}.
+          </Text>
+        </Entrada>
+      ) : null}
 
-      <Entrada ordem={4} style={{ gap: 14 }}>
+      <Entrada ordem={5} style={{ gap: 14 }}>
         {eu.data?.endereco_ativo ? (
           <Text style={[tipo.legenda, { textAlign: "center" }]}>
             {eu.data.endereco_ativo.apelido}:{" "}
@@ -112,7 +87,3 @@ export default function TelaAgendarColeta() {
     </Tela>
   );
 }
-
-const estilos = StyleSheet.create({
-  linha: { paddingVertical: 6, paddingHorizontal: 16 },
-});

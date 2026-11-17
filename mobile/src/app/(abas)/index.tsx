@@ -3,14 +3,16 @@ import { router } from "expo-router";
 import { CalendarDays, ChevronRight, Heart, MapPin, TriangleAlert } from "lucide-react-native";
 import { Image, StyleSheet, Text, View } from "react-native";
 
+import { Botao } from "@/components/Botao";
 import { BotaoWhatsapp } from "@/components/BotaoWhatsapp";
 import { Cartao } from "@/components/Cartao";
 import { CartaoOnda } from "@/components/CartaoOnda";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
+import { Mascote } from "@/components/Mascote";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
-import { etapaAtual } from "@/features/coleta/Jornada";
+import { doacaoComecou, etapaAtual } from "@/features/coleta/Jornada";
 import { SimularDoacao } from "@/features/coleta/SimularDoacao";
 import { AtalhosGuias } from "@/features/conteudo/AtalhosGuias";
 import { IMAGENS } from "@/features/conteudo/imagens";
@@ -58,7 +60,9 @@ export default function TelaInicio() {
       </Entrada>
 
       <Entrada ordem={2}>
-        {APTA.includes(proxima_acao) ? (
+        {proxima_acao === "pedir_kit" && !doacaoComecou(jornada) ? (
+          <DoarLeite />
+        ) : APTA.includes(proxima_acao) ? (
           <Atalhos acao={proxima_acao} kit={kit_aberto} />
         ) : proxima_acao === "aguardar_analise" ? (
           <EmAnalise texto={texto("inicio.aguardar_analise", "Recebemos seu cadastro. O banco de leite responde em até 2 dias úteis.").corpo} />
@@ -103,6 +107,24 @@ export default function TelaInicio() {
   );
 }
 
+/** Primeiro passo de quem acabou de ser aprovada: um botão só, que leva ao pedido do kit. */
+function DoarLeite() {
+  return (
+    <Cartao tom="rosa" style={estilos.doar}>
+      <Mascote tamanho={64} />
+      <View style={{ alignItems: "center", gap: 2 }}>
+        <Text accessibilityRole="header" style={[tipo.subtitulo, { color: cores.primaria }]}>
+          Tudo pronto para começar!
+        </Text>
+        <Text style={[tipo.legenda, { textAlign: "center" }]}>Peça seu kit de frascos e escolha o dia da entrega.</Text>
+      </View>
+      <View style={{ alignSelf: "stretch" }}>
+        <Botao titulo="Doar leite" onPress={() => router.push("/kit")} />
+      </View>
+    </Cartao>
+  );
+}
+
 /** Sem fundo, borda nem toque: é mensagem, não botão. */
 function Destaque({ texto }: { texto: string }) {
   return (
@@ -125,7 +147,9 @@ function Atalhos({ acao, kit }: { acao: Inicio["proxima_acao"]; kit: Inicio["kit
       : acao === "acompanhar_coleta"
         ? { texto: "Você já tem uma coleta marcada", rota: "/coleta" }
         : { texto: "Disponível quando o kit chegar" };
-  const pedido: { texto: string; rota?: Rota } = kit ? { texto: kit.status_rotulo } : { texto: "Peça seu kit de coleta", rota: "/kit" };
+  const pedido: { texto: string; rota?: Rota } = kit
+    ? { texto: kit.data_entrega ? `Entrega ${diaRelativo(kit.data_entrega).toLowerCase()}` : kit.status_rotulo, rota: "/kit" }
+    : { texto: "Peça seu kit de coleta", rota: "/kit" };
 
   return (
     <View style={estilos.atalhos}>
@@ -190,6 +214,7 @@ function Aviso({ titulo }: { titulo: string }) {
 }
 
 const estilos = StyleSheet.create({
+  doar: { alignItems: "center", gap: 12, paddingVertical: 20 },
   // Rosa da marca no nome só passa no contraste como texto grande: não descer de 24px.
   boasVindas: { fontFamily: familia.assinatura, fontSize: 24, lineHeight: 34, color: cores.texto },
   secao: { fontFamily: familia.medio, fontSize: 17, color: cores.texto },

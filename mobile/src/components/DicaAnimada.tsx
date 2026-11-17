@@ -1,6 +1,6 @@
 import { Sparkles } from "lucide-react-native";
 import { useEffect } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
   ReduceMotion,
@@ -13,8 +13,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { IMAGENS } from "@/features/conteudo/imagens";
 import { cores, familia, tipo } from "@/lib/tema";
+
+import { Mascote } from "./Mascote";
 
 type Props = { titulo: string; texto: string; selo?: string; tom?: "rosa" | "turquesa" };
 
@@ -24,7 +25,7 @@ const TONS = {
 };
 
 /**
- * Dica com personagem, no espírito dos apps que dão vontade de continuar: o frasco "fala" num balão.
+ * Dica com personagem, no espírito dos apps que dão vontade de continuar: a gotinha "fala" num balão.
  * Entra com mola e o frasco balança de leve. Com "reduzir movimento" ligado, aparece parado.
  */
 export function DicaAnimada({ titulo, texto, selo = "Você sabia?", tom = "turquesa" }: Props) {
@@ -59,7 +60,7 @@ export function DicaAnimada({ titulo, texto, selo = "Você sabia?", tom = "turqu
   return (
     <View style={estilos.linha} accessible accessibilityLabel={`${selo} ${titulo}. ${texto}`}>
       <Animated.View style={[estilos.personagem, { backgroundColor: cor.fundo, borderColor: cor.borda }, estiloPersonagem]}>
-        <Image source={IMAGENS.poteLeite} style={estilos.imagem} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <Mascote tamanho={46} />
       </Animated.View>
       <Animated.View style={[estilos.balao, { borderColor: cor.borda }, estiloBalao]}>
         <View style={[estilos.ponta, { borderRightColor: cor.borda }]} />
@@ -85,7 +86,6 @@ const estilos = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  imagem: { width: 40, height: 44 },
   balao: {
     flex: 1,
     gap: 2,

@@ -353,7 +353,7 @@ export default function TelaCadastro() {
               {dados.bairro}, {dados.cidade}/{dados.uf}
             </Text>
           </Cartao>
-          <Botao titulo={aprovada ? "Começar a doar" : "Ir para o início"} onPress={() => conta && salvarTokens(conta)} />
+          <Botao titulo="Ir para o início" onPress={() => conta && salvarTokens(conta)} />
         </Entrada>
       ) : null}
     </Tela>

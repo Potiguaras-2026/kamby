@@ -63,6 +63,7 @@ export default function TelaEntrar() {
             <Campo
               rotulo="Senha"
               icone={LockKeyhole}
+              placeholder="Digite sua senha"
               value={senha}
               onChangeText={setSenha}
               secureTextEntry

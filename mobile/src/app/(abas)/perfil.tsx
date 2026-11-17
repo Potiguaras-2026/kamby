@@ -1,9 +1,10 @@
 import { router } from "expo-router";
-import { Building2, Droplet, Heart, LogOut, MapPin, Package, Phone, type LucideIcon } from "lucide-react-native";
+import { Baby, Building2, Droplet, Heart, LogOut, MapPin, Package, Phone, UserRound, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/Avatar";
+import { Cartao } from "@/components/Cartao";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
 import { Folha } from "@/components/Folha";
@@ -11,7 +12,7 @@ import { NumeroAnimado } from "@/components/NumeroAnimado";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
 import { useEu, useInicio } from "@/lib/consultas";
-import { dataCompleta, litros, telefone } from "@/lib/formato";
+import { dataCompleta, linhaEndereco, litros, telefone } from "@/lib/formato";
 import { salvarTokens } from "@/lib/sessao";
 import { cores, familia, raio, tipo, toqueMinimo } from "@/lib/tema";
 
@@ -50,8 +51,28 @@ export default function TelaPerfil() {
         <Numero rotulo="Coletas realizadas" icone={Package} tom="turquesa" valor={impacto?.coletas ?? 0} formatar={(n) => String(Math.round(n))} />
       </Entrada>
 
-      {/* shortcut: "Editar perfil" fica para quando a API aceitar alteração de dados. */}
-      <Entrada ordem={2} style={{ gap: 10, marginTop: 8 }}>
+      {/* O que a mãe informou no cadastro. shortcut: só leitura até a API aceitar alteração de dados. */}
+      <Entrada ordem={2} style={{ gap: 12 }}>
+        <Bloco titulo="Você" icone={UserRound}>
+          <Dado rotulo="Nascimento" valor={dataCompleta(eu.data.data_nascimento)} />
+          <Dado rotulo="Situação" valor={eu.data.status_rotulo} />
+          <Dado rotulo="Banco de leite" valor={eu.data.banco.nome} />
+        </Bloco>
+        <Bloco titulo="Seu bebê" icone={Baby} tom="turquesa">
+          <Dado rotulo="Nascimento" valor={dataCompleta(eu.data.data_parto)} />
+          <Dado rotulo="Prematuro" valor={simNao(eu.data.bebe_prematuro)} />
+          <Dado rotulo="Amamentando" valor={simNao(eu.data.amamentando)} />
+          <Dado rotulo="Maternidade" valor={eu.data.maternidade || "Não informada"} />
+        </Bloco>
+        {eu.data.endereco_ativo ? (
+          <Bloco titulo="Endereço da coleta" icone={MapPin}>
+            <Text style={tipo.corpo}>{linhaEndereco(eu.data.endereco_ativo)}</Text>
+            {eu.data.endereco_ativo.referencia ? <Text style={tipo.legenda}>Ref.: {eu.data.endereco_ativo.referencia}</Text> : null}
+          </Bloco>
+        ) : null}
+      </Entrada>
+
+      <Entrada ordem={3} style={{ gap: 10, marginTop: 8 }}>
         <ItemMenu rotulo="Endereços cadastrados" icone={MapPin} onPress={() => router.push("/enderecos")} />
         <ItemMenu rotulo="Bancos de leite" icone={Building2} onPress={() => router.push("/bancos")} />
         <ItemMenu rotulo="Por trás do Kamby" icone={Heart} tom="azul" onPress={() => router.push("/sobre")} />
@@ -91,6 +112,32 @@ function Numero({ rotulo, icone: Icone, tom, valor, formatar }: { rotulo: string
   );
 }
 
+const simNao = (v: boolean | null) => (v === null ? "Não informado" : v ? "Sim" : "Não");
+
+function Bloco({ titulo, icone: Icone, tom = "rosa", children }: { titulo: string; icone: LucideIcon; tom?: "rosa" | "turquesa"; children: React.ReactNode }) {
+  const cor = tom === "rosa" ? cores.primaria : cores.turquesaTexto;
+  return (
+    <Cartao style={{ gap: 8 }}>
+      <View style={estilos.blocoTopo}>
+        <Icone size={20} color={cor} strokeWidth={2} />
+        <Text accessibilityRole="header" style={[tipo.corpoForte, { color: cor, fontFamily: familia.semi }]}>
+          {titulo}
+        </Text>
+      </View>
+      {children}
+    </Cartao>
+  );
+}
+
+function Dado({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <View style={estilos.dado} accessible accessibilityLabel={`${rotulo}: ${valor}`}>
+      <Text style={[tipo.legenda, { flexShrink: 0 }]}>{rotulo}</Text>
+      <Text style={[tipo.corpoForte, { flexShrink: 1, textAlign: "right" }]}>{valor}</Text>
+    </View>
+  );
+}
+
 const TONS_MENU = {
   rosa: { cor: cores.primaria, borda: cores.rosaClaro },
   azul: { cor: cores.azulTexto, borda: "#B9CBEA" },
@@ -110,6 +157,8 @@ function ItemMenu({ rotulo, icone: Icone, tom = "rosa", onPress }: { rotulo: str
 const estilos = StyleSheet.create({
   topo: { flexDirection: "row", alignItems: "center", gap: 18, paddingVertical: 4 },
   telefone: { flexDirection: "row", alignItems: "center", gap: 6 },
+  blocoTopo: { flexDirection: "row", alignItems: "center", gap: 8 },
+  dado: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12 },
   numeros: { flexDirection: "row", gap: 12 },
   numero: { flex: 1, borderRadius: raio.m, borderWidth: 1, paddingVertical: 18, alignItems: "center", gap: 6 },
   numeroLinha: { flexDirection: "row", alignItems: "center", gap: 8 },

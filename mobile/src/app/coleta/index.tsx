@@ -54,7 +54,12 @@ export default function TelaMinhaDoacao() {
 
   return (
     <Tela voltar titulo={nova ? undefined : "Minha doação"} atualizar={{ atualizando: inicio.isRefetching, aoAtualizar: () => inicio.refetch() }}>
-      {nova ? <Celebracao titulo="Coleta agendada!" texto="Obrigada por doar. Acompanhe cada etapa por aqui." /> : null}
+      {nova ? (
+        <Celebracao
+          titulo="Coleta agendada!"
+          texto={nova === "kit" ? "A equipe leva seu kit novo no mesmo dia. Acompanhe cada etapa por aqui." : "Obrigada por doar. Acompanhe cada etapa por aqui."}
+        />
+      ) : null}
 
       {coleta ? (
         <Entrada ordem={1}>

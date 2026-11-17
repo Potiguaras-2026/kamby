@@ -71,7 +71,10 @@ export default function TelaSobre() {
 
       <Entrada ordem={blocos.length + 1}>
         <Cartao style={estilos.equipe}>
-          <Image source={IMAGENS.equipe} style={estilos.foto} resizeMode="contain" accessibilityLabel="Foto da equipe Potiguaras, seis estudantes do IFRN sorrindo" />
+          {/* Proporção na caixa, não na imagem: na web a Image ignora aspectRatio e usa a altura original, sobrando branco. */}
+          <View style={estilos.foto}>
+            <Image source={IMAGENS.equipe} style={{ width: "100%", height: "100%" }} resizeMode="contain" accessibilityLabel="Foto da equipe Potiguaras, seis estudantes do IFRN sorrindo" />
+          </View>
           <Image source={IMAGENS.potiguaras} style={estilos.logo} resizeMode="contain" accessibilityLabel="Logo Potiguaras" />
           <Text style={[tipo.legenda, { textAlign: "center" }]}>Feito pela equipe Potiguaras, do IFRN, em Natal.</Text>
         </Cartao>
@@ -95,9 +98,9 @@ export default function TelaSobre() {
 }
 
 const estilos = StyleSheet.create({
-  equipe: { alignItems: "center", gap: 12 },
-  foto: { width: "100%", aspectRatio: 551 / 407, maxWidth: 360 },
-  logo: { width: 120, height: 75 },
+  equipe: { alignItems: "center", gap: 10, paddingTop: 12 },
+  foto: { width: "100%", aspectRatio: 551 / 407 },
+  logo: { width: 104, height: 65 },
   contatos: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   contato: {
     flexBasis: "47%",

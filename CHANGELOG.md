@@ -5,6 +5,8 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 ## [Não lançado]
 
 ### Adicionado
+- Pedido de kit com dia e horário da entrega; ao agendar a coleta, dá para pedir um kit novo para o mesmo dia.
+- Perfil mostra os dados do cadastro (mãe, bebê e endereço); dicas com a gotinha como personagem; simulação da doação só depois de tocar em "Doar leite".
 - Modo demonstração (`KAMBY_DEMO=1`): cadastro aprovado na hora e botão para simular cada etapa da doação no app.
 - Cadastro em 4 etapas: perguntas de saúde numa tela só, maternidades de Natal com busca, dicas animadas e avanço sempre pelo botão.
 - Campos de formulário novos em todo o app (rótulo, exemplo, ajuda, erro e CEP conferido), contato com o banco pelo WhatsApp, "em análise" com etapas e Sobre com a equipe Potiguaras e ícones das redes.
