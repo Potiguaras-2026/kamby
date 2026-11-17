@@ -20,18 +20,25 @@ ProximaAcao = Literal[
 
 class KitSaida(ModelSchema):
     status_rotulo: str
+    horario_rotulo: str
 
     class Meta:
         model = SolicitacaoKit
-        fields = ["id", "quantidade_frascos", "status", "criado_em"]
+        fields = ["id", "quantidade_frascos", "status", "criado_em", "data_entrega"]
 
     @staticmethod
     def resolve_status_rotulo(obj):
         return obj.get_status_display()
 
+    @staticmethod
+    def resolve_horario_rotulo(obj):
+        return obj.horario_rotulo
+
 
 class KitEntrada(Schema):
     quantidade_frascos: int = Field(ge=1, le=10)
+    data: date
+    horario_id: UUID
 
 
 class ColetaSaida(ModelSchema):
@@ -58,6 +65,8 @@ class ColetaEntrada(Schema):
     data: date
     horario_id: UUID
     quantidade_frascos: int = Field(ge=1, le=20)
+    # Pede um kit novo para a equipe entregar na mesma visita.
+    com_kit: bool = False
 
 
 class HorarioSaida(Schema):

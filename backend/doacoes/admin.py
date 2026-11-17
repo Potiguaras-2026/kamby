@@ -69,8 +69,8 @@ class ColetaAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoKit)
 class SolicitacaoKitAdmin(admin.ModelAdmin):
-    list_display = ["doadora", "quantidade_frascos", "status", "criado_em"]
-    list_filter = ["status"]
+    list_display = ["doadora", "quantidade_frascos", "data_entrega", "horario_rotulo", "status", "criado_em"]
+    list_filter = ["status", "data_entrega"]
     readonly_fields = ["status"]
     actions = ["em_preparo", "entregue", "cancelar"]
 

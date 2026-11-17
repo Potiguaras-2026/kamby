@@ -616,10 +616,21 @@ export interface components {
             /** Status Rotulo */
             status_rotulo: string;
             /**
+             * Data Nascimento
+             * Format: date
+             */
+            data_nascimento: string;
+            /**
              * Data Parto
              * Format: date
              */
             data_parto: string;
+            /** Amamentando */
+            amamentando: boolean | null;
+            /** Bebe Prematuro */
+            bebe_prematuro: boolean | null;
+            /** Maternidade */
+            maternidade: string;
             endereco_ativo: components["schemas"]["EnderecoSaida"] | null;
             banco: components["schemas"]["BancoSaida"];
             /**
@@ -861,8 +872,12 @@ export interface components {
              * Format: date-time
              */
             criado_em: string;
+            /** Data Da Entrega */
+            data_entrega?: string | null;
             /** Status Rotulo */
             status_rotulo: string;
+            /** Horario Rotulo */
+            horario_rotulo: string;
         };
         /** MesSaida */
         MesSaida: {
@@ -895,6 +910,16 @@ export interface components {
         KitEntrada: {
             /** Quantidade Frascos */
             quantidade_frascos: number;
+            /**
+             * Data
+             * Format: date
+             */
+            data: string;
+            /**
+             * Horario Id
+             * Format: uuid
+             */
+            horario_id: string;
         };
         /** HorarioSaida */
         HorarioSaida: {
@@ -937,6 +962,11 @@ export interface components {
             horario_id: string;
             /** Quantidade Frascos */
             quantidade_frascos: number;
+            /**
+             * Com Kit
+             * @default false
+             */
+            com_kit: boolean;
         };
         /** CancelamentoEntrada */
         CancelamentoEntrada: {

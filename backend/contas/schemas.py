@@ -78,7 +78,11 @@ class DoadoraSaida(Schema):
     telefone: str = Field(alias="usuario.telefone")
     status: str
     status_rotulo: str
+    data_nascimento: date
     data_parto: date
+    amamentando: bool | None
+    bebe_prematuro: bool | None
+    maternidade: str
     endereco_ativo: EnderecoSaida | None
     banco: BancoSaida
     criado_em: datetime

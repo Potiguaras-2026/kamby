@@ -18,6 +18,10 @@ class SolicitacaoKit(ModeloBase):
     doadora = models.ForeignKey("contas.Doadora", on_delete=models.CASCADE, related_name="kits")
     quantidade_frascos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SOLICITADO)
+    # Dia e faixa de horário que a doadora escolheu para receber os frascos. Vazio só em pedidos antigos.
+    data_entrega = models.DateField("data da entrega", null=True, blank=True)
+    horario_inicio = models.TimeField("início do horário", null=True, blank=True)
+    horario_fim = models.TimeField("fim do horário", null=True, blank=True)
 
     class Meta:
         verbose_name = "solicitação de kit"
@@ -26,6 +30,10 @@ class SolicitacaoKit(ModeloBase):
         constraints = [
             models.UniqueConstraint(fields=["doadora"], condition=Q(status__in=["solicitado", "em_preparo"]), name="um_kit_aberto_por_doadora")
         ]
+
+    @property
+    def horario_rotulo(self) -> str:
+        return rotulo_horario(self.horario_inicio, self.horario_fim) if self.horario_inicio else ""
 
 
 class Coleta(ModeloBase):

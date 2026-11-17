@@ -27,7 +27,7 @@ def listar_kits(request):
 
 @router.post("/kits", response={201: KitSaida})
 def pedir_kit(request, dados: KitEntrada):
-    return 201, services.pedir_kit(doadora_do_usuario(request.auth), dados.quantidade_frascos)
+    return 201, services.pedir_kit(doadora_do_usuario(request.auth), dados.quantidade_frascos, data=dados.data, horario_id=dados.horario_id)
 
 
 @router.get("/coletas/dias-disponiveis", response=list[date])

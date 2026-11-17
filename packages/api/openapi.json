@@ -1403,9 +1403,40 @@
             "title": "Status Rotulo",
             "type": "string"
           },
+          "data_nascimento": {
+            "format": "date",
+            "title": "Data Nascimento",
+            "type": "string"
+          },
           "data_parto": {
             "format": "date",
             "title": "Data Parto",
+            "type": "string"
+          },
+          "amamentando": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amamentando"
+          },
+          "bebe_prematuro": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bebe Prematuro"
+          },
+          "maternidade": {
+            "title": "Maternidade",
             "type": "string"
           },
           "endereco_ativo": {
@@ -1433,7 +1464,11 @@
           "telefone",
           "status",
           "status_rotulo",
+          "data_nascimento",
           "data_parto",
+          "amamentando",
+          "bebe_prematuro",
+          "maternidade",
           "endereco_ativo",
           "banco",
           "criado_em"
@@ -2059,15 +2094,32 @@
             "title": "Criado Em",
             "type": "string"
           },
+          "data_entrega": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Da Entrega"
+          },
           "status_rotulo": {
             "title": "Status Rotulo",
+            "type": "string"
+          },
+          "horario_rotulo": {
+            "title": "Horario Rotulo",
             "type": "string"
           }
         },
         "required": [
           "quantidade_frascos",
           "criado_em",
-          "status_rotulo"
+          "status_rotulo",
+          "horario_rotulo"
         ],
         "title": "KitSaida",
         "type": "object"
@@ -2143,10 +2195,22 @@
             "minimum": 1,
             "title": "Quantidade Frascos",
             "type": "integer"
+          },
+          "data": {
+            "format": "date",
+            "title": "Data",
+            "type": "string"
+          },
+          "horario_id": {
+            "format": "uuid",
+            "title": "Horario Id",
+            "type": "string"
           }
         },
         "required": [
-          "quantidade_frascos"
+          "quantidade_frascos",
+          "data",
+          "horario_id"
         ],
         "title": "KitEntrada",
         "type": "object"
@@ -2220,6 +2284,11 @@
             "minimum": 1,
             "title": "Quantidade Frascos",
             "type": "integer"
+          },
+          "com_kit": {
+            "default": false,
+            "title": "Com Kit",
+            "type": "boolean"
           }
         },
         "required": [

@@ -54,7 +54,7 @@ class Base(TestCase):
         self.doadora.refresh_from_db()
 
     def entregar_kit(self):
-        kit = services.pedir_kit(self.doadora, 4)
+        kit = services.pedir_kit(self.doadora, 4, data=proximo_dia_util(), horario_id=self.horario.id)
         services.mudar_status_kit(kit, SolicitacaoKit.Status.EM_PREPARO)
         services.mudar_status_kit(kit, SolicitacaoKit.Status.ENTREGUE)
 
@@ -68,7 +68,7 @@ class FluxoDaDoadoraTest(Base):
         contas.avaliar_triagem(self.doadora.triagens.get(), apta=True, avaliada_por=self.equipe)
         self.doadora.refresh_from_db()
         self.assertEqual(self.acao(), "pedir_kit")
-        kit = services.pedir_kit(self.doadora, 4)
+        kit = services.pedir_kit(self.doadora, 4, data=proximo_dia_util(), horario_id=self.horario.id)
         self.assertEqual(self.acao(), "aguardar_kit")
         services.mudar_status_kit(kit, SolicitacaoKit.Status.EM_PREPARO)
         services.mudar_status_kit(kit, SolicitacaoKit.Status.ENTREGUE)
@@ -289,3 +289,28 @@ class DemoTest(Base):
             resposta = self.client.post("/api/v1/demo/proxima-etapa", **auth)
         self.assertEqual(resposta.status_code, 200)
         self.assertTrue(resposta.json()["demo"])
+
+
+class KitAgendadoTest(Base):
+    def setUp(self):
+        super().setUp()
+        self.aprovar()
+
+    def test_kit_guarda_dia_e_horario_e_recusa_dia_fora_da_janela(self):
+        with self.assertRaises(ErroDominio):
+            services.pedir_kit(self.doadora, 2, data=timezone.localdate(), horario_id=self.horario.id)
+        kit = services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
+        self.assertEqual((kit.data_entrega, kit.horario_rotulo), (proximo_dia_util(), "09h30 - 11h00"))
+
+    def test_coleta_com_kit_cria_os_dois_no_mesmo_dia(self):
+        self.entregar_kit()
+        coleta = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=12, com_kit=True)
+        kit = selectors.kit_aberto(self.doadora)
+        self.assertEqual((kit.data_entrega, kit.horario_inicio, kit.quantidade_frascos), (coleta.data, coleta.horario_inicio, 10))
+
+    def test_coleta_com_kit_nao_fica_pela_metade(self):
+        self.entregar_kit()
+        services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
+        with self.assertRaises(ErroDominio):
+            services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2, com_kit=True)
+        self.assertIsNone(selectors.coleta_ativa(self.doadora))
