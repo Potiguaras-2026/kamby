@@ -104,3 +104,7 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# Modo demonstração: cadastro aprovado na hora e botão para simular a próxima etapa da doação.
+# shortcut: aprovação automática só para a demo; desligar (KAMBY_DEMO vazio) quando o banco avaliar de verdade.
+KAMBY_DEMO = os.environ.get("KAMBY_DEMO") == "1"

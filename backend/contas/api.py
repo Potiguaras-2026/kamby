@@ -12,6 +12,7 @@ from contas.schemas import (
     EnderecoSaida,
     AccessSaida,
     CadastroEntrada,
+    CadastroSaida,
     DoadoraSaida,
     EntrarEntrada,
     PerguntaSaida,
@@ -32,10 +33,10 @@ def tokens(usuario) -> dict:
     return {"access": str(refresh.access_token), "refresh": str(refresh)}
 
 
-@router_auth.post("/cadastro", response={201: TokensSaida})
+@router_auth.post("/cadastro", response={201: CadastroSaida})
 def cadastro(request, dados: CadastroEntrada):
     usuario = services.cadastrar_doadora(**dados.dict())
-    return 201, tokens(usuario)
+    return 201, {**tokens(usuario), "status": usuario.doadora.status}
 
 
 @router_auth.post("/entrar", response=TokensSaida)

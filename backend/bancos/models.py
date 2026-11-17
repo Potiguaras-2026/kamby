@@ -47,3 +47,18 @@ class HorarioColeta(ModeloBase):
 
 def rotulo_horario(inicio, fim) -> str:
     return f"{inicio:%Hh%M} - {fim:%Hh%M}"
+
+
+class Maternidade(ModeloBase):
+    """Lista do cadastro da doadora ("onde seu bebê nasceu"). A equipe do banco mantém no admin."""
+
+    nome = models.CharField(max_length=150, unique=True)
+    cidade = models.CharField(max_length=80, default="Natal")
+    ordem = models.PositiveSmallIntegerField(default=0)
+    ativa = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["ordem", "nome"]
+
+    def __str__(self):
+        return self.nome

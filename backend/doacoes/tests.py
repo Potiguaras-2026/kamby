@@ -1,6 +1,6 @@
 from datetime import date, time, timedelta
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from bancos.models import BancoDeLeite, HorarioColeta
@@ -25,6 +25,7 @@ def proximo_dia_util() -> date:
     return services.dias_disponiveis(timezone.localdate())[0]
 
 
+@override_settings(KAMBY_DEMO=False)
 class Base(TestCase):
     def setUp(self):
         self.banco = BancoDeLeite.objects.create(nome="BLH", telefone="84", endereco="R", cidade="Natal")
@@ -265,3 +266,26 @@ class JornadaTest(Base):
             services.registrar_processamento(coleta)
         services.marcar_ajuste(coleta, Coleta.Ajuste.QUANTIDADE_INSUFICIENTE)
         self.assertEqual(selectors.inicio(self.doadora)["aviso"]["tipo"], "ajuste.quantidade_insuficiente")
+
+
+class DemoTest(Base):
+    def test_simulacao_percorre_a_jornada_e_recomeca(self):
+        etapas = []
+        for _ in range(9):
+            services.simular_proxima_etapa(self.doadora)
+            self.doadora.refresh_from_db()
+            jornada = selectors.inicio(self.doadora)["jornada"]
+            etapas.append(next((e["codigo"] for e in jornada if e["estado"] == "atual"), "fim"))
+        self.assertEqual(etapas, [
+            "kit_solicitado", "kit_entregue", "coleta_agendada", "a_caminho", "coletada",
+            "entregue_banco", "processada", "fim", "a_caminho",
+        ])
+
+    def test_rota_so_existe_no_modo_demo(self):
+        token = self.client.post("/api/v1/auth/entrar", {"telefone": "84999990000", "senha": SENHA}, content_type="application/json").json()["access"]
+        auth = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+        self.assertEqual(self.client.post("/api/v1/demo/proxima-etapa", **auth).status_code, 404)
+        with override_settings(KAMBY_DEMO=True):
+            resposta = self.client.post("/api/v1/demo/proxima-etapa", **auth)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTrue(resposta.json()["demo"])

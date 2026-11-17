@@ -26,6 +26,7 @@ services:
       DJANGO_ALLOWED_HOSTS: "*"
       SEED_SENHA: kamby-demo-2026
       DJANGO_CORS_DEV: http://localhost:8081
+      KAMBY_DEMO: "1"
     ports:
       - "8000:8000"
     volumes:

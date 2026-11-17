@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.conf import settings
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
@@ -183,4 +184,5 @@ def inicio(doadora: Doadora) -> dict:
         "impacto": impacto(doadora),
         "historico": historico(doadora, timezone.localdate()),
         "banco": doadora.banco,
+        "demo": settings.KAMBY_DEMO,
     }

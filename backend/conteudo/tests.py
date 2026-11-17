@@ -1,6 +1,6 @@
 from datetime import date
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from bancos.models import BancoDeLeite
 from contas.models import Doadora, PerguntaSaude
@@ -22,6 +22,7 @@ class ConteudoTest(TestCase):
         self.assertEqual(len(guia["passos"]), 6)
 
 
+@override_settings(KAMBY_DEMO=False)
 class CadastroTest(TestCase):
     def setUp(self):
         self.banco = BancoDeLeite.objects.create(nome="BLH", telefone="84", endereco="R", cidade="Natal")
@@ -63,6 +64,14 @@ class CadastroTest(TestCase):
         self.assertEqual(doadora.usuario.email, "ana@exemplo.com")
         self.assertEqual((doadora.amamentando, doadora.maternidade), (True, "Maternidade Escola"))
         self.assertEqual(doadora.triagens.get().detalhes, {"medicamento": "Vitamina D"})
+
+    def test_modo_demo_aprova_na_hora_e_lista_maternidades(self):
+        with override_settings(KAMBY_DEMO=True):
+            r = self.cadastrar()
+        self.assertEqual((r.status_code, r.json()["status"]), (201, "apta"))
+        self.assertEqual(Doadora.objects.get().status, Doadora.Status.APTA)
+        nomes = [m["nome"] for m in self.client.get("/api/v1/bancos/maternidades").json()]
+        self.assertIn("Maternidade Escola Januário Cicco", nomes)
 
     def test_respostas_incompletas_nao_criam_conta(self):
         r = self.cadastrar(respostas={"boa_saude": True})

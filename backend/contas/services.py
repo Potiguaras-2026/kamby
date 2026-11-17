@@ -1,5 +1,6 @@
 import re
 
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -67,7 +68,9 @@ def cadastrar_doadora(
     endereco = {c: endereco_e_dados.pop(c) for c in CAMPOS_ENDERECO if c in endereco_e_dados}
     doadora = Doadora.objects.create(usuario=usuario, banco=banco, consentimento_em=timezone.now(), **endereco_e_dados)
     criar_endereco(doadora, **endereco)
-    enviar_triagem(doadora, respostas, detalhes)
+    triagem = enviar_triagem(doadora, respostas, detalhes)
+    if settings.KAMBY_DEMO:
+        avaliar_triagem(triagem, apta=True, avaliada_por=None, observacao="Aprovada automaticamente no modo demonstração.")
     return usuario
 
 
@@ -132,7 +135,7 @@ def enviar_triagem(doadora: Doadora, respostas: dict[str, bool], detalhes: dict[
 
 
 @transaction.atomic
-def avaliar_triagem(triagem: Triagem, *, apta: bool, avaliada_por: Usuario, observacao: str = "") -> Triagem:
+def avaliar_triagem(triagem: Triagem, *, apta: bool, avaliada_por: Usuario | None, observacao: str = "") -> Triagem:
     if triagem.resultado != Triagem.Resultado.PENDENTE:
         raise ErroDominio("transicao_invalida", "Essa triagem já foi avaliada.")
     triagem.resultado = Triagem.Resultado.APTA if apta else Triagem.Resultado.INAPTA

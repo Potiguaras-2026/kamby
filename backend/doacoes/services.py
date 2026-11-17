@@ -125,3 +125,47 @@ def mudar_status_kit(kit: SolicitacaoKit, novo: str) -> SolicitacaoKit:
     kit.status = novo
     kit.save()
     return kit
+
+
+@transaction.atomic
+def simular_proxima_etapa(doadora: Doadora) -> None:
+    """Modo demonstração: faz o papel da equipe do banco e avança a jornada uma etapa."""
+    from contas.services import avaliar_triagem
+
+    ultima = selectors.ultima_coleta(doadora)
+    etapas = selectors.jornada(doadora, ultima)
+    atual = next((e["codigo"] for e in etapas if e["estado"] == "atual"), None)
+    ativa = selectors.coleta_ativa(doadora)
+
+    if atual == "em_analise" or atual == "aprovada":
+        triagem = doadora.triagens.first()
+        if triagem is None:
+            raise ErroDominio("conflito", "Responda as perguntas de saúde antes.")
+        avaliar_triagem(triagem, apta=True, avaliada_por=None, observacao="Aprovada no modo demonstração.")
+    elif atual == "kit_solicitado":
+        pedir_kit(doadora, 5)
+    elif atual == "kit_entregue":
+        kit = selectors.kit_aberto(doadora)
+        if kit.status == SolicitacaoKit.Status.SOLICITADO:
+            mudar_status_kit(kit, SolicitacaoKit.Status.EM_PREPARO)
+        mudar_status_kit(kit, SolicitacaoKit.Status.ENTREGUE)
+    elif atual in ("coleta_agendada", None) and not ativa:
+        # None: ciclo completo; a demo recomeça com uma coleta nova.
+        horario = selectors.horarios_do_banco(doadora.banco).first()
+        if horario is None:
+            raise ErroDominio("conflito", "O banco de leite ainda não tem horários de coleta.")
+        agendar_coleta(
+            doadora, data=dias_disponiveis(timezone.localdate())[0], horario_id=horario.id, quantidade_frascos=5
+        )
+    elif atual == "a_caminho" and ativa:
+        if ativa.status == Coleta.Status.AGENDADA:
+            mudar_status_coleta(ativa, Coleta.Status.CONFIRMADA)
+        mudar_status_coleta(ativa, Coleta.Status.A_CAMINHO)
+    elif atual == "coletada" and ativa:
+        mudar_status_coleta(ativa, Coleta.Status.COLETADA, volume_ml=ativa.quantidade_frascos * 180)
+    elif atual == "entregue_banco":
+        registrar_entrega_banco(ultima)
+    elif atual == "processada":
+        registrar_processamento(ultima)
+    else:
+        raise ErroDominio("conflito", "Não há próxima etapa para simular agora.")

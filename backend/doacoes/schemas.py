@@ -119,3 +119,4 @@ class InicioSaida(Schema):
     impacto: ImpactoSaida
     historico: list[MesSaida]
     banco: BancoSaida
+    demo: bool

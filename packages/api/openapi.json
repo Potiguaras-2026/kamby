@@ -17,7 +17,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokensSaida"
+                  "$ref": "#/components/schemas/CadastroSaida"
                 }
               }
             }
@@ -115,6 +115,32 @@
                 "schema": {
                   "items": {
                     "$ref": "#/components/schemas/BancoSaida"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "bancos"
+        ]
+      }
+    },
+    "/api/v1/bancos/maternidades": {
+      "get": {
+        "operationId": "bancos_api_listar_maternidades",
+        "summary": "Listar Maternidades",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MaternidadeSaida"
                   },
                   "title": "Response",
                   "type": "array"
@@ -891,11 +917,38 @@
           }
         ]
       }
+    },
+    "/api/v1/demo/proxima-etapa": {
+      "post": {
+        "operationId": "doacoes_api_simular_proxima_etapa",
+        "summary": "Simular Proxima Etapa",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InicioSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
     "schemas": {
-      "TokensSaida": {
+      "CadastroSaida": {
         "properties": {
           "access": {
             "title": "Access",
@@ -904,13 +957,18 @@
           "refresh": {
             "title": "Refresh",
             "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
           }
         },
         "required": [
           "access",
-          "refresh"
+          "refresh",
+          "status"
         ],
-        "title": "TokensSaida",
+        "title": "CadastroSaida",
         "type": "object"
       },
       "CadastroEntrada": {
@@ -1050,6 +1108,24 @@
         "title": "CadastroEntrada",
         "type": "object"
       },
+      "TokensSaida": {
+        "properties": {
+          "access": {
+            "title": "Access",
+            "type": "string"
+          },
+          "refresh": {
+            "title": "Refresh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access",
+          "refresh"
+        ],
+        "title": "TokensSaida",
+        "type": "object"
+      },
       "EntrarEntrada": {
         "properties": {
           "telefone": {
@@ -1138,6 +1214,38 @@
           "cidade"
         ],
         "title": "BancoSaida",
+        "type": "object"
+      },
+      "MaternidadeSaida": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "nome": {
+            "maxLength": 150,
+            "title": "Nome",
+            "type": "string"
+          },
+          "cidade": {
+            "default": "Natal",
+            "maxLength": 80,
+            "title": "Cidade",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome"
+        ],
+        "title": "MaternidadeSaida",
         "type": "object"
       },
       "TextoSaida": {
@@ -1900,6 +2008,10 @@
           },
           "banco": {
             "$ref": "#/components/schemas/BancoSaida"
+          },
+          "demo": {
+            "title": "Demo",
+            "type": "boolean"
           }
         },
         "required": [
@@ -1912,7 +2024,8 @@
           "kit_aberto",
           "impacto",
           "historico",
-          "banco"
+          "banco",
+          "demo"
         ],
         "title": "InicioSaida",
         "type": "object"

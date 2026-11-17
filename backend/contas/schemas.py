@@ -45,6 +45,11 @@ class TokensSaida(Schema):
     refresh: str
 
 
+class CadastroSaida(TokensSaida):
+    # "apta" no modo demonstração (aprovado na hora); "em_analise" quando o banco avalia.
+    status: str
+
+
 class AccessSaida(Schema):
     access: str
 

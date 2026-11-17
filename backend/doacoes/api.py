@@ -1,11 +1,13 @@
 from datetime import date
 from uuid import UUID
 
+from django.conf import settings
 from django.utils import timezone
 from ninja import Router
 from ninja.pagination import PageNumberPagination, paginate
 
 from contas.selectors import doadora_do_usuario
+from core.erros import ErroDominio
 from doacoes import selectors, services
 from doacoes.schemas import CancelamentoEntrada, ColetaEntrada, ColetaSaida, HorarioSaida, InicioSaida, KitEntrada, KitSaida
 
@@ -58,3 +60,13 @@ def detalhar_coleta(request, coleta_id: UUID):
 def cancelar_coleta(request, coleta_id: UUID, dados: CancelamentoEntrada):
     coleta = selectors.coleta_da_doadora(doadora_do_usuario(request.auth), coleta_id)
     return services.cancelar_coleta(coleta, dados.motivo)
+
+
+@router.post("/demo/proxima-etapa", response=InicioSaida)
+def simular_proxima_etapa(request):
+    if not settings.KAMBY_DEMO:
+        raise ErroDominio("nao_encontrado", "Disponível só no modo demonstração.")
+    doadora = doadora_do_usuario(request.auth)
+    services.simular_proxima_etapa(doadora)
+    doadora.refresh_from_db()
+    return selectors.inicio(doadora)

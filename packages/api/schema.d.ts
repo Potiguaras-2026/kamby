@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bancos/maternidades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Maternidades */
+        get: operations["bancos_api_listar_maternidades"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/conteudo/textos": {
         parameters: {
             query?: never;
@@ -382,16 +399,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/demo/proxima-etapa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simular Proxima Etapa */
+        post: operations["doacoes_api_simular_proxima_etapa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** TokensSaida */
-        TokensSaida: {
+        /** CadastroSaida */
+        CadastroSaida: {
             /** Access */
             access: string;
             /** Refresh */
             refresh: string;
+            /** Status */
+            status: string;
         };
         /** CadastroEntrada */
         CadastroEntrada: {
@@ -466,6 +502,13 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** TokensSaida */
+        TokensSaida: {
+            /** Access */
+            access: string;
+            /** Refresh */
+            refresh: string;
+        };
         /** EntrarEntrada */
         EntrarEntrada: {
             /** Telefone */
@@ -494,6 +537,18 @@ export interface components {
             /** Endereco */
             endereco: string;
             /** Cidade */
+            cidade: string;
+        };
+        /** MaternidadeSaida */
+        MaternidadeSaida: {
+            /** Id */
+            id?: string | null;
+            /** Nome */
+            nome: string;
+            /**
+             * Cidade
+             * @default Natal
+             */
             cidade: string;
         };
         /** TextoSaida */
@@ -787,6 +842,8 @@ export interface components {
             /** Historico */
             historico: components["schemas"]["MesSaida"][];
             banco: components["schemas"]["BancoSaida"];
+            /** Demo */
+            demo: boolean;
         };
         /** KitSaida */
         KitSaida: {
@@ -917,7 +974,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokensSaida"];
+                    "application/json": components["schemas"]["CadastroSaida"];
                 };
             };
         };
@@ -986,6 +1043,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BancoSaida"][];
+                };
+            };
+        };
+    };
+    bancos_api_listar_maternidades: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaternidadeSaida"][];
                 };
             };
         };
@@ -1468,6 +1545,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ColetaSaida"];
+                };
+            };
+        };
+    };
+    doacoes_api_simular_proxima_etapa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InicioSaida"];
                 };
             };
         };
