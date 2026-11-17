@@ -217,3 +217,51 @@ class EnderecosTest(Base):
         r = self.client.delete(f"/api/v1/enderecos/{alheio.id}", **auth)
         self.assertEqual(r.status_code, 404)
         self.assertEqual(len(self.client.get("/api/v1/enderecos", **auth).json()), 1)
+
+
+class JornadaTest(Base):
+    def estados(self):
+        return {e["codigo"]: e["estado"] for e in selectors.inicio(self.doadora)["jornada"]}
+
+    def coleta_feita(self):
+        self.aprovar()
+        self.entregar_kit()
+        coleta = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
+        for status in [Coleta.Status.CONFIRMADA, Coleta.Status.A_CAMINHO]:
+            services.mudar_status_coleta(coleta, status)
+        return coleta
+
+    def test_jornada_avanca_ate_o_processamento(self):
+        estados = self.estados()
+        self.assertEqual((estados["em_analise"], estados["aprovada"], estados["processada"]), ("feita", "atual", "pendente"))
+        coleta = self.coleta_feita()
+        self.assertEqual(self.estados()["coletada"], "atual")
+        services.mudar_status_coleta(coleta, Coleta.Status.COLETADA, volume_ml=300)
+        services.registrar_entrega_banco(coleta)
+        self.assertEqual(self.estados()["processada"], "atual")
+        services.registrar_processamento(coleta)
+        self.assertNotIn("atual", self.estados().values())
+        self.assertEqual(selectors.inicio(self.doadora)["ultima_coleta"], coleta)
+
+    def test_ninguem_em_casa_avisa_e_libera_novo_agendamento(self):
+        coleta = self.coleta_feita()
+        services.mudar_status_coleta(coleta, Coleta.Status.AUSENTE)
+        inicio = selectors.inicio(self.doadora)
+        self.assertEqual(inicio["aviso"]["tipo"], "ausente")
+        self.assertTrue(inicio["aviso"]["titulo"])
+        self.assertEqual(inicio["proxima_acao"], "agendar_coleta")
+        self.assertEqual(self.estados()["coleta_agendada"], "atual")
+        services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
+        self.assertIsNone(selectors.inicio(self.doadora)["aviso"])
+
+    def test_ajuste_e_entrega_respeitam_a_ordem(self):
+        coleta = self.coleta_feita()
+        with self.assertRaises(ErroDominio):
+            services.marcar_ajuste(coleta, Coleta.Ajuste.FORA_DO_PADRAO)
+        with self.assertRaises(ErroDominio):
+            services.registrar_entrega_banco(coleta)
+        services.mudar_status_coleta(coleta, Coleta.Status.COLETADA, volume_ml=100)
+        with self.assertRaises(ErroDominio):
+            services.registrar_processamento(coleta)
+        services.marcar_ajuste(coleta, Coleta.Ajuste.QUANTIDADE_INSUFICIENTE)
+        self.assertEqual(selectors.inicio(self.doadora)["aviso"]["tipo"], "ajuste.quantidade_insuficiente")

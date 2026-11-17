@@ -17,11 +17,14 @@ def aplicar(modeladmin, request, queryset, funcao):
 # shortcut: admin sem filtro por banco; usar só com superusuário até o painel web existir.
 @admin.register(Coleta)
 class ColetaAdmin(admin.ModelAdmin):
-    list_display = ["doadora", "data", "horario_rotulo", "quantidade_frascos", "status", "volume_ml"]
-    list_filter = ["status", "data", "banco"]
+    list_display = ["doadora", "data", "horario_rotulo", "quantidade_frascos", "status", "volume_ml", "entregue_banco_em", "ajuste"]
+    list_filter = ["status", "data", "banco", "ajuste"]
     list_editable = ["volume_ml"]
-    readonly_fields = ["status", "coletada_em", "endereco"]
-    actions = ["confirmar", "a_caminho", "coletada", "cancelar"]
+    readonly_fields = ["status", "coletada_em", "entregue_banco_em", "processada_em", "ajuste", "endereco"]
+    actions = [
+        "confirmar", "a_caminho", "coletada", "ausente", "entregue_banco", "processada",
+        "ajuste_fora_do_padrao", "ajuste_quantidade", "cancelar",
+    ]
 
     @admin.display(description="Horário")
     def horario_rotulo(self, obj):
@@ -38,6 +41,26 @@ class ColetaAdmin(admin.ModelAdmin):
     @admin.action(description="Marcar como coletada (preencha o volume antes)")
     def coletada(self, request, qs):
         aplicar(self, request, qs, lambda c: services.mudar_status_coleta(c, Coleta.Status.COLETADA))
+
+    @admin.action(description="Ninguém em casa")
+    def ausente(self, request, qs):
+        aplicar(self, request, qs, lambda c: services.mudar_status_coleta(c, Coleta.Status.AUSENTE))
+
+    @admin.action(description="Entregue ao banco de leite")
+    def entregue_banco(self, request, qs):
+        aplicar(self, request, qs, services.registrar_entrega_banco)
+
+    @admin.action(description="Processada (pasteurizada)")
+    def processada(self, request, qs):
+        aplicar(self, request, qs, services.registrar_processamento)
+
+    @admin.action(description="Ajuste: frasco fora do padrão")
+    def ajuste_fora_do_padrao(self, request, qs):
+        aplicar(self, request, qs, lambda c: services.marcar_ajuste(c, Coleta.Ajuste.FORA_DO_PADRAO))
+
+    @admin.action(description="Ajuste: quantidade insuficiente")
+    def ajuste_quantidade(self, request, qs):
+        aplicar(self, request, qs, lambda c: services.marcar_ajuste(c, Coleta.Ajuste.QUANTIDADE_INSUFICIENTE))
 
     @admin.action(description="Cancelar")
     def cancelar(self, request, qs):

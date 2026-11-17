@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { Check } from "lucide-react-native";
+import { HeartHandshake } from "lucide-react-native";
 import { useState } from "react";
 import { AccessibilityInfo, Image, Linking, StyleSheet, Text, View } from "react-native";
 
@@ -12,19 +12,19 @@ import { Estado } from "@/components/Estado";
 import { Folha } from "@/components/Folha";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
-import { ETAPAS, indiceEtapa } from "@/features/coleta/etapas";
+import { etapaAtual, Jornada } from "@/features/coleta/Jornada";
 import { IMAGENS } from "@/features/conteudo/imagens";
 import { api, chamar, lerErro } from "@/lib/api";
-import { useInicio } from "@/lib/consultas";
-import { diaRelativo } from "@/lib/formato";
-import { cores, familia, raio, tipo, toqueMinimo } from "@/lib/tema";
+import { useInicio, useTexto } from "@/lib/consultas";
+import { diaRelativo, litros } from "@/lib/formato";
+import { cores, raio, tipo, toqueMinimo } from "@/lib/tema";
 
-export default function TelaColeta() {
+export default function TelaMinhaDoacao() {
   const { nova } = useLocalSearchParams<{ nova?: string }>();
   const inicio = useInicio();
+  const texto = useTexto();
   const queryClient = useQueryClient();
   const [confirmando, setConfirmando] = useState(false);
-  const coleta = inicio.data?.coleta_ativa;
 
   const cancelar = useMutation({
     mutationFn: (id: string) =>
@@ -39,81 +39,78 @@ export default function TelaColeta() {
 
   if (!inicio.data) {
     return (
-      <Tela voltar titulo="Sua coleta">
+      <Tela voltar titulo="Minha doação">
         <Estado erro={inicio.error} tentarDeNovo={() => inicio.refetch()} />
       </Tela>
     );
   }
 
-  if (!coleta) {
-    return (
-      <Tela voltar titulo="Sua coleta" subtitulo="Você não tem coleta marcada agora.">
-        <Botao titulo="Voltar ao início" onPress={() => router.replace("/")} />
-      </Tela>
-    );
-  }
-
-  const atual = indiceEtapa(coleta.status);
-  const podeCancelar = coleta.status === "agendada" || coleta.status === "confirmada";
+  const { coleta_ativa: coleta, ultima_coleta: ultima, jornada, impacto, banco } = inicio.data;
+  const atual = etapaAtual(jornada);
+  const podeCancelar = coleta?.status === "agendada" || coleta?.status === "confirmada";
+  const chegou = !!ultima?.entregue_banco_em;
+  const final = texto("jornada.final");
 
   return (
-    <Tela voltar titulo={nova ? undefined : "Sua coleta"} atualizar={{ atualizando: inicio.isRefetching, aoAtualizar: () => inicio.refetch() }}>
+    <Tela voltar titulo={nova ? undefined : "Minha doação"} atualizar={{ atualizando: inicio.isRefetching, aoAtualizar: () => inicio.refetch() }}>
       {nova ? <Celebracao titulo="Coleta agendada!" texto="Obrigada por doar. Acompanhe cada etapa por aqui." /> : null}
 
-      <Entrada ordem={1}>
-        <Cartao tom="turquesa" style={{ gap: 2 }}>
-          <Text style={tipo.legenda}>Dia da coleta</Text>
-          <Text style={[tipo.titulo, { color: cores.turquesaTexto }]}>{diaRelativo(coleta.data)}</Text>
-          <Text style={tipo.corpo}>
-            Das {coleta.horario_rotulo.replace(" - ", " às ")} · {coleta.quantidade_frascos} {coleta.quantidade_frascos === 1 ? "frasco" : "frascos"}
+      {coleta ? (
+        <Entrada ordem={1}>
+          <Cartao tom="turquesa" style={{ gap: 2 }}>
+            <Text style={tipo.legenda}>Dia da coleta</Text>
+            <Text style={[tipo.titulo, { color: cores.turquesaTexto }]}>{diaRelativo(coleta.data)}</Text>
+            <Text style={tipo.corpo}>
+              Das {coleta.horario_rotulo.replace(" - ", " às ")} · {coleta.quantidade_frascos} {coleta.quantidade_frascos === 1 ? "frasco" : "frascos"}
+            </Text>
+          </Cartao>
+        </Entrada>
+      ) : null}
+
+      {chegou && ultima ? (
+        <Entrada ordem={1}>
+          <Cartao tom="rosa" style={{ gap: 10 }}>
+            <View style={estilos.finalTopo}>
+              <HeartHandshake size={28} color={cores.primaria} />
+              <Text accessibilityRole="header" style={[tipo.subtitulo, { flex: 1, color: cores.primaria }]}>
+                {final.titulo || "Seu leite chegou ao banco de leite"}
+              </Text>
+            </View>
+            {ultima.volume_ml ? (
+              <Text style={tipo.corpoForte}>
+                {litros(ultima.volume_ml)} doados nesta coleta · {litros(impacto.volume_total_ml)} no total
+              </Text>
+            ) : null}
+            <Text style={tipo.corpo}>{final.corpo}</Text>
+          </Cartao>
+        </Entrada>
+      ) : null}
+
+      <Entrada ordem={2} style={{ gap: 10 }}>
+        <View style={estilos.cabecalhoJornada}>
+          <Text accessibilityRole="header" style={tipo.subtitulo}>
+            Ciclo da doação
           </Text>
-        </Cartao>
-      </Entrada>
-
-      <Entrada ordem={2}>
-        <Cartao>
-          {ETAPAS.map((etapa, i) => {
-            const feita = i < atual;
-            const agora = i === atual;
-            const ultima = i === ETAPAS.length - 1;
-            return (
-              <View
-                key={etapa.status}
-                style={estilos.etapa}
-                accessible
-                accessibilityLabel={`${etapa.rotulo}: ${feita ? "concluída" : agora ? "etapa atual" : "pendente"}`}
-              >
-                <View style={{ alignItems: "center" }}>
-                  <View style={[estilos.ponto, (feita || agora) && estilos.pontoFeito]}>
-                    {feita || agora ? <Check size={12} color={cores.sobrePrimaria} strokeWidth={3.2} /> : null}
-                  </View>
-                  {!ultima ? <View style={[estilos.linha, feita && { backgroundColor: cores.turquesaTexto }]} /> : null}
-                </View>
-                <View style={[{ flex: 1, gap: 2 }, !ultima && { paddingBottom: 18 }]}>
-                  <Text style={[tipo.corpoForte, !feita && !agora && { color: cores.textoSuave, fontFamily: familia.regular }, agora && { color: cores.turquesaTexto }]}>
-                    {etapa.rotulo}
-                  </Text>
-                  {agora ? <Text style={tipo.legenda}>{etapa.detalhe}</Text> : null}
-                </View>
-              </View>
-            );
-          })}
-        </Cartao>
-      </Entrada>
-
-      <Entrada ordem={3}>
-        <View style={estilos.foto}>
-          <Image source={IMAGENS.bancoFrascos} style={estilos.fotoImagem} resizeMode="cover" accessibilityIgnoresInvertColors />
-          <View style={estilos.fotoTexto}>
-            <Text style={tipo.corpoForte}>Até a equipe chegar</Text>
-            <Text style={tipo.legenda}>Mantenha os frascos fechados no congelador. Esta tela atualiza sozinha.</Text>
-          </View>
+          {atual ? <Text style={estilos.contador}>Etapa {atual.numero} de {jornada.length}</Text> : null}
         </View>
+        <Jornada etapas={jornada} />
       </Entrada>
+
+      {coleta ? (
+        <Entrada ordem={3}>
+          <View style={estilos.foto}>
+            <Image source={IMAGENS.bancoFrascos} style={estilos.fotoImagem} resizeMode="cover" accessibilityIgnoresInvertColors />
+            <View style={estilos.fotoTexto}>
+              <Text style={tipo.corpoForte}>Até a equipe chegar</Text>
+              <Text style={tipo.legenda}>Mantenha os frascos fechados no congelador. Esta tela atualiza sozinha.</Text>
+            </View>
+          </View>
+        </Entrada>
+      ) : null}
 
       <Entrada ordem={4} style={{ gap: 4 }}>
-        <Botao titulo="Ligar para o banco de leite" variante="secundaria" onPress={() => Linking.openURL(`tel:${inicio.data.banco.telefone}`)} />
-        {podeCancelar ? (
+        <Botao titulo="Ligar para o banco de leite" variante="secundaria" onPress={() => Linking.openURL(`tel:${banco.telefone}`)} />
+        {podeCancelar && coleta ? (
           <Pressavel accessibilityRole="button" onPress={() => setConfirmando(true)} style={estilos.cancelar}>
             <Text style={[tipo.corpoForte, { color: cores.erro }]}>Cancelar coleta</Text>
           </Pressavel>
@@ -134,26 +131,16 @@ export default function TelaColeta() {
         confirmar="Cancelar coleta"
         manter="Manter coleta"
         carregando={cancelar.isPending}
-        aoConfirmar={() => cancelar.mutate(String(coleta.id))}
+        aoConfirmar={() => coleta && cancelar.mutate(String(coleta.id))}
       />
     </Tela>
   );
 }
 
 const estilos = StyleSheet.create({
-  etapa: { flexDirection: "row", gap: 14 },
-  ponto: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: cores.bordaCampo,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 1,
-  },
-  pontoFeito: { backgroundColor: cores.turquesaTexto, borderColor: cores.turquesaTexto },
-  linha: { flex: 1, width: 1.5, minHeight: 14, backgroundColor: cores.linha, marginVertical: 4 },
+  finalTopo: { flexDirection: "row", alignItems: "center", gap: 10 },
+  cabecalhoJornada: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  contador: { ...tipo.legenda, color: cores.turquesaTexto, fontSize: 13 },
   foto: { backgroundColor: cores.superficie, borderRadius: raio.g, borderWidth: 1, borderColor: cores.borda, overflow: "hidden" },
   fotoImagem: { width: "100%", height: 140 },
   fotoTexto: { padding: 16, gap: 2 },

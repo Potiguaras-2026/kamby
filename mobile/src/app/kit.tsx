@@ -5,13 +5,14 @@ import { AccessibilityInfo, Image, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { Botao } from "@/components/Botao";
+import { Celebracao } from "@/components/Celebracao";
 import { Cartao } from "@/components/Cartao";
 import { Contador } from "@/components/Contador";
 import { Entrada } from "@/components/Entrada";
 import { Tela } from "@/components/Tela";
 import { IMAGENS } from "@/features/conteudo/imagens";
 import { api, chamar, lerErro } from "@/lib/api";
-import { useInicio } from "@/lib/consultas";
+import { useInicio, useTexto } from "@/lib/consultas";
 import { haptico } from "@/lib/haptico";
 import { cores, familia, tipo } from "@/lib/tema";
 
@@ -38,6 +39,7 @@ export default function TelaKit() {
   const [kits, setKits] = useState(1);
   const queryClient = useQueryClient();
   const aberto = useInicio().data?.kit_aberto;
+  const texto = useTexto();
 
   const pedir = useMutation({
     // Cada kit tem um frasco, então a quantidade de kits é a de frascos.
@@ -53,7 +55,13 @@ export default function TelaKit() {
 
   if (aberto) {
     return (
-      <Tela voltar titulo="Kit a caminho" subtitulo="O banco de leite liga para combinar o dia da entrega.">
+      <Tela voltar titulo={pedir.isSuccess ? undefined : "Kit a caminho"} subtitulo={pedir.isSuccess ? undefined : "O banco de leite liga para combinar o dia da entrega."}>
+        {pedir.isSuccess ? (
+          <Celebracao
+            titulo={texto("kit.resumo").titulo || "Pedido recebido!"}
+            texto={texto("kit.resumo", "O banco de leite prepara seus frascos e avisa quando a equipe for entregar.").corpo}
+          />
+        ) : null}
         <ItensDoKit />
         <Entrada ordem={2}>
           <Cartao tom="rosa" style={{ gap: 4, alignItems: "center" }}>

@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import Literal
 from uuid import UUID
 
@@ -40,7 +40,10 @@ class ColetaSaida(ModelSchema):
 
     class Meta:
         model = Coleta
-        fields = ["id", "data", "horario_inicio", "horario_fim", "endereco", "quantidade_frascos", "status", "volume_ml", "motivo_cancelamento", "criado_em"]
+        fields = [
+            "id", "data", "horario_inicio", "horario_fim", "endereco", "quantidade_frascos", "status", "volume_ml",
+            "motivo_cancelamento", "criado_em", "coletada_em", "entregue_banco_em", "processada_em", "ajuste",
+        ]
 
     @staticmethod
     def resolve_status_rotulo(obj):
@@ -90,7 +93,25 @@ class DoadoraResumo(Schema):
         return obj.get_status_display()
 
 
+class EtapaSaida(Schema):
+    codigo: str
+    rotulo: str
+    detalhe: str
+    data: datetime | None
+    estado: Literal["feita", "atual", "pendente"]
+
+
+class AvisoSaida(Schema):
+    tipo: str
+    titulo: str
+    corpo: str
+    coleta: ColetaSaida
+
+
 class InicioSaida(Schema):
+    jornada: list[EtapaSaida]
+    aviso: AvisoSaida | None
+    ultima_coleta: ColetaSaida | None
     doadora: DoadoraResumo
     proxima_acao: ProximaAcao
     coleta_ativa: ColetaSaida | None

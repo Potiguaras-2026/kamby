@@ -12,8 +12,8 @@ DIAS_MAX_AGENDAMENTO = 14
 
 TRANSICOES_COLETA = {
     Coleta.Status.AGENDADA: {Coleta.Status.CONFIRMADA, Coleta.Status.CANCELADA},
-    Coleta.Status.CONFIRMADA: {Coleta.Status.A_CAMINHO, Coleta.Status.CANCELADA},
-    Coleta.Status.A_CAMINHO: {Coleta.Status.COLETADA, Coleta.Status.CANCELADA},
+    Coleta.Status.CONFIRMADA: {Coleta.Status.A_CAMINHO, Coleta.Status.AUSENTE, Coleta.Status.CANCELADA},
+    Coleta.Status.A_CAMINHO: {Coleta.Status.COLETADA, Coleta.Status.AUSENTE, Coleta.Status.CANCELADA},
 }
 TRANSICOES_KIT = {
     SolicitacaoKit.Status.SOLICITADO: {SolicitacaoKit.Status.EM_PREPARO, SolicitacaoKit.Status.CANCELADO},
@@ -88,6 +88,30 @@ def mudar_status_coleta(coleta: Coleta, novo: str, *, volume_ml: int | None = No
         coleta.motivo_cancelamento = motivo
     coleta.status = novo
     coleta.save()
+    return coleta
+
+
+def registrar_entrega_banco(coleta: Coleta) -> Coleta:
+    if coleta.status != Coleta.Status.COLETADA or coleta.entregue_banco_em:
+        raise ErroDominio("transicao_invalida", "Só leite coletado e ainda não entregue pode ser marcado como entregue ao banco.")
+    coleta.entregue_banco_em = timezone.now()
+    coleta.save(update_fields=["entregue_banco_em", "atualizado_em"])
+    return coleta
+
+
+def registrar_processamento(coleta: Coleta) -> Coleta:
+    if not coleta.entregue_banco_em or coleta.processada_em:
+        raise ErroDominio("transicao_invalida", "Marque a entrega ao banco antes do processamento.")
+    coleta.processada_em = timezone.now()
+    coleta.save(update_fields=["processada_em", "atualizado_em"])
+    return coleta
+
+
+def marcar_ajuste(coleta: Coleta, ajuste: str) -> Coleta:
+    if coleta.status != Coleta.Status.COLETADA:
+        raise ErroDominio("transicao_invalida", "O ajuste no frasco vale só para leite já coletado.")
+    coleta.ajuste = Coleta.Ajuste(ajuste)
+    coleta.save(update_fields=["ajuste", "atualizado_em"])
     return coleta
 
 

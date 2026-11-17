@@ -50,6 +50,7 @@ export default function Layout() {
           <Stack.Screen name="coleta/index" />
           <Stack.Screen name="coleta/agendar" />
           <Stack.Screen name="kit" />
+          <Stack.Screen name="aviso" />
           <Stack.Screen name="enderecos/index" />
           <Stack.Screen name="enderecos/[id]" />
           <Stack.Screen name="bancos" />

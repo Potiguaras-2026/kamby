@@ -34,7 +34,12 @@ class Coleta(ModeloBase):
         CONFIRMADA = "confirmada", "Confirmada pelo banco"
         A_CAMINHO = "a_caminho", "Equipe a caminho"
         COLETADA = "coletada", "Coletada"
+        AUSENTE = "ausente", "Ninguém em casa"
         CANCELADA = "cancelada", "Cancelada"
+
+    class Ajuste(models.TextChoices):
+        FORA_DO_PADRAO = "fora_do_padrao", "Frasco fora do padrão"
+        QUANTIDADE_INSUFICIENTE = "quantidade_insuficiente", "Quantidade insuficiente"
 
     ATIVAS = [Status.AGENDADA, Status.CONFIRMADA, Status.A_CAMINHO]
 
@@ -52,6 +57,11 @@ class Coleta(ModeloBase):
     volume_ml = models.PositiveIntegerField(null=True, blank=True)
     motivo_cancelamento = models.CharField(max_length=200, blank=True)
     coletada_em = models.DateTimeField(null=True, blank=True)
+    entregue_banco_em = models.DateTimeField("entregue ao banco em", null=True, blank=True)
+    processada_em = models.DateTimeField("processada em", null=True, blank=True, help_text="Pasteurização e controle de qualidade.")
+    ajuste = models.CharField(
+        max_length=30, choices=Ajuste.choices, blank=True, help_text="Problema com o leite coletado, mostrado à doadora com orientação."
+    )
 
     class Meta:
         ordering = ["-criado_em"]

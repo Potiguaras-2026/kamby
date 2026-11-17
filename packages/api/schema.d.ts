@@ -661,6 +661,16 @@ export interface components {
              */
             referencia: string;
         };
+        /** AvisoSaida */
+        AvisoSaida: {
+            /** Tipo */
+            tipo: string;
+            /** Titulo */
+            titulo: string;
+            /** Corpo */
+            corpo: string;
+            coleta: components["schemas"]["ColetaSaida"];
+        };
         /** ColetaSaida */
         ColetaSaida: {
             /** Id */
@@ -701,6 +711,20 @@ export interface components {
              * Format: date-time
              */
             criado_em: string;
+            /** Coletada Em */
+            coletada_em?: string | null;
+            /** Entregue Ao Banco Em */
+            entregue_banco_em?: string | null;
+            /**
+             * Processada Em
+             * @description Pasteurização e controle de qualidade.
+             */
+            processada_em?: string | null;
+            /**
+             * Ajuste
+             * @description Problema com o leite coletado, mostrado à doadora com orientação.
+             */
+            ajuste?: string | null;
             /** Status Rotulo */
             status_rotulo: string;
             /** Horario Rotulo */
@@ -720,6 +744,22 @@ export interface components {
             /** Status Rotulo */
             status_rotulo: string;
         };
+        /** EtapaSaida */
+        EtapaSaida: {
+            /** Codigo */
+            codigo: string;
+            /** Rotulo */
+            rotulo: string;
+            /** Detalhe */
+            detalhe: string;
+            /** Data */
+            data: string | null;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "feita" | "atual" | "pendente";
+        };
         /** ImpactoSaida */
         ImpactoSaida: {
             /** Volume Total Ml */
@@ -731,6 +771,10 @@ export interface components {
         };
         /** InicioSaida */
         InicioSaida: {
+            /** Jornada */
+            jornada: components["schemas"]["EtapaSaida"][];
+            aviso: components["schemas"]["AvisoSaida"] | null;
+            ultima_coleta: components["schemas"]["ColetaSaida"] | null;
             doadora: components["schemas"]["DoadoraResumo"];
             /**
              * Proxima Acao

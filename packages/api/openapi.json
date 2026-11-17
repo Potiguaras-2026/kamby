@@ -1548,6 +1548,33 @@
         "title": "EnderecoEntrada",
         "type": "object"
       },
+      "AvisoSaida": {
+        "properties": {
+          "tipo": {
+            "title": "Tipo",
+            "type": "string"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          },
+          "corpo": {
+            "title": "Corpo",
+            "type": "string"
+          },
+          "coleta": {
+            "$ref": "#/components/schemas/ColetaSaida"
+          }
+        },
+        "required": [
+          "tipo",
+          "titulo",
+          "corpo",
+          "coleta"
+        ],
+        "title": "AvisoSaida",
+        "type": "object"
+      },
       "ColetaSaida": {
         "properties": {
           "id": {
@@ -1627,6 +1654,56 @@
             "title": "Criado Em",
             "type": "string"
           },
+          "coletada_em": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coletada Em"
+          },
+          "entregue_banco_em": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entregue Ao Banco Em"
+          },
+          "processada_em": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pasteurização e controle de qualidade.",
+            "title": "Processada Em"
+          },
+          "ajuste": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Problema com o leite coletado, mostrado à doadora com orientação.",
+            "title": "Ajuste"
+          },
           "status_rotulo": {
             "title": "Status Rotulo",
             "type": "string"
@@ -1677,6 +1754,52 @@
         "title": "DoadoraResumo",
         "type": "object"
       },
+      "EtapaSaida": {
+        "properties": {
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "rotulo": {
+            "title": "Rotulo",
+            "type": "string"
+          },
+          "detalhe": {
+            "title": "Detalhe",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "estado": {
+            "enum": [
+              "feita",
+              "atual",
+              "pendente"
+            ],
+            "title": "Estado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "rotulo",
+          "detalhe",
+          "data",
+          "estado"
+        ],
+        "title": "EtapaSaida",
+        "type": "object"
+      },
       "ImpactoSaida": {
         "properties": {
           "volume_total_ml": {
@@ -1702,6 +1825,33 @@
       },
       "InicioSaida": {
         "properties": {
+          "jornada": {
+            "items": {
+              "$ref": "#/components/schemas/EtapaSaida"
+            },
+            "title": "Jornada",
+            "type": "array"
+          },
+          "aviso": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvisoSaida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ultima_coleta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ColetaSaida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "doadora": {
             "$ref": "#/components/schemas/DoadoraResumo"
           },
@@ -1753,6 +1903,9 @@
           }
         },
         "required": [
+          "jornada",
+          "aviso",
+          "ultima_coleta",
           "doadora",
           "proxima_acao",
           "coleta_ativa",

@@ -1,6 +1,6 @@
 import type { Schemas } from "@kamby/api";
 import { router } from "expo-router";
-import { CalendarDays, ChevronRight, Heart, MapPin } from "lucide-react-native";
+import { CalendarDays, ChevronRight, Heart, MapPin, TriangleAlert } from "lucide-react-native";
 import { Image, Linking, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
@@ -10,6 +10,7 @@ import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
+import { etapaAtual } from "@/features/coleta/Jornada";
 import { AtalhosGuias } from "@/features/conteudo/AtalhosGuias";
 import { IMAGENS } from "@/features/conteudo/imagens";
 import { Historico } from "@/features/inicio/Historico";
@@ -34,7 +35,7 @@ export default function TelaInicio() {
     );
   }
 
-  const { doadora, proxima_acao, coleta_ativa, kit_aberto, banco, historico } = inicio.data;
+  const { doadora, proxima_acao, coleta_ativa, kit_aberto, banco, historico, jornada, aviso } = inicio.data;
 
   return (
     <Tela comAbas atualizar={{ atualizando: inicio.isRefetching, aoAtualizar: () => inicio.refetch() }}>
@@ -43,6 +44,12 @@ export default function TelaInicio() {
           Bem-vinda, <Text style={{ color: cores.rosa }}>{primeiroNome(doadora.nome_completo)}</Text>!
         </Text>
       </Entrada>
+
+      {aviso ? (
+        <Entrada ordem={1}>
+          <Aviso titulo={aviso.titulo || "Temos um aviso sobre sua coleta"} />
+        </Entrada>
+      ) : null}
 
       <Entrada ordem={1}>
         <Destaque texto={texto("inicio.destaque", "Seu leite leva cuidado e esperança para quem mais precisa").corpo} />
@@ -62,11 +69,9 @@ export default function TelaInicio() {
         )}
       </Entrada>
 
-      {coleta_ativa ? (
-        <Entrada ordem={3}>
-          <ProximaColeta coleta={coleta_ativa} />
-        </Entrada>
-      ) : null}
+      <Entrada ordem={3}>
+        <MinhaDoacao jornada={jornada} coleta={coleta_ativa} />
+      </Entrada>
 
       <Entrada ordem={4} style={{ gap: 10 }}>
         <Text accessibilityRole="header" style={estilos.secao}>
@@ -141,25 +146,40 @@ function Atalhos({ acao, kit }: { acao: Inicio["proxima_acao"]; kit: Inicio["kit
   );
 }
 
-function ProximaColeta({ coleta }: { coleta: NonNullable<Inicio["coleta_ativa"]> }) {
+/** "Minha doação em andamento": a etapa atual da jornada e, se houver, o dia da coleta. */
+function MinhaDoacao({ jornada, coleta }: { jornada: Inicio["jornada"]; coleta: Inicio["coleta_ativa"] }) {
+  const atual = etapaAtual(jornada);
+  const titulo = atual ? `Etapa ${atual.numero} de ${jornada.length}: ${atual.etapa.rotulo}` : "Doação concluída";
+  const quando = coleta ? `${diaRelativo(coleta.data)} • ${coleta.horario_rotulo}` : null;
   return (
     <Pressavel
       accessibilityRole="button"
-      accessibilityLabel={`Próxima coleta: ${diaRelativo(coleta.data)}, das ${coleta.horario_rotulo.replace(" - ", " às ")}. ${coleta.status_rotulo}. Ver detalhes`}
+      accessibilityLabel={`Minha doação. ${titulo}.${quando ? ` Coleta: ${quando}.` : ""} Ver detalhes`}
       onPress={() => router.push("/coleta")}
       style={estilos.proxima}
     >
       <View style={estilos.calendario}>
         <CalendarDays size={22} color={cores.turquesaTexto} strokeWidth={1.8} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={[tipo.legenda, { fontSize: 13 }]}>Próxima coleta</Text>
-        <Text style={estilos.proximaData}>
-          {diaRelativo(coleta.data)} <Text style={{ color: cores.textoSuave }}>•</Text> {coleta.horario_rotulo}
-        </Text>
-        <Text style={[tipo.legenda, { fontSize: 13 }]}>{coleta.status_rotulo}</Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[tipo.legenda, { fontSize: 13 }]}>Minha doação</Text>
+        <Text style={estilos.proximaData}>{quando ?? (atual ? atual.etapa.rotulo : "Doação concluída")}</Text>
+        <Text style={[tipo.legenda, { fontSize: 13 }]}>{quando && atual ? titulo : atual ? `Etapa ${atual.numero} de ${jornada.length}` : "Obrigada por doar!"}</Text>
       </View>
       <ChevronRight size={22} color={cores.textoSuave} />
+    </Pressavel>
+  );
+}
+
+function Aviso({ titulo }: { titulo: string }) {
+  return (
+    <Pressavel accessibilityRole="button" accessibilityLabel={`${titulo}. Ver o que fazer`} onPress={() => router.push("/aviso")} style={estilos.aviso}>
+      <TriangleAlert size={24} color={cores.primaria} />
+      <View style={{ flex: 1 }}>
+        <Text style={[tipo.corpoForte, { color: cores.primaria }]}>{titulo}</Text>
+        <Text style={[tipo.legenda, { fontSize: 13 }]}>Toque para ver o que fazer</Text>
+      </View>
+      <ChevronRight size={22} color={cores.primaria} />
     </Pressavel>
   );
 }
@@ -198,6 +218,16 @@ const estilos = StyleSheet.create({
     backgroundColor: cores.turquesaSuave,
     alignItems: "center",
     justifyContent: "center",
+  },
+  aviso: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: cores.rosaSuave,
+    borderRadius: raio.g,
+    borderWidth: 1.5,
+    borderColor: cores.rosaClaro,
+    padding: 16,
   },
   proximaData: { fontFamily: familia.semi, fontSize: 18, lineHeight: 24, color: cores.turquesaTexto },
   bancos: {

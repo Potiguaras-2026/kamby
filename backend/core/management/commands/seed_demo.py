@@ -6,7 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from bancos.models import BancoDeLeite, HorarioColeta
-from contas.models import Doadora, Usuario
+from contas.models import Doadora, PerguntaSaude, Triagem, Usuario
 from contas.services import criar_endereco
 from doacoes.models import Coleta, SolicitacaoKit
 
@@ -77,4 +77,58 @@ class Command(BaseCommand):
                 complemento="Sala 4", bairro="Tirol", cidade="Natal", uf="RN",
             )
 
-        self.stdout.write("Pronto. Equipe: 84900000000. Doadora apta: 84911111111. Senha: SEED_SENHA.")
+        # A coleta mais recente da Maria já passou por todo o caminho até o processamento.
+        ultima = maria.coletas.filter(status=Coleta.Status.COLETADA, coletada_em__isnull=False).order_by("-data").first()
+        if ultima and not ultima.entregue_banco_em:
+            Coleta.objects.filter(pk=ultima.pk).update(
+                criado_em=ultima.coletada_em - timedelta(days=3),
+                entregue_banco_em=ultima.coletada_em + timedelta(hours=3),
+                processada_em=ultima.coletada_em + timedelta(days=1),
+            )
+
+        # Uma doadora fictícia em cada momento da jornada, para demonstrar as telas.
+        respostas = {c: True for c in PerguntaSaude.objects.filter(ativa=True).values_list("codigo", flat=True)}
+        for telefone, nome, momento in [
+            ("84922222222", "Bruna Exemplo", "em_analise"),
+            ("84933333333", "Carla Exemplo", "a_caminho"),
+            ("84944444444", "Dora Exemplo", "ausente"),
+            ("84955555555", "Elisa Exemplo", "ajuste"),
+        ]:
+            if Usuario.objects.filter(telefone=telefone).exists():
+                continue
+            usuario = Usuario.objects.create_user(telefone, senha, nome_completo=nome)
+            doadora = Doadora.objects.create(
+                usuario=usuario,
+                banco=banco,
+                status=Doadora.Status.EM_ANALISE if momento == "em_analise" else Doadora.Status.APTA,
+                data_parto=timezone.localdate() - timedelta(days=60),
+                consentimento_em=timezone.now(),
+                data_nascimento=date(1995, 8, 20),
+                amamentando=True,
+                bebe_prematuro=False,
+            )
+            criar_endereco(doadora, apelido="Casa", referencia="Portão azul", **endereco)
+            Triagem.objects.create(
+                doadora=doadora,
+                respostas=respostas,
+                resultado=Triagem.Resultado.PENDENTE if momento == "em_analise" else Triagem.Resultado.APTA,
+            )
+            if momento == "em_analise":
+                continue
+            SolicitacaoKit.objects.create(doadora=doadora, quantidade_frascos=4, status=SolicitacaoKit.Status.ENTREGUE)
+            hoje = timezone.localdate()
+            coleta = {"doadora": doadora, "banco": banco, "horario_inicio": time(9, 30), "horario_fim": time(11), "quantidade_frascos": 3}
+            if momento == "a_caminho":
+                Coleta.objects.create(**coleta, data=hoje, status=Coleta.Status.A_CAMINHO, endereco="Rua Exemplo, 200, Petrópolis, Natal-RN")
+            elif momento == "ausente":
+                Coleta.objects.create(**coleta, data=hoje - timedelta(days=1), status=Coleta.Status.AUSENTE)
+            else:
+                Coleta.objects.create(
+                    **coleta, data=hoje - timedelta(days=2), status=Coleta.Status.COLETADA, volume_ml=200,
+                    coletada_em=timezone.now() - timedelta(days=2), ajuste=Coleta.Ajuste.FORA_DO_PADRAO,
+                )
+
+        self.stdout.write(
+            "Pronto. Equipe: 84900000000. Doadoras: 84911111111 (doando), 84922222222 (em análise), "
+            "84933333333 (equipe a caminho), 84944444444 (ninguém em casa), 84955555555 (ajuste no frasco). Senha: SEED_SENHA."
+        )
