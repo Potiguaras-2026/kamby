@@ -1,9 +1,9 @@
 import type { Schemas } from "@kamby/api";
 import { router } from "expo-router";
 import { CalendarDays, ChevronRight, Heart, MapPin, TriangleAlert } from "lucide-react-native";
-import { Image, Linking, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
-import { Botao } from "@/components/Botao";
+import { BotaoWhatsapp } from "@/components/BotaoWhatsapp";
 import { Cartao } from "@/components/Cartao";
 import { CartaoOnda } from "@/components/CartaoOnda";
 import { Entrada } from "@/components/Entrada";
@@ -11,8 +11,10 @@ import { Estado } from "@/components/Estado";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
 import { etapaAtual } from "@/features/coleta/Jornada";
+import { SimularDoacao } from "@/features/coleta/SimularDoacao";
 import { AtalhosGuias } from "@/features/conteudo/AtalhosGuias";
 import { IMAGENS } from "@/features/conteudo/imagens";
+import { EmAnalise } from "@/features/inicio/EmAnalise";
 import { Historico } from "@/features/inicio/Historico";
 import { useInicio, useTexto } from "@/lib/consultas";
 import { diaRelativo, primeiroNome } from "@/lib/formato";
@@ -58,19 +60,22 @@ export default function TelaInicio() {
       <Entrada ordem={2}>
         {APTA.includes(proxima_acao) ? (
           <Atalhos acao={proxima_acao} kit={kit_aberto} />
+        ) : proxima_acao === "aguardar_analise" ? (
+          <EmAnalise texto={texto("inicio.aguardar_analise", "Recebemos seu cadastro. O banco de leite responde em até 2 dias úteis.").corpo} />
         ) : (
           <Cartao style={{ gap: 10 }}>
             <Text style={[tipo.subtitulo, { color: cores.primaria }]}>{doadora.status_rotulo}</Text>
             <Text style={tipo.corpo}>{texto(`inicio.${proxima_acao}`).corpo}</Text>
             {proxima_acao === "contatar_banco" ? (
-              <Botao titulo="Ligar para o banco de leite" variante="secundaria" onPress={() => Linking.openURL(`tel:${banco.telefone}`)} />
+              <BotaoWhatsapp telefone={banco.telefone} />
             ) : null}
           </Cartao>
         )}
       </Entrada>
 
-      <Entrada ordem={3}>
+      <Entrada ordem={3} style={{ gap: 12 }}>
         <MinhaDoacao jornada={jornada} coleta={coleta_ativa} />
+        <SimularDoacao />
       </Entrada>
 
       <Entrada ordem={4} style={{ gap: 10 }}>

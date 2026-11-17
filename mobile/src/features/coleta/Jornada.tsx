@@ -1,6 +1,8 @@
 import type { Schemas } from "@kamby/api";
 import { Check } from "lucide-react-native";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import Animated, { ReduceMotion, useAnimatedStyle, useSharedValue, withRepeat, withTiming, ZoomIn } from "react-native-reanimated";
 
 import { Cartao } from "@/components/Cartao";
 import { cores, familia, tipo } from "@/lib/tema";
@@ -33,9 +35,11 @@ export function Jornada({ etapas }: { etapas: Etapa[] }) {
             accessibilityLabel={`${etapa.rotulo}: ${feita ? "concluída" : agora ? "etapa atual" : "pendente"}${etapa.data ? `, ${quando(etapa.data)}` : ""}`}
           >
             <View style={{ alignItems: "center" }}>
-              <View style={[estilos.ponto, feita && estilos.pontoFeito, agora && estilos.pontoAgora]}>
+              {/* key com o estado: quando a etapa muda, o ponto remonta e anima a entrada. */}
+              <Animated.View key={etapa.estado} entering={ZoomIn.springify().damping(12).reduceMotion(ReduceMotion.System)} style={[estilos.ponto, feita && estilos.pontoFeito, agora && estilos.pontoAgora]}>
+                {agora ? <Pulso /> : null}
                 {feita ? <Check size={12} color={cores.sobrePrimaria} strokeWidth={3.2} /> : agora ? <View style={estilos.miolo} /> : null}
-              </View>
+              </Animated.View>
               {!ultima ? <View style={[estilos.linha, feita && { backgroundColor: cores.turquesaTexto }]} /> : null}
             </View>
             <View style={[{ flex: 1, gap: 2 }, !ultima && { paddingBottom: 16 }]}>
@@ -53,7 +57,18 @@ export function Jornada({ etapas }: { etapas: Etapa[] }) {
   );
 }
 
+/** Anel que se expande em volta da etapa atual: "está acontecendo agora". */
+function Pulso() {
+  const v = useSharedValue(0);
+  useEffect(() => {
+    v.value = withRepeat(withTiming(1, { duration: 1500 }), -1, false, undefined, ReduceMotion.System);
+  }, [v]);
+  const estilo = useAnimatedStyle(() => ({ transform: [{ scale: 1 + v.value * 0.8 }], opacity: 0.5 * (1 - v.value) }));
+  return <Animated.View style={[estilos.pulso, estilo]} />;
+}
+
 const estilos = StyleSheet.create({
+  pulso: { position: "absolute", width: 22, height: 22, borderRadius: 11, backgroundColor: cores.rosa },
   etapa: { flexDirection: "row", gap: 14 },
   topo: { flexDirection: "row", alignItems: "center", gap: 8 },
   ponto: {

@@ -1,10 +1,11 @@
+import { Landmark, MapPin, Navigation, Signpost } from "lucide-react-native";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Campo } from "@/components/Campo";
 import { buscarCep, type EnderecoCep } from "@/lib/cep";
 import { mascaraCep } from "@/lib/formato";
-import { cores, tipo } from "@/lib/tema";
+import { cores, familia, tipo } from "@/lib/tema";
 
 export type DadosEndereco = {
   cep: string;
@@ -26,57 +27,103 @@ type Props = {
   erro: (campo: keyof DadosEndereco) => string | undefined;
 };
 
-/** O CEP preenche rua, bairro, cidade e UF; se a busca falhar, a pessoa digita. */
+/**
+ * O CEP preenche rua, bairro, cidade e UF. Cidade e UF ficam numa linha só quando vieram do CEP;
+ * se a busca falhar (ou a pessoa tocar em "alterar"), viram campos para digitar.
+ */
 export function CamposEndereco({ dados, mudar, preencher, erro }: Props) {
   const [buscando, setBuscando] = useState(false);
+  const [achou, setAchou] = useState(false);
   const [naoAchou, setNaoAchou] = useState(false);
+  const [editarCidade, setEditarCidade] = useState(false);
 
   async function mudarCep(valor: string) {
     const cep = mascaraCep(valor);
     mudar("cep", cep);
     setNaoAchou(false);
+    setAchou(false);
     if (cep.replace(/\D/g, "").length !== 8) return;
     setBuscando(true);
     const endereco = await buscarCep(cep);
     setBuscando(false);
-    if (endereco) preencher(endereco);
-    else setNaoAchou(true);
+    if (endereco) {
+      preencher(endereco);
+      setAchou(true);
+    } else setNaoAchou(true);
   }
 
   const campo = (c: keyof DadosEndereco) => ({ value: dados[c], onChangeText: (v: string) => mudar(c, v), erro: erro(c) });
+  const cidadeEmCampos = editarCidade || naoAchou || !dados.cidade || !!erro("cidade") || !!erro("uf");
 
   return (
     <View style={estilos.campos}>
-      <View style={{ gap: 4 }}>
-        <Campo rotulo="CEP" placeholder="00000-000" keyboardType="number-pad" autoComplete="postal-code" textContentType="postalCode" {...campo("cep")} onChangeText={mudarCep} />
-        {buscando ? <Text style={tipo.legenda}>Buscando endereço...</Text> : null}
-        {naoAchou ? <Text style={tipo.legenda}>Não achamos esse CEP. Preencha o endereço abaixo.</Text> : null}
-      </View>
-      <Campo rotulo="Rua" autoComplete="street-address" {...campo("logradouro")} />
+      <Campo
+        rotulo="CEP"
+        icone={Navigation}
+        placeholder="00000-000"
+        keyboardType="number-pad"
+        autoComplete="postal-code"
+        textContentType="postalCode"
+        maxLength={9}
+        carregando={buscando}
+        valido={achou}
+        ajuda={naoAchou ? "Não achamos esse CEP. Preencha o endereço abaixo." : "Digite o CEP e a gente preenche o resto."}
+        {...campo("cep")}
+        onChangeText={mudarCep}
+      />
+      {!cidadeEmCampos ? (
+        <View style={estilos.cidade}>
+          <MapPin size={18} color={cores.turquesaTexto} />
+          <Text style={[tipo.corpoForte, { flex: 1 }]}>
+            {dados.cidade} - {dados.uf}
+          </Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Alterar cidade" onPress={() => setEditarCidade(true)} hitSlop={12}>
+            <Text style={[tipo.legenda, { color: cores.primaria, fontFamily: familia.semi }]}>Alterar</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <Campo rotulo="Rua" icone={Signpost} placeholder="Ex.: Rua das Flores" autoComplete="street-address" {...campo("logradouro")} />
       <View style={estilos.linha}>
-        <View style={{ width: 110 }}>
-          <Campo rotulo="Número" {...campo("numero")} />
+        <View style={{ width: 120 }}>
+          <Campo rotulo="Número" placeholder="123" keyboardType="numbers-and-punctuation" {...campo("numero")} />
         </View>
         <View style={{ flex: 1 }}>
-          <Campo rotulo="Complemento" placeholder="Opcional" {...campo("complemento")} />
+          <Campo rotulo="Complemento" opcional placeholder="Apto, bloco" {...campo("complemento")} />
         </View>
       </View>
-      <Campo rotulo="Bairro" {...campo("bairro")} />
-      <View style={estilos.linha}>
-        <View style={{ flex: 1 }}>
-          <Campo rotulo="Cidade" {...campo("cidade")} />
+      <Campo rotulo="Bairro" icone={Landmark} placeholder="Ex.: Petrópolis" {...campo("bairro")} />
+      {cidadeEmCampos ? (
+        <View style={estilos.linha}>
+          <View style={{ flex: 1 }}>
+            <Campo rotulo="Cidade" placeholder="Natal" {...campo("cidade")} />
+          </View>
+          <View style={{ width: 84 }}>
+            <Campo rotulo="UF" placeholder="RN" autoCapitalize="characters" maxLength={2} {...campo("uf")} />
+          </View>
         </View>
-        <View style={{ width: 80 }}>
-          <Campo rotulo="UF" autoCapitalize="characters" maxLength={2} {...campo("uf")} />
-        </View>
-      </View>
-      <Campo rotulo="Ponto de referência" placeholder="Opcional. Ex.: portão azul" {...campo("referencia")} />
-      <Text style={[tipo.legenda, { color: cores.textoSuave }]}>O ponto de referência ajuda a equipe a achar sua casa.</Text>
+      ) : null}
+      <Campo
+        rotulo="Ponto de referência"
+        opcional
+        placeholder="Ex.: portão azul, perto da padaria"
+        ajuda="Ajuda a equipe a achar sua casa."
+        {...campo("referencia")}
+      />
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
-  campos: { gap: 14 },
+  campos: { gap: 16 },
   linha: { flexDirection: "row", gap: 12 },
+  cidade: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: cores.turquesaSuave,
+    marginTop: -6,
+  },
 });

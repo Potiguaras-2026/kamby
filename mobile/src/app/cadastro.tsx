@@ -1,19 +1,21 @@
 import type { Schemas } from "@kamby/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Baby, CalendarDays, Hospital, LockKeyhole, Mail, Phone, User } from "lucide-react-native";
+import { Baby, CalendarDays, ChevronDown, ChevronUp, HeartPulse, Hospital, House, LockKeyhole, Phone, ShieldCheck, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, BackHandler, Platform, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, BackHandler, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
 import { Campo } from "@/components/Campo";
 import { Cartao } from "@/components/Cartao";
 import { Celebracao } from "@/components/Celebracao";
+import { DicaAnimada } from "@/components/DicaAnimada";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
+import { SeletorBusca } from "@/components/SeletorBusca";
 import { Seletor } from "@/components/Seletores";
 import { Tela } from "@/components/Tela";
-import { Concordo, Progresso, SimNao, TextoLongo } from "@/features/cadastro/partes";
+import { CabecalhoEtapa, CartaoPergunta, Concordo, Progresso, SimNao, TextoLongo } from "@/features/cadastro/partes";
 import { CAMPOS_OBRIGATORIOS, CamposEndereco, type DadosEndereco } from "@/features/enderecos/CamposEndereco";
 import { api, chamar, lerErro } from "@/lib/api";
 import { useTexto } from "@/lib/consultas";
@@ -22,13 +24,15 @@ import { haptico } from "@/lib/haptico";
 import { salvarTokens } from "@/lib/sessao";
 import { cores, familia, tipo } from "@/lib/tema";
 
-type Tokens = Schemas["TokensSaida"];
+type Cadastro = Schemas["CadastroSaida"];
 
-const TOTAL = 6;
+// Quatro etapas: conta, mãe e bebê, saúde (todas as perguntas numa tela), endereço com a autorização.
+const TOTAL = 4;
+// Listas do admin mudam pouco: não precisa buscar de novo a cada foco da janela.
+const LISTAS = 10 * 60_000;
 const INICIAL = {
   nome_completo: "",
   telefone: "",
-  email: "",
   senha: "",
   data_nascimento: "",
   amamentando: null as boolean | null,
@@ -50,24 +54,24 @@ type Dados = typeof INICIAL;
 
 // Erro da API volta para a etapa do campo, para a mãe corrigir onde digitou.
 const ETAPA_DO_CAMPO: Record<string, number> = {
-  nome_completo: 0, telefone: 0, email: 0, senha: 0, data_nascimento: 0,
+  nome_completo: 0, telefone: 0, senha: 0, data_nascimento: 0,
   amamentando: 1, data_parto: 1, bebe_prematuro: 1, maternidade: 1,
   respostas: 2,
-  cep: 3, logradouro: 3, numero: 3, complemento: 3, bairro: 3, cidade: 3, uf: 3, referencia: 3, banco_id: 3,
-  consentimento: 4,
+  cep: 3, logradouro: 3, numero: 3, complemento: 3, bairro: 3, cidade: 3, uf: 3, referencia: 3, banco_id: 3, consentimento: 3,
 };
 
 export default function TelaCadastro() {
   const texto = useTexto();
-  const perguntas = useQuery({ queryKey: ["perguntas"], queryFn: () => chamar(api.GET("/api/v1/triagem/perguntas")) });
-  const bancos = useQuery({ queryKey: ["bancos"], queryFn: () => chamar(api.GET("/api/v1/bancos")) });
+  const perguntas = useQuery({ queryKey: ["perguntas"], queryFn: () => chamar(api.GET("/api/v1/triagem/perguntas")), staleTime: LISTAS });
+  const bancos = useQuery({ queryKey: ["bancos"], queryFn: () => chamar(api.GET("/api/v1/bancos")), staleTime: LISTAS });
+  const maternidades = useQuery({ queryKey: ["maternidades"], queryFn: () => chamar(api.GET("/api/v1/bancos/maternidades")), staleTime: LISTAS });
 
   const [etapa, setEtapa] = useState(0);
-  const [pergunta, setPergunta] = useState(0);
+  const [termoAberto, setTermoAberto] = useState(false);
   const [dados, setDados] = useState(INICIAL);
   const [respostas, setRespostas] = useState<Record<string, boolean>>({});
   const [detalhes, setDetalhes] = useState<Record<string, string>>({});
-  const [tokens, setTokens] = useState<Tokens | null>(null);
+  const [conta, setConta] = useState<Cadastro | null>(null);
 
   const mudar = <K extends keyof Dados>(campo: K, valor: Dados[K]) => setDados((d) => ({ ...d, [campo]: valor }));
 
@@ -82,6 +86,7 @@ export default function TelaCadastro() {
         api.POST("/api/v1/auth/cadastro", {
           body: {
             ...dados,
+            email: "",
             amamentando: !!dados.amamentando,
             bebe_prematuro: !!dados.bebe_prematuro,
             banco_id: dados.banco_id ?? "",
@@ -94,17 +99,14 @@ export default function TelaCadastro() {
       ),
     onSuccess: (t) => {
       haptico.sucesso();
-      setTokens(t);
-      setEtapa(5);
+      setConta(t);
+      setEtapa(4);
     },
     onError: (e) => {
       haptico.aviso();
       const campos = Object.keys(lerErro(e).campos);
-      const primeira = Math.min(...campos.map((c) => ETAPA_DO_CAMPO[c] ?? 4));
-      if (Number.isFinite(primeira)) {
-        setEtapa(primeira);
-        if (primeira === 2) setPergunta(0);
-      }
+      const primeira = Math.min(...campos.map((c) => ETAPA_DO_CAMPO[c] ?? 3));
+      if (Number.isFinite(primeira)) setEtapa(primeira);
     },
   });
   const erro = enviar.error ? lerErro(enviar.error) : null;
@@ -113,15 +115,13 @@ export default function TelaCadastro() {
   const lista = perguntas.data ?? [];
 
   function voltar() {
-    if (etapa === 0 || etapa === 5) return router.back();
-    if (etapa === 2 && pergunta > 0) return setPergunta(pergunta - 1);
-    if (etapa === 3 && lista.length) setPergunta(lista.length - 1);
+    if (etapa === 0 || etapa === 4) return router.back();
     setEtapa(etapa - 1);
   }
 
+  // Avançar é sempre um toque da mãe no botão: nada passa sozinho.
   function avancar() {
-    if (etapa === 2 && pergunta < lista.length - 1) return setPergunta(pergunta + 1);
-    if (etapa === 2) setPergunta(lista.length - 1);
+    haptico.selecao();
     setEtapa(etapa + 1);
     AccessibilityInfo.announceForAccessibility(`Etapa ${etapa + 2} de ${TOTAL}`);
   }
@@ -130,7 +130,7 @@ export default function TelaCadastro() {
   useEffect(() => {
     if (Platform.OS !== "android") return;
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (etapa === 0 || etapa === 5) return false;
+      if (etapa === 0 || etapa === 4) return false;
       voltar();
       return true;
     });
@@ -145,49 +145,57 @@ export default function TelaCadastro() {
     );
   }
 
-  const cabecalho = (chave: string, reserva: string, subtitulo?: string) => {
-    const t = { ...texto(chave), ...(subtitulo ? { corpo: subtitulo } : {}) };
-    return (
-      <View style={{ gap: 4 }}>
-        <Text accessibilityRole="header" style={tipo.titulo}>
-          {t.titulo || reserva}
-        </Text>
-        {t.corpo ? <Text style={[tipo.corpo, { color: cores.textoSuave }]}>{t.corpo}</Text> : null}
-      </View>
-    );
+  const titulo = (chave: string, reserva: string) => {
+    const t = texto(chave);
+    return { titulo: t.titulo || reserva, texto: t.corpo };
   };
+  const erroData = (v: string) => (v.length === 10 && !dataIso(v) ? "Confira a data. Use dia, mês e ano, como 05/04/1996." : undefined);
 
   const etapaUm = (() => {
     const tel = dados.telefone.replace(/\D/g, "");
-    return dados.nome_completo.trim().length >= 3 && tel.length >= 10 && /\S+@\S+\.\S+/.test(dados.email) && dados.senha.length >= 8 && !!dataIso(dados.data_nascimento);
+    return dados.nome_completo.trim().length >= 3 && tel.length >= 10 && dados.senha.length >= 8 && !!dataIso(dados.data_nascimento);
   })();
   const etapaDois = dados.amamentando !== null && dados.bebe_prematuro !== null && !!dataIso(dados.data_parto);
-  const atual = lista[pergunta];
-  const respondida = atual ? respostas[atual.codigo] !== undefined : true;
-  const pedeDetalhe = atual && atual.detalhe_se && respostas[atual.codigo] === (atual.detalhe_se === "sim");
-  const etapaQuatro = CAMPOS_OBRIGATORIOS.every((c) => dados[c].trim()) && !!dados.banco_id;
+  const respondidas = lista.filter((p) => respostas[p.codigo] !== undefined).length;
+  const etapaQuatro = CAMPOS_OBRIGATORIOS.every((c) => dados[c].trim()) && !!dados.banco_id && dados.consentimento;
+  const consentimento = texto("cadastro.consentimento");
+  const aprovada = conta?.status === "apta";
+  const final = texto(aprovada ? "cadastro.aprovado" : "cadastro.enviado");
+  const faltam = lista.length - respondidas;
 
   return (
-    // key: cada etapa e pergunta abre no topo da tela.
-    <Tela key={`${etapa}-${etapa === 2 ? pergunta : 0}`} publica voltar={etapa < 5} aoVoltar={voltar}>
-      {etapa < 5 ? <Progresso etapa={etapa + 1} total={TOTAL} /> : null}
+    // key: cada etapa abre no topo da tela.
+    <Tela key={etapa} publica voltar={etapa < 4} aoVoltar={voltar}>
+      {etapa < 4 ? <Progresso etapa={etapa + 1} total={TOTAL} /> : null}
 
       {etapa === 0 ? (
         <Entrada key="conta" style={estilos.grupo}>
-          {cabecalho("cadastro.conta", "Sua conta")}
-          <Campo rotulo="Nome completo" icone={User} value={dados.nome_completo} onChangeText={(v) => mudar("nome_completo", v)} autoComplete="name" textContentType="name" erro={erroCampo("nome_completo")} />
+          <CabecalhoEtapa icone={User} {...titulo("cadastro.conta", "Sua conta")} />
+          <DicaAnimada tom="rosa" selo="Bem-vinda" titulo={texto("cadastro.dica_conta").titulo || "Leva só 3 minutinhos"} texto={texto("cadastro.dica_conta").corpo} />
           <Campo
-            rotulo="Telefone com DDD"
+            rotulo="Nome completo"
+            icone={User}
+            placeholder="Como está no seu documento"
+            value={dados.nome_completo}
+            onChangeText={(v) => mudar("nome_completo", v)}
+            autoComplete="name"
+            textContentType="name"
+            autoCapitalize="words"
+            erro={erroCampo("nome_completo")}
+          />
+          <Campo
+            rotulo="Celular com DDD"
             icone={Phone}
             placeholder="(84) 91234-5678"
+            ajuda="É com ele que você entra no app."
             value={dados.telefone}
             onChangeText={(v) => mudar("telefone", mascaraTelefone(v))}
             keyboardType="phone-pad"
             autoComplete="tel"
             textContentType="telephoneNumber"
+            maxLength={15}
             erro={erroCampo("telefone")}
           />
-          <Campo rotulo="E-mail" icone={Mail} value={dados.email} onChangeText={(v) => mudar("email", v)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress" erro={erroCampo("email")} />
           <Campo
             rotulo="Sua data de nascimento"
             icone={CalendarDays}
@@ -196,12 +204,21 @@ export default function TelaCadastro() {
             onChangeText={(v) => mudar("data_nascimento", mascaraData(v))}
             keyboardType="number-pad"
             autoComplete="birthdate-full"
-            erro={erroCampo("data_nascimento") ?? (dados.data_nascimento.length === 10 && !dataIso(dados.data_nascimento) ? "Confira a data. Use dia, mês e ano, como 05/04/1996." : undefined)}
+            maxLength={10}
+            erro={erroCampo("data_nascimento") ?? erroData(dados.data_nascimento)}
           />
-          <View style={{ gap: 4 }}>
-            <Campo rotulo="Crie uma senha" icone={LockKeyhole} value={dados.senha} onChangeText={(v) => mudar("senha", v)} secureTextEntry autoComplete="new-password" textContentType="newPassword" erro={erroCampo("senha")} />
-            <Text style={tipo.legenda}>Use pelo menos 8 caracteres.</Text>
-          </View>
+          <Campo
+            rotulo="Crie uma senha"
+            icone={LockKeyhole}
+            placeholder="Mínimo de 8 caracteres"
+            ajuda="Use letras e números. Não precisa de símbolo."
+            value={dados.senha}
+            onChangeText={(v) => mudar("senha", v)}
+            secureTextEntry
+            autoComplete="new-password"
+            textContentType="newPassword"
+            erro={erroCampo("senha")}
+          />
           <Botao titulo="Continuar" desabilitado={!etapaUm} onPress={avancar} />
           <Text style={[tipo.legenda, { textAlign: "center" }]}>
             Já tem conta?{" "}
@@ -214,67 +231,64 @@ export default function TelaCadastro() {
 
       {etapa === 1 ? (
         <Entrada key="mae" style={estilos.grupo}>
-          {cabecalho("cadastro.mae_bebe", "Você e seu bebê")}
+          <CabecalhoEtapa icone={Baby} tom="turquesa" {...titulo("cadastro.mae_bebe", "Você e seu bebê")} />
           <SimNao rotulo="Você está amamentando?" valor={dados.amamentando} onChange={(v) => mudar("amamentando", v)} erro={erroCampo("amamentando")} />
           <Campo
-            rotulo="Nascimento do bebê"
+            rotulo="Data de nascimento do bebê"
             icone={Baby}
             placeholder="dd/mm/aaaa"
             value={dados.data_parto}
             onChangeText={(v) => mudar("data_parto", mascaraData(v))}
             keyboardType="number-pad"
-            erro={erroCampo("data_parto") ?? (dados.data_parto.length === 10 && !dataIso(dados.data_parto) ? "Confira a data. Use dia, mês e ano, como 05/04/1996." : undefined)}
+            maxLength={10}
+            erro={erroCampo("data_parto") ?? erroData(dados.data_parto)}
           />
           <SimNao rotulo="Seu bebê nasceu prematuro?" valor={dados.bebe_prematuro} onChange={(v) => mudar("bebe_prematuro", v)} erro={erroCampo("bebe_prematuro")} />
-          <Campo rotulo="Maternidade do parto" icone={Hospital} placeholder="Opcional" value={dados.maternidade} onChangeText={(v) => mudar("maternidade", v)} erro={erroCampo("maternidade")} />
-          <Cartao tom="turquesa" style={{ gap: 4 }}>
-            <Text style={[tipo.corpoForte, { color: cores.turquesaTexto }]}>{texto("cadastro.aviso_leite").titulo || "Doar não faz faltar leite para o seu bebê"}</Text>
-            <Text style={tipo.legenda}>{texto("cadastro.aviso_leite").corpo}</Text>
-          </Cartao>
+          <SeletorBusca
+            rotulo="Maternidade onde o bebê nasceu"
+            placeholder="Escolha na lista"
+            icone={Hospital}
+            opcional
+            aceitaOutro
+            opcoes={(maternidades.data ?? []).map((m) => ({ valor: m.nome, rotulo: m.nome, detalhe: m.cidade }))}
+            valor={dados.maternidade}
+            onChange={(v) => mudar("maternidade", v)}
+            ajuda="Não achou? Digite o nome na busca."
+            erro={erroCampo("maternidade")}
+          />
+          <DicaAnimada tom="rosa" titulo={texto("cadastro.aviso_leite").titulo || "Doar não faz faltar leite!"} texto={texto("cadastro.aviso_leite").corpo} />
           <Botao titulo="Continuar" desabilitado={!etapaDois} onPress={avancar} />
         </Entrada>
       ) : null}
 
-      {etapa === 2 && atual ? (
-        <Entrada key={`p-${atual.codigo}`} style={estilos.grupo}>
-          {cabecalho("cadastro.saude", "Sua saúde importa")}
-          <Text style={estilos.contador}>
-            Pergunta {pergunta + 1} de {lista.length}
+      {etapa === 2 ? (
+        <Entrada key="saude" style={estilos.grupo}>
+          <CabecalhoEtapa icone={HeartPulse} {...titulo("cadastro.saude", "Sua saúde importa")} />
+          <DicaAnimada titulo={texto("cadastro.dica_saude").titulo || "Sem resposta certa ou errada"} texto={texto("cadastro.dica_saude").corpo} />
+          <Text style={estilos.contador} accessibilityLiveRegion="polite">
+            {respondidas} de {lista.length} respondidas
           </Text>
-          <Cartao style={{ gap: 8 }}>
-            <Text accessibilityRole="header" style={tipo.subtitulo}>
-              {atual.texto}
-            </Text>
-            {atual.ajuda ? <Text style={tipo.legenda}>{atual.ajuda}</Text> : null}
-          </Cartao>
-          <SimNao
-            rotulo="Sua resposta"
-            valor={respostas[atual.codigo] ?? null}
-            onChange={(v) => {
-              setRespostas((r) => ({ ...r, [atual.codigo]: v }));
-              // Como no Figma: tocar na resposta já segue, a não ser que ela peça um detalhe.
-              const precisaDetalhe = !!atual.detalhe_se && v === (atual.detalhe_se === "sim");
-              if (!precisaDetalhe) setTimeout(avancar, 250);
-            }}
-          />
-          {pedeDetalhe ? (
-            <Campo
-              rotulo={atual.detalhe_rotulo || "Conte um pouco mais"}
-              placeholder="Escreva aqui"
-              multiline
-              value={detalhes[atual.codigo] ?? ""}
-              onChangeText={(v) => setDetalhes((d) => ({ ...d, [atual.codigo]: v }))}
+          {lista.map((p, i) => (
+            <CartaoPergunta
+              key={p.codigo}
+              numero={i + 1}
+              pergunta={p}
+              resposta={respostas[p.codigo]}
+              detalhe={detalhes[p.codigo] ?? ""}
+              responder={(v) => setRespostas((r) => ({ ...r, [p.codigo]: v }))}
+              detalhar={(t) => setDetalhes((d) => ({ ...d, [p.codigo]: t }))}
             />
-          ) : null}
+          ))}
           {erroCampo("respostas") ? <Text style={[tipo.legenda, { color: cores.erro }]}>{erro?.mensagem}</Text> : null}
-          <Botao titulo="Continuar" desabilitado={!respondida} onPress={avancar} />
+          <Botao titulo={faltam ? (faltam === 1 ? "Falta 1 resposta" : "Faltam " + faltam + " respostas") : "Continuar"} desabilitado={faltam > 0} onPress={avancar} />
           <Text style={[tipo.legenda, { textAlign: "center" }]}>{texto("cadastro.criterios", "Critérios sujeitos à avaliação do banco de leite.").corpo}</Text>
         </Entrada>
       ) : null}
 
       {etapa === 3 ? (
         <Entrada key="endereco" style={estilos.grupo}>
-          {cabecalho("cadastro.endereco", "Onde você mora?")}
+          <CabecalhoEtapa icone={House} tom="turquesa" {...titulo("cadastro.endereco", "Onde você mora?")} />
+          <DicaAnimada titulo={texto("cadastro.dica_endereco").titulo || "A gente vai até você"} texto={texto("cadastro.dica_endereco").corpo} />
           <CamposEndereco
             dados={dados}
             mudar={(c: keyof DadosEndereco, v) => mudar(c, v)}
@@ -295,15 +309,21 @@ export default function TelaCadastro() {
               Banco de leite de referência: <Text style={{ color: cores.texto, fontFamily: familia.medio }}>{bancos.data[0].nome}</Text>
             </Text>
           ) : null}
-          <Botao titulo="Continuar" desabilitado={!etapaQuatro} onPress={avancar} />
-        </Entrada>
-      ) : null}
 
-      {etapa === 4 ? (
-        <Entrada key="consentimento" style={estilos.grupo}>
-          {cabecalho("cadastro.consentimento", "Seus dados, seu cuidado", "Leia com calma antes de enviar.")}
-          <Cartao>
-            <TextoLongo corpo={texto("cadastro.consentimento").corpo} />
+          <Cartao tom="rosa" style={{ gap: 10 }}>
+            <View style={estilos.termoTopo}>
+              <ShieldCheck size={24} color={cores.primaria} />
+              <Text style={[tipo.corpoForte, { flex: 1, color: cores.primaria, fontFamily: familia.semi }]}>{consentimento.titulo || "Seus dados, seu cuidado"}</Text>
+            </View>
+            {termoAberto ? (
+              <TextoLongo corpo={consentimento.corpo} />
+            ) : (
+              <Text style={tipo.legenda}>Usamos seus dados só para cuidar da doação. A equipe que busca o leite não vê suas respostas de saúde.</Text>
+            )}
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: termoAberto }} onPress={() => setTermoAberto(!termoAberto)} style={estilos.lerTudo}>
+              <Text style={[tipo.legenda, { color: cores.primaria, fontFamily: familia.semi }]}>{termoAberto ? "Mostrar menos" : "Ler como usamos seus dados"}</Text>
+              {termoAberto ? <ChevronUp size={16} color={cores.primaria} /> : <ChevronDown size={16} color={cores.primaria} />}
+            </Pressable>
           </Cartao>
           <Concordo
             texto={texto("cadastro.consentimento_aceite", "Li e concordo com o uso dos meus dados, inclusive os de saúde, para esse cuidado.").corpo}
@@ -316,13 +336,16 @@ export default function TelaCadastro() {
               {erro.mensagem}
             </Text>
           ) : null}
-          <Botao titulo="Enviar cadastro" desabilitado={!dados.consentimento} carregando={enviar.isPending} onPress={() => enviar.mutate()} />
+          <Botao titulo="Criar minha conta" desabilitado={!etapaQuatro} carregando={enviar.isPending} onPress={() => enviar.mutate()} />
         </Entrada>
       ) : null}
 
-      {etapa === 5 ? (
+      {etapa === 4 ? (
         <Entrada key="enviado" style={estilos.grupo}>
-          <Celebracao titulo={texto("cadastro.enviado").titulo || "Cadastro enviado!"} texto={texto("cadastro.enviado", "O banco de leite vai analisar seus dados e avisa você por aqui.").corpo} />
+          <Celebracao
+            titulo={final.titulo || (aprovada ? "Cadastro aprovado!" : "Cadastro enviado!")}
+            texto={final.corpo || (aprovada ? "Você já pode pedir seu kit de frascos." : "O banco de leite vai analisar seus dados e avisa você por aqui.")}
+          />
           <Cartao tom="rosa" style={{ gap: 2 }}>
             <Text style={tipo.corpoForte}>{dados.nome_completo}</Text>
             <Text style={tipo.legenda}>{dados.telefone}</Text>
@@ -330,7 +353,7 @@ export default function TelaCadastro() {
               {dados.bairro}, {dados.cidade}/{dados.uf}
             </Text>
           </Cartao>
-          <Botao titulo="Ir para o início" onPress={() => tokens && salvarTokens(tokens)} />
+          <Botao titulo={aprovada ? "Começar a doar" : "Ir para o início"} onPress={() => conta && salvarTokens(conta)} />
         </Entrada>
       ) : null}
     </Tela>
@@ -338,6 +361,8 @@ export default function TelaCadastro() {
 }
 
 const estilos = StyleSheet.create({
-  grupo: { gap: 16 },
+  grupo: { gap: 18 },
   contador: { fontFamily: familia.semi, fontSize: 13, color: cores.primaria, textTransform: "uppercase", letterSpacing: 0.4 },
+  termoTopo: { flexDirection: "row", alignItems: "center", gap: 10 },
+  lerTudo: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 32 },
 });

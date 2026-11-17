@@ -22,7 +22,8 @@ export const cores = {
   linha: "rgba(36, 27, 34, 0.08)",
   borda: "#F6D3E6",
   bordaTurquesa: "#B9ECE9",
-  bordaCampo: "#8C8286",
+  // 3:1 sobre branco: o mínimo para borda de campo (WCAG 1.4.11), sem pesar como cinza escuro.
+  bordaCampo: "#9C9097",
   desabilitado: "#ECE6EA",
   erro: "#B3261E",
   erroSuave: "#FCECEA",

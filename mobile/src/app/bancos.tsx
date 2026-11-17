@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Linking, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
+import { BotaoWhatsapp } from "@/components/BotaoWhatsapp";
 import { Cartao } from "@/components/Cartao";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
@@ -29,7 +30,7 @@ export default function TelaBancos() {
               <Text style={tipo.legenda}>{telefone(b.telefone)}</Text>
               <View style={estilos.botoes}>
                 <View style={{ flex: 1 }}>
-                  <Botao titulo="Ligar" variante="suave" compacto onPress={() => Linking.openURL(`tel:${b.telefone}`)} />
+                  <BotaoWhatsapp telefone={b.telefone} titulo="WhatsApp" compacto />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Botao

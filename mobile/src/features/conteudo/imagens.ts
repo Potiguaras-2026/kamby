@@ -13,6 +13,9 @@ export const IMAGENS = {
   retirada: require("../../../assets/imagens/retirada.jpg"),
   bancoFrascos: require("../../../assets/imagens/banco-frascos.jpg"),
   uti: require("../../../assets/imagens/uti.jpg"),
+  // Equipe Potiguaras (IFRN), que criou o Kamby.
+  equipe: require("../../../assets/imagens/equipe-potiguaras.png"),
+  potiguaras: require("../../../assets/imagens/potiguaras.png"),
 };
 
 /** O admin escolhe a imagem pelo nome; nome desconhecido vira "sem imagem" em vez de quebrar a tela. */

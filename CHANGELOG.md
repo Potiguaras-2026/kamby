@@ -5,6 +5,9 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 ## [Não lançado]
 
 ### Adicionado
+- Modo demonstração (`KAMBY_DEMO=1`): cadastro aprovado na hora e botão para simular cada etapa da doação no app.
+- Cadastro em 4 etapas: perguntas de saúde numa tela só, maternidades de Natal com busca, dicas animadas e avanço sempre pelo botão.
+- Campos de formulário novos em todo o app (rótulo, exemplo, ajuda, erro e CEP conferido), contato com o banco pelo WhatsApp, "em análise" com etapas e Sobre com a equipe Potiguaras e ícones das redes.
 - Jornada da doação: linha do tempo com 9 etapas, cartão "Minha doação" na Início, entrega ao banco e processamento no admin, avisos de "ninguém em casa" e "ajuste no frasco", resumo após pedir kit e doadoras de demonstração em cada etapa.
 - Cadastro da doadora no app em 6 etapas: conta, mãe e bebê, perguntas de saúde uma por tela, endereço com busca de CEP, consentimento e confirmação.
 - Textos, dicas, guias e perguntas de saúde editáveis no admin. O app lê tudo da API.

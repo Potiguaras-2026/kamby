@@ -1,30 +1,51 @@
-import { Eye, EyeOff, type LucideIcon } from "lucide-react-native";
-import { useEffect, useState } from "react";
-import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
+import { CircleAlert, CircleCheck, Eye, EyeOff, type LucideIcon } from "lucide-react-native";
+import { useEffect, useRef, useState, type ComponentRef } from "react";
+import { AccessibilityInfo, ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 
 import { cores, familia, raio, tipo, toqueMinimo } from "@/lib/tema";
 
-type Props = TextInputProps & { rotulo: string; erro?: string; icone?: LucideIcon };
+export type PropsCampo = TextInputProps & {
+  rotulo: string;
+  /** Texto de apoio abaixo do campo. Some quando há erro, que ocupa o lugar. */
+  ajuda?: string;
+  erro?: string;
+  icone?: LucideIcon;
+  opcional?: boolean;
+  carregando?: boolean;
+  /** Mostra o visto verde: o valor foi conferido (ex.: CEP encontrado). */
+  valido?: boolean;
+};
 
-export function Campo({ rotulo, erro, icone: Icone, secureTextEntry, onFocus, onBlur, ...props }: Props) {
+/** Campo padrão do app: rótulo em cima, exemplo no placeholder, ajuda e erro embaixo. */
+export function Campo({ rotulo, ajuda, erro, icone: Icone, opcional, carregando, valido, secureTextEntry, onFocus, onBlur, editable = true, ...props }: PropsCampo) {
   const [foco, setFoco] = useState(false);
   const [oculto, setOculto] = useState(true);
+  const interno = useRef<ComponentRef<typeof TextInput>>(null);
 
   useEffect(() => {
     if (erro) AccessibilityInfo.announceForAccessibility(`${rotulo}: ${erro}`);
   }, [erro, rotulo]);
 
   const corBorda = erro ? cores.erro : foco ? cores.primaria : cores.bordaCampo;
+  const corIcone = erro ? cores.erro : foco ? cores.primaria : cores.textoSuave;
 
   return (
     <View style={estilos.grupo}>
-      <Text style={estilos.rotulo}>{rotulo}</Text>
-      <View style={[estilos.caixa, { borderColor: corBorda }, foco && estilos.caixaFoco]}>
-        {Icone ? <Icone size={20} color={foco ? cores.primaria : cores.textoSuave} strokeWidth={2} /> : null}
+      {/* Tocar no rótulo foca o campo, como o <label> da web. */}
+      <Pressable onPress={() => interno.current?.focus()} accessible={false} style={estilos.topo}>
+        <Text style={estilos.rotulo}>{rotulo}</Text>
+        {opcional ? <Text style={estilos.opcional}>opcional</Text> : null}
+      </Pressable>
+      <View style={[estilos.caixa, { borderColor: corBorda }, foco && estilos.caixaFoco, erro ? estilos.caixaErro : null, !editable && estilos.caixaFixa]}>
+        {Icone ? <Icone size={20} color={corIcone} strokeWidth={2} /> : null}
         <TextInput
-          accessibilityLabel={rotulo}
-          placeholderTextColor={cores.textoSuave}
+          ref={interno}
+          accessibilityLabel={opcional ? `${rotulo}, opcional` : rotulo}
+          accessibilityHint={erro ?? ajuda}
+          aria-invalid={!!erro}
+          placeholderTextColor="#9A8F96"
           secureTextEntry={secureTextEntry && oculto}
+          editable={editable}
           onFocus={(e) => {
             setFoco(true);
             onFocus?.(e);
@@ -33,9 +54,11 @@ export function Campo({ rotulo, erro, icone: Icone, secureTextEntry, onFocus, on
             setFoco(false);
             onBlur?.(e);
           }}
-          style={estilos.campo}
+          style={[estilos.campo, props.multiline && estilos.multilinha]}
           {...props}
         />
+        {carregando ? <ActivityIndicator color={cores.primaria} style={estilos.lado} /> : null}
+        {!carregando && valido && !erro ? <CircleCheck size={20} color={cores.turquesaTexto} style={estilos.lado} /> : null}
         {secureTextEntry ? (
           <Pressable
             accessibilityRole="button"
@@ -47,27 +70,52 @@ export function Campo({ rotulo, erro, icone: Icone, secureTextEntry, onFocus, on
           </Pressable>
         ) : null}
       </View>
-      {erro ? <Text style={estilos.erro}>{erro}</Text> : null}
+      {erro ? (
+        <View style={estilos.linhaErro}>
+          <CircleAlert size={16} color={cores.erro} />
+          <Text style={estilos.erro}>{erro}</Text>
+        </View>
+      ) : ajuda ? (
+        <Text style={estilos.ajuda}>{ajuda}</Text>
+      ) : null}
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  grupo: { gap: 6 },
-  rotulo: { fontFamily: familia.medio, fontSize: 14, color: cores.texto },
+export const estilosCampo = StyleSheet.create({
+  rotulo: { fontFamily: familia.medio, fontSize: 14, lineHeight: 20, color: cores.texto },
   caixa: {
-    minHeight: 56,
+    minHeight: 52,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     borderWidth: 1.5,
-    borderRadius: raio.m,
-    paddingLeft: 16,
+    borderRadius: raio.g,
+    paddingLeft: 14,
     backgroundColor: cores.superficie,
   },
-  caixaFoco: { shadowColor: cores.primaria, shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 2 },
+});
+
+const estilos = StyleSheet.create({
+  grupo: { gap: 6 },
+  topo: { flexDirection: "row", alignItems: "baseline", gap: 6 },
+  rotulo: estilosCampo.rotulo,
+  opcional: { fontFamily: familia.regular, fontSize: 13, color: cores.textoSuave },
+  caixa: estilosCampo.caixa,
+  caixaFoco: {
+    borderWidth: 2,
+    paddingLeft: 13.5,
+    // Anel rosa claro em volta, no lugar da sombra difusa: lê melhor como "campo ativo".
+    boxShadow: `0 0 0 4px ${cores.rosaSuave}`,
+  },
+  caixaErro: { backgroundColor: cores.erroSuave },
+  caixaFixa: { backgroundColor: cores.desabilitado },
   // outlineWidth: o navegador desenha contorno próprio; a borda da caixa já marca o foco.
-  campo: { flex: 1, alignSelf: "stretch", fontFamily: familia.regular, fontSize: 16, color: cores.texto, paddingRight: 16, outlineWidth: 0 },
+  campo: { flex: 1, alignSelf: "stretch", fontFamily: familia.regular, fontSize: 16, color: cores.texto, paddingRight: 14, paddingVertical: 12, outlineWidth: 0, outlineColor: "transparent" },
+  multilinha: { minHeight: 88, textAlignVertical: "top" },
+  lado: { marginRight: 14 },
   olho: { width: toqueMinimo, height: toqueMinimo, alignItems: "center", justifyContent: "center" },
-  erro: { ...tipo.legenda, color: cores.erro },
+  linhaErro: { flexDirection: "row", alignItems: "center", gap: 6 },
+  erro: { ...tipo.legenda, color: cores.erro, flex: 1 },
+  ajuda: { ...tipo.legenda, fontSize: 13 },
 });

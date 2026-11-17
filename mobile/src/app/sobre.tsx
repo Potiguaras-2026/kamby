@@ -1,11 +1,13 @@
-import { AtSign, CirclePlay, Link, Mail, type LucideIcon } from "lucide-react-native";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { ExternalLink, Globe } from "lucide-react-native";
+import { Image, Linking, StyleSheet, Text, View } from "react-native";
 
 import { Cartao } from "@/components/Cartao";
 import { Entrada } from "@/components/Entrada";
+import { IconeMarca, type Marca } from "@/components/IconeMarca";
 import { Estado } from "@/components/Estado";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
+import { IMAGENS } from "@/features/conteudo/imagens";
 import { useTextos } from "@/lib/consultas";
 import { cores, raio, tipo, toqueMinimo } from "@/lib/tema";
 
@@ -17,8 +19,14 @@ const ESTILO_BLOCO: { tom?: "turquesa" | "rosa"; cor: string }[] = [
   { tom: "rosa", cor: cores.primaria },
 ];
 
-const icone = (url: string): LucideIcon =>
-  url.startsWith("mailto:") ? Mail : url.includes("instagram") ? AtSign : url.includes("youtube") ? CirclePlay : Link;
+// O ícone sai do endereço: o admin só escreve "rótulo | url".
+const marca = (url: string): Marca | null =>
+  url.startsWith("mailto:") ? "gmail" : url.includes("instagram") ? "instagram" : url.includes("youtube") ? "youtube" : url.includes("wa.me") ? "whatsapp" : null;
+
+function Icone({ url }: { url: string }) {
+  const m = marca(url);
+  return m ? <IconeMarca marca={m} tamanho={22} /> : <Globe size={22} color={cores.azulTexto} />;
+}
 
 export default function TelaSobre() {
   const textos = useTextos();
@@ -61,17 +69,25 @@ export default function TelaSobre() {
         );
       })}
 
+      <Entrada ordem={blocos.length + 1}>
+        <Cartao style={estilos.equipe}>
+          <Image source={IMAGENS.equipe} style={estilos.foto} resizeMode="contain" accessibilityLabel="Foto da equipe Potiguaras, seis estudantes do IFRN sorrindo" />
+          <Image source={IMAGENS.potiguaras} style={estilos.logo} resizeMode="contain" accessibilityLabel="Logo Potiguaras" />
+          <Text style={[tipo.legenda, { textAlign: "center" }]}>Feito pela equipe Potiguaras, do IFRN, em Natal.</Text>
+        </Cartao>
+      </Entrada>
+
       {contatos.length ? (
-        <Entrada ordem={blocos.length + 1} style={estilos.contatos}>
-          {contatos.map(([rotulo, url]) => {
-            const Icone = icone(url);
-            return (
-              <Pressavel key={url} accessibilityRole="link" accessibilityLabel={rotulo} onPress={() => Linking.openURL(url)} style={estilos.contato}>
-                <Icone size={16} color={cores.azulTexto} />
-                <Text style={[tipo.legenda, { color: cores.texto }]}>{rotulo}</Text>
-              </Pressavel>
-            );
-          })}
+        <Entrada ordem={blocos.length + 2} style={estilos.contatos}>
+          {contatos.map(([rotulo, url]) => (
+            <Pressavel key={url} accessibilityRole="link" accessibilityLabel={`${rotulo}, abre fora do app`} onPress={() => Linking.openURL(url)} style={estilos.contato}>
+              <Icone url={url} />
+              <Text style={[tipo.corpoForte, { flex: 1, fontSize: 15 }]} numberOfLines={1}>
+                {rotulo}
+              </Text>
+              <ExternalLink size={16} color={cores.textoSuave} />
+            </Pressavel>
+          ))}
         </Entrada>
       ) : null}
     </Tela>
@@ -79,14 +95,19 @@ export default function TelaSobre() {
 }
 
 const estilos = StyleSheet.create({
-  contatos: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 },
+  equipe: { alignItems: "center", gap: 12 },
+  foto: { width: "100%", aspectRatio: 551 / 407, maxWidth: 360 },
+  logo: { width: 120, height: 75 },
+  contatos: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   contato: {
-    minHeight: toqueMinimo - 4,
+    flexBasis: "47%",
+    flexGrow: 1,
+    minHeight: toqueMinimo + 8,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 10,
     paddingHorizontal: 14,
-    borderRadius: raio.pilula,
+    borderRadius: raio.g,
     borderWidth: 1,
     borderColor: cores.borda,
     backgroundColor: cores.superficie,

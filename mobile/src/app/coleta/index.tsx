@@ -2,9 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { HeartHandshake } from "lucide-react-native";
 import { useState } from "react";
-import { AccessibilityInfo, Image, Linking, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Image, StyleSheet, Text, View } from "react-native";
 
-import { Botao } from "@/components/Botao";
+import { BotaoWhatsapp } from "@/components/BotaoWhatsapp";
 import { Cartao } from "@/components/Cartao";
 import { Celebracao } from "@/components/Celebracao";
 import { Entrada } from "@/components/Entrada";
@@ -13,6 +13,7 @@ import { Folha } from "@/components/Folha";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
 import { etapaAtual, Jornada } from "@/features/coleta/Jornada";
+import { SimularDoacao } from "@/features/coleta/SimularDoacao";
 import { IMAGENS } from "@/features/conteudo/imagens";
 import { api, chamar, lerErro } from "@/lib/api";
 import { useInicio, useTexto } from "@/lib/consultas";
@@ -86,6 +87,10 @@ export default function TelaMinhaDoacao() {
         </Entrada>
       ) : null}
 
+      <Entrada ordem={2}>
+        <SimularDoacao />
+      </Entrada>
+
       <Entrada ordem={2} style={{ gap: 10 }}>
         <View style={estilos.cabecalhoJornada}>
           <Text accessibilityRole="header" style={tipo.subtitulo}>
@@ -109,7 +114,7 @@ export default function TelaMinhaDoacao() {
       ) : null}
 
       <Entrada ordem={4} style={{ gap: 4 }}>
-        <Botao titulo="Ligar para o banco de leite" variante="secundaria" onPress={() => Linking.openURL(`tel:${banco.telefone}`)} />
+        <BotaoWhatsapp telefone={banco.telefone} />
         {podeCancelar && coleta ? (
           <Pressavel accessibilityRole="button" onPress={() => setConfirmando(true)} style={estilos.cancelar}>
             <Text style={[tipo.corpoForte, { color: cores.erro }]}>Cancelar coleta</Text>
