@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { LockKeyhole, Phone } from "lucide-react-native";
 import { useState } from "react";
@@ -14,7 +15,7 @@ import { api, chamar, lerErro } from "@/lib/api";
 import { mascaraTelefone } from "@/lib/formato";
 import { haptico } from "@/lib/haptico";
 import { salvarTokens } from "@/lib/sessao";
-import { cores, espaco, gradiente, tipo } from "@/lib/tema";
+import { cores, espaco, familia, gradiente, tipo } from "@/lib/tema";
 
 export default function TelaEntrar() {
   const { top, bottom } = useSafeAreaInsets();
@@ -77,6 +78,12 @@ export default function TelaEntrar() {
               </Text>
             ) : null}
             <Botao titulo="Entrar" desabilitado={!pronto} onPress={() => entrar.mutate()} carregando={entrar.isPending} />
+            <Text style={[tipo.legenda, { textAlign: "center" }]}>
+              Ainda não tem conta?{" "}
+              <Text accessibilityRole="link" onPress={() => router.push("/cadastro")} style={{ color: cores.primaria, fontFamily: familia.semi }}>
+                Quero ser doadora
+              </Text>
+            </Text>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>

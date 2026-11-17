@@ -64,3 +64,21 @@ type EnderecoLinha = { logradouro: string; numero: string; complemento?: string 
 export function linhaEndereco(e: EnderecoLinha) {
   return `${e.logradouro}, ${e.numero}${e.complemento ? ` - ${e.complemento}` : ""}, ${e.bairro}`;
 }
+
+/** Máscara progressiva de data: 05/04/1996. */
+export function mascaraData(valor: string) {
+  const d = valor.replace(/\D/g, "").slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+}
+
+/** "05/04/1996" vira "1996-04-05"; data impossível (31/02) vira null. */
+export function dataIso(valor: string): string | null {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor);
+  if (!m) return null;
+  const [, dia, mes, ano] = m;
+  const d = new Date(Number(ano), Number(mes) - 1, Number(dia), 12);
+  if (d.getDate() !== Number(dia) || d.getMonth() !== Number(mes) - 1 || Number(ano) < 1900) return null;
+  return `${ano}-${mes}-${dia}`;
+}

@@ -8,6 +8,7 @@ import { Campo } from "@/components/Campo";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
 import { Tela } from "@/components/Tela";
+import { CAMPOS_OBRIGATORIOS, CamposEndereco } from "@/features/enderecos/CamposEndereco";
 import { api, chamar, lerErro } from "@/lib/api";
 import { useEnderecos } from "@/lib/consultas";
 import { mascaraCep } from "@/lib/formato";
@@ -39,7 +40,7 @@ export default function TelaEndereco() {
 function Formulario({ id, inicial }: { id: string | null; inicial: Dados }) {
   const [dados, setDados] = useState(inicial);
   const queryClient = useQueryClient();
-  const mudar = (campo: keyof Dados) => (valor: string) => setDados((d) => ({ ...d, [campo]: campo === "cep" ? mascaraCep(valor) : valor }));
+  const mudar = (campo: keyof Dados) => (valor: string) => setDados((d) => ({ ...d, [campo]: valor }));
 
   const salvar = useMutation({
     mutationFn: () => {
@@ -58,32 +59,18 @@ function Formulario({ id, inicial }: { id: string | null; inicial: Dados }) {
   });
   const erro = salvar.error ? lerErro(salvar.error) : null;
   const campo = (c: keyof Dados) => erro?.campos[c]?.[0];
-  const completo = ["cep", "logradouro", "numero", "bairro", "cidade", "uf"].every((c) => dados[c as keyof Dados].trim());
+  const completo = CAMPOS_OBRIGATORIOS.every((c) => dados[c].trim());
 
   return (
     <Tela voltar titulo={id ? "Editar endereço" : "Novo endereço"}>
       <Entrada ordem={1} style={estilos.campos}>
         <Campo rotulo="Nome do endereço" placeholder="Casa, Trabalho, Casa da mãe..." value={dados.apelido} onChangeText={mudar("apelido")} erro={campo("apelido")} maxLength={40} />
-        <Campo rotulo="CEP" placeholder="00000-000" value={dados.cep} onChangeText={mudar("cep")} keyboardType="number-pad" autoComplete="postal-code" erro={campo("cep")} />
-        <Campo rotulo="Rua" value={dados.logradouro} onChangeText={mudar("logradouro")} autoComplete="street-address" erro={campo("logradouro")} />
-        <View style={estilos.linha}>
-          <View style={{ width: 110 }}>
-            <Campo rotulo="Número" value={dados.numero} onChangeText={mudar("numero")} erro={campo("numero")} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Campo rotulo="Complemento" placeholder="Opcional" value={dados.complemento} onChangeText={mudar("complemento")} erro={campo("complemento")} />
-          </View>
-        </View>
-        <Campo rotulo="Bairro" value={dados.bairro} onChangeText={mudar("bairro")} erro={campo("bairro")} />
-        <View style={estilos.linha}>
-          <View style={{ flex: 1 }}>
-            <Campo rotulo="Cidade" value={dados.cidade} onChangeText={mudar("cidade")} erro={campo("cidade")} />
-          </View>
-          <View style={{ width: 80 }}>
-            <Campo rotulo="UF" value={dados.uf} onChangeText={mudar("uf")} autoCapitalize="characters" maxLength={2} erro={campo("uf")} />
-          </View>
-        </View>
-        <Campo rotulo="Ponto de referência" placeholder="Opcional. Ex.: portão azul" value={dados.referencia} onChangeText={mudar("referencia")} erro={campo("referencia")} />
+        <CamposEndereco
+          dados={dados}
+          mudar={(c, v) => setDados((d) => ({ ...d, [c]: v }))}
+          preencher={(e) => setDados((d) => ({ ...d, logradouro: e.logradouro || d.logradouro, bairro: e.bairro || d.bairro, cidade: e.cidade, uf: e.uf }))}
+          erro={campo}
+        />
       </Entrada>
 
       <Entrada ordem={2} style={{ gap: 10 }}>
@@ -100,5 +87,4 @@ function Formulario({ id, inicial }: { id: string | null; inicial: Dados }) {
 
 const estilos = StyleSheet.create({
   campos: { gap: 14 },
-  linha: { flexDirection: "row", gap: 12 },
 });

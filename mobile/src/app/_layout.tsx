@@ -59,6 +59,7 @@ export default function Layout() {
         </Stack.Protected>
         <Stack.Protected guard={!logada}>
           <Stack.Screen name="entrar" />
+          <Stack.Screen name="cadastro" />
         </Stack.Protected>
       </Stack>
       </Moldura>

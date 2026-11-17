@@ -5,6 +5,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 ## [Não lançado]
 
 ### Adicionado
+- Cadastro da doadora no app em 6 etapas: conta, mãe e bebê, perguntas de saúde uma por tela, endereço com busca de CEP, consentimento e confirmação.
 - Textos, dicas, guias e perguntas de saúde editáveis no admin. O app lê tudo da API.
 - API da doadora: cadastro, login, perguntas de saúde, pedido de frascos, agendamento e cancelamento de coleta, tela Início com próxima ação e impacto.
 - Admin para a equipe do banco: aprovar doadoras, mudar status de frascos e coletas, registrar volume coletado.

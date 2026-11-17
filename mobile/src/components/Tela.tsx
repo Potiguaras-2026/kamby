@@ -21,6 +21,10 @@ type Props = {
   /** Telas das abas: a barra de abas flutua sobre o conteúdo. */
   comAbas?: boolean;
   atualizar?: { atualizando: boolean; aoAtualizar: () => void };
+  /** Troca o voltar padrão, ex.: etapa anterior de um fluxo. */
+  aoVoltar?: () => void;
+  /** Antes do login: sem avatar nem busca do perfil. */
+  publica?: boolean;
   children: ReactNode;
 };
 
@@ -29,13 +33,14 @@ function voltarOuInicio() {
   else router.replace("/");
 }
 
-export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, children }: Props) {
+export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, aoVoltar, publica, children }: Props) {
   const { top, bottom } = useSafeAreaInsets();
+  const voltarPara = aoVoltar ?? voltarOuInicio;
 
   return (
     <View style={estilos.raiz}>
       <Fundo />
-      <Cabecalho topo={top} />
+      <Cabecalho topo={top} publica={publica} />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[estilos.conteudo, { paddingBottom: (comAbas ? 112 : espaco.gg) + bottom }]}
@@ -49,7 +54,7 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, children }
           <Entrada style={estilos.topo}>
             <View style={estilos.linhaTitulo}>
               {voltar ? (
-                <Pressavel accessibilityRole="button" accessibilityLabel="Voltar" onPress={voltarOuInicio} escala={0.9} style={estilos.voltar}>
+                <Pressavel accessibilityRole="button" accessibilityLabel="Voltar" onPress={voltarPara} escala={0.9} style={estilos.voltar}>
                   <View style={estilos.voltarCirculo}>
                     <ArrowLeft size={18} color={cores.sobrePrimaria} strokeWidth={2.4} />
                   </View>
@@ -63,7 +68,7 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, children }
             {subtitulo ? <Text style={[tipo.corpo, voltar && estilos.centro, { paddingHorizontal: voltar ? 8 : 0 }]}>{subtitulo}</Text> : null}
           </Entrada>
         ) : voltar ? (
-          <Pressavel accessibilityRole="button" accessibilityLabel="Voltar" onPress={voltarOuInicio} escala={0.9} style={estilos.voltar}>
+          <Pressavel accessibilityRole="button" accessibilityLabel="Voltar" onPress={voltarPara} escala={0.9} style={estilos.voltar}>
             <View style={estilos.voltarCirculo}>
               <ArrowLeft size={18} color={cores.sobrePrimaria} strokeWidth={2.4} />
             </View>
@@ -75,8 +80,7 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, children }
   );
 }
 
-function Cabecalho({ topo }: { topo: number }) {
-  const eu = useEu();
+function Cabecalho({ topo, publica }: { topo: number; publica?: boolean }) {
   return (
     <View style={[estilos.cabecalho, { paddingTop: topo + 6 }]}>
       <View style={estilos.marca}>
@@ -84,10 +88,17 @@ function Cabecalho({ topo }: { topo: number }) {
         <View style={estilos.divisor} />
         <Text style={estilos.maes}>Mães</Text>
       </View>
-      <Pressavel accessibilityRole="button" accessibilityLabel="Abrir meu perfil" onPress={() => router.navigate("/perfil")} escala={0.92} style={estilos.toque}>
-        <Avatar nome={eu.data?.nome_completo} tamanho={38} />
-      </Pressavel>
+      {publica ? <View style={estilos.toque} /> : <BotaoPerfil />}
     </View>
+  );
+}
+
+function BotaoPerfil() {
+  const eu = useEu();
+  return (
+    <Pressavel accessibilityRole="button" accessibilityLabel="Abrir meu perfil" onPress={() => router.navigate("/perfil")} escala={0.92} style={estilos.toque}>
+      <Avatar nome={eu.data?.nome_completo} tamanho={38} />
+    </Pressavel>
   );
 }
 
