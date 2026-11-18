@@ -216,7 +216,7 @@ function Aviso({ titulo }: { titulo: string }) {
 const estilos = StyleSheet.create({
   doar: { alignItems: "center", gap: 12, paddingVertical: 20 },
   // Rosa da marca no nome só passa no contraste como texto grande: não descer de 24px.
-  boasVindas: { fontFamily: familia.assinatura, fontSize: 24, lineHeight: 34, color: cores.texto },
+  boasVindas: { fontFamily: familia.semi, fontSize: 24, lineHeight: 32, color: cores.texto },
   secao: { fontFamily: familia.medio, fontSize: 17, color: cores.texto },
   destaque: {
     flexDirection: "row",

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
-    "@expo-google-fonts/momo-signature": "^0.4.0",
     "@expo-google-fonts/poppins": "^0.4.1",
     "@kamby/api": "*",
     "@tanstack/react-query": "^5.107.1",

@@ -4,7 +4,6 @@ import {
   Poppins_600SemiBold,
   useFonts,
 } from "@expo-google-fonts/poppins";
-import { MomoSignature_400Regular } from "@expo-google-fonts/momo-signature";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -21,7 +20,7 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } 
 
 export default function Layout() {
   const { carregada, tokens } = useSessao();
-  const [fontes, erroFontes] = useFonts({ Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, MomoSignature_400Regular });
+  const [fontes, erroFontes] = useFonts({ Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const logada = !!tokens;
   // Sem as fontes o app ainda funciona com a fonte do sistema.
   const pronto = carregada && (fontes || !!erroFontes);

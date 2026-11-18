@@ -51,7 +51,7 @@ export function SeletorBusca({ rotulo, placeholder, opcoes, valor, onChange, ico
     <View style={{ gap: 6 }}>
       <View style={estilos.topo}>
         <Text style={estilosCampo.rotulo}>{rotulo}</Text>
-        {opcional ? <Text style={estilos.opcional}>opcional</Text> : null}
+        {opcional ? <Text style={estilos.opcional}>(opcional)</Text> : null}
       </View>
       <Pressable
         accessibilityRole="button"

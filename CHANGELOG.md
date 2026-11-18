@@ -4,6 +4,9 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 
 ## [Não lançado]
 
+### Alterado
+- "(opcional)" entre parênteses nos campos, saudação da Início em Poppins e logo do topo leva para a Início.
+
 ### Adicionado
 - Pedido de kit com dia e horário da entrega; ao agendar a coleta, dá para pedir um kit novo para o mesmo dia.
 - Perfil mostra os dados do cadastro (mãe, bebê e endereço); dicas com a gotinha como personagem; "Doar leite" abre a tela de doação com o primeiro kit indo junto na coleta; a simulação só aparece depois.

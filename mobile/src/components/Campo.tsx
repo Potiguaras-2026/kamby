@@ -34,7 +34,7 @@ export function Campo({ rotulo, ajuda, erro, icone: Icone, opcional, carregando,
       {/* Tocar no rótulo foca o campo, como o <label> da web. */}
       <Pressable onPress={() => interno.current?.focus()} accessible={false} style={estilos.topo}>
         <Text style={estilos.rotulo}>{rotulo}</Text>
-        {opcional ? <Text style={estilos.opcional}>opcional</Text> : null}
+        {opcional ? <Text style={estilos.opcional}>(opcional)</Text> : null}
       </Pressable>
       <View style={[estilos.caixa, { borderColor: corBorda }, foco && estilos.caixaFoco, erro ? estilos.caixaErro : null, !editable && estilos.caixaFixa]}>
         {Icone ? <Icone size={20} color={corIcone} strokeWidth={2} /> : null}

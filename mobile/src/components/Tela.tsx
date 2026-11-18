@@ -81,13 +81,22 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, aoVoltar, 
 }
 
 function Cabecalho({ topo, publica }: { topo: number; publica?: boolean }) {
+  const marca = (
+    <>
+      <Logo largura={96} />
+      <View style={estilos.divisor} />
+      <Text style={estilos.maes}>Mães</Text>
+    </>
+  );
   return (
     <View style={[estilos.cabecalho, { paddingTop: topo + 6 }]}>
-      <View style={estilos.marca}>
-        <Logo largura={96} />
-        <View style={estilos.divisor} />
-        <Text style={estilos.maes}>Mães</Text>
-      </View>
+      {publica ? (
+        <View style={estilos.marca}>{marca}</View>
+      ) : (
+        <Pressavel accessibilityRole="button" accessibilityLabel="Kamby, ir para o início" onPress={() => router.navigate("/")} escala={0.96} style={[estilos.marca, { minHeight: toqueMinimo }]}>
+          {marca}
+        </Pressavel>
+      )}
       {publica ? <View style={estilos.toque} /> : <BotaoPerfil />}
     </View>
   );

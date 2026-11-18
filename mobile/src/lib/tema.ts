@@ -46,8 +46,6 @@ export const familia = {
   regular: "Poppins_400Regular",
   medio: "Poppins_500Medium",
   semi: "Poppins_600SemiBold",
-  // Só para a saudação da Início, como no Figma.
-  assinatura: "MomoSignature_400Regular",
 };
 
 /** Escala tipográfica. Use `tipo.x` e sobrescreva só a cor quando precisar. */
