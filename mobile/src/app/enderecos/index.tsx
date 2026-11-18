@@ -162,7 +162,7 @@ const estilos = StyleSheet.create({
   cartao: { backgroundColor: cores.superficie, borderRadius: raio.g, borderWidth: 1, borderColor: cores.borda, paddingHorizontal: 18, paddingBottom: 12 },
   topo: { paddingTop: 18, paddingBottom: 16 },
   cartaoAtivo: { backgroundColor: cores.rosaSuave, borderColor: cores.rosaClaro },
-  apelido: { fontFamily: familia.medio, fontSize: 18, lineHeight: 26, color: cores.texto },
+  apelido: { fontFamily: familia.medio, fontSize: 16, lineHeight: 22, color: cores.texto },
   linha: { fontFamily: familia.regular, fontSize: 14, lineHeight: 20, color: cores.texto, marginTop: 4 },
   divisoria: { height: 1, backgroundColor: cores.linha, marginBottom: 10 },
   rodape: { flexDirection: "row", justifyContent: "flex-end", minHeight: toqueMinimo - 8, alignItems: "center" },

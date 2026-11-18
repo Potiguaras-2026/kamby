@@ -30,6 +30,16 @@ def pedir_kit(request, dados: KitEntrada):
     return 201, services.pedir_kit(doadora_do_usuario(request.auth), dados.quantidade_frascos, data=dados.data, horario_id=dados.horario_id)
 
 
+@router.get("/kits/{kit_id}", response=KitSaida)
+def detalhar_kit(request, kit_id: UUID):
+    return selectors.kit_da_doadora(doadora_do_usuario(request.auth), kit_id)
+
+
+@router.post("/kits/{kit_id}/cancelar", response=KitSaida)
+def cancelar_kit(request, kit_id: UUID):
+    return services.cancelar_kit(selectors.kit_da_doadora(doadora_do_usuario(request.auth), kit_id))
+
+
 @router.get("/coletas/dias-disponiveis", response=list[date])
 def dias_disponiveis(request):
     return services.dias_disponiveis(timezone.localdate())

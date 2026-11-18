@@ -157,7 +157,7 @@ function LinhaDica({ dica: d }: { dica: Dica }) {
 }
 
 const estilos = StyleSheet.create({
-  secao: { fontFamily: familia.medio, fontSize: 17, color: cores.texto },
+  secao: { fontFamily: familia.medio, fontSize: 15, color: cores.texto },
   busca: {
     minHeight: 50,
     flexDirection: "row",

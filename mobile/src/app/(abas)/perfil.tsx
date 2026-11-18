@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Baby, Building2, Droplet, Heart, LogOut, MapPin, Package, Phone, UserRound, type LucideIcon } from "lucide-react-native";
+import { Baby, Building2, ClipboardList, Droplet, Heart, History, LogOut, MapPin, Package, Pencil, Phone, Trash2, UserRound, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -34,7 +34,7 @@ export default function TelaPerfil() {
       <Entrada style={estilos.topo}>
         <Avatar nome={eu.data.nome_completo} tamanho={104} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text accessibilityRole="header" style={[tipo.titulo, { fontSize: 20, lineHeight: 26 }]}>
+          <Text accessibilityRole="header" style={[tipo.titulo, { fontSize: 18, lineHeight: 24 }]}>
             {eu.data.nome_completo}
           </Text>
           <Text style={[tipo.legenda, { color: cores.texto }]}>Doadora desde {dataCompleta(eu.data.criado_em)}</Text>
@@ -51,32 +51,38 @@ export default function TelaPerfil() {
         <Numero rotulo="Coletas realizadas" icone={Package} tom="turquesa" valor={impacto?.coletas ?? 0} formatar={(n) => String(Math.round(n))} />
       </Entrada>
 
-      {/* O que a mãe informou no cadastro. shortcut: só leitura até a API aceitar alteração de dados. */}
-      <Entrada ordem={2} style={{ gap: 12 }}>
-        <Bloco titulo="Você" icone={UserRound}>
+      <Entrada ordem={2} style={estilos.numeros}>
+        <Atalho rotulo="Minhas doações" icone={History} onPress={() => router.push("/coleta")} />
+        <Atalho rotulo="Meus pedidos de kit" icone={ClipboardList} onPress={() => router.push("/pedidos")} />
+      </Entrada>
+
+      <Entrada ordem={3} style={{ gap: 12 }}>
+        <Bloco titulo="Você" icone={UserRound} editar>
           <Dado rotulo="Nascimento" valor={dataCompleta(eu.data.data_nascimento)} />
           <Dado rotulo="Situação" valor={eu.data.status_rotulo} />
           <Dado rotulo="Banco de leite" valor={eu.data.banco.nome} />
         </Bloco>
-        <Bloco titulo="Seu bebê" icone={Baby} tom="turquesa">
+        <Bloco titulo="Seu bebê" icone={Baby} tom="turquesa" editar>
           <Dado rotulo="Nascimento" valor={dataCompleta(eu.data.data_parto)} />
           <Dado rotulo="Prematuro" valor={simNao(eu.data.bebe_prematuro)} />
           <Dado rotulo="Amamentando" valor={simNao(eu.data.amamentando)} />
           <Dado rotulo="Maternidade" valor={eu.data.maternidade || "Não informada"} />
         </Bloco>
         {eu.data.endereco_ativo ? (
-          <Bloco titulo="Endereço da coleta" icone={MapPin}>
+          <Bloco titulo="Endereço da coleta" icone={MapPin} editar="/enderecos">
             <Text style={tipo.corpo}>{linhaEndereco(eu.data.endereco_ativo)}</Text>
             {eu.data.endereco_ativo.referencia ? <Text style={tipo.legenda}>Ref.: {eu.data.endereco_ativo.referencia}</Text> : null}
           </Bloco>
         ) : null}
       </Entrada>
 
-      <Entrada ordem={3} style={{ gap: 10, marginTop: 8 }}>
+      <Entrada ordem={4} style={{ gap: 10, marginTop: 8 }}>
+        <ItemMenu rotulo="Editar meus dados" icone={Pencil} onPress={() => router.push("/meus-dados")} />
         <ItemMenu rotulo="Endereços cadastrados" icone={MapPin} onPress={() => router.push("/enderecos")} />
         <ItemMenu rotulo="Bancos de leite" icone={Building2} onPress={() => router.push("/bancos")} />
         <ItemMenu rotulo="Por trás do Kamby" icone={Heart} tom="azul" onPress={() => router.push("/sobre")} />
         <ItemMenu rotulo="Sair" icone={LogOut} tom="erro" onPress={() => setSaindo(true)} />
+        <ItemMenu rotulo="Excluir minha conta" icone={Trash2} tom="erro" onPress={() => router.push("/excluir-conta")} />
       </Entrada>
 
       <Folha
@@ -114,18 +120,46 @@ function Numero({ rotulo, icone: Icone, tom, valor, formatar }: { rotulo: string
 
 const simNao = (v: boolean | null) => (v === null ? "Não informado" : v ? "Sim" : "Não");
 
-function Bloco({ titulo, icone: Icone, tom = "rosa", children }: { titulo: string; icone: LucideIcon; tom?: "rosa" | "turquesa"; children: React.ReactNode }) {
+type BlocoProps = {
+  titulo: string;
+  icone: LucideIcon;
+  tom?: "rosa" | "turquesa";
+  /** true abre "Meus dados"; um caminho abre outra tela. */
+  editar?: true | "/enderecos";
+  children: React.ReactNode;
+};
+
+function Bloco({ titulo, icone: Icone, tom = "rosa", editar, children }: BlocoProps) {
   const cor = tom === "rosa" ? cores.primaria : cores.turquesaTexto;
   return (
     <Cartao style={{ gap: 8 }}>
       <View style={estilos.blocoTopo}>
         <Icone size={20} color={cor} strokeWidth={2} />
-        <Text accessibilityRole="header" style={[tipo.corpoForte, { color: cor, fontFamily: familia.semi }]}>
+        <Text accessibilityRole="header" style={[tipo.corpoForte, { flex: 1, color: cor, fontFamily: familia.semi }]}>
           {titulo}
         </Text>
+        {editar ? (
+          <Pressavel
+            accessibilityRole="button"
+            accessibilityLabel={`Editar ${titulo.toLowerCase()}`}
+            onPress={() => router.push(editar === true ? "/meus-dados" : editar)}
+            style={estilos.editar}
+          >
+            <Text style={estilos.editarTexto}>Editar</Text>
+          </Pressavel>
+        ) : null}
       </View>
       {children}
     </Cartao>
+  );
+}
+
+function Atalho({ rotulo, icone: Icone, onPress }: { rotulo: string; icone: LucideIcon; onPress: () => void }) {
+  return (
+    <Pressavel accessibilityRole="button" onPress={onPress} escala={0.97} style={estilos.atalho}>
+      <Icone size={22} color={cores.primaria} strokeWidth={1.8} />
+      <Text style={[tipo.corpoForte, { textAlign: "center", fontSize: 14 }]}>{rotulo}</Text>
+    </Pressavel>
   );
 }
 
@@ -158,11 +192,24 @@ const estilos = StyleSheet.create({
   topo: { flexDirection: "row", alignItems: "center", gap: 18, paddingVertical: 4 },
   telefone: { flexDirection: "row", alignItems: "center", gap: 6 },
   blocoTopo: { flexDirection: "row", alignItems: "center", gap: 8 },
+  editar: { minHeight: toqueMinimo, minWidth: toqueMinimo, alignItems: "flex-end", justifyContent: "center", marginVertical: -12 },
+  editarTexto: { fontFamily: familia.semi, fontSize: 13, color: cores.primaria },
+  atalho: {
+    flex: 1,
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    backgroundColor: cores.superficie,
+    borderRadius: raio.m,
+    borderWidth: 1,
+    borderColor: cores.rosaClaro,
+  },
   dado: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12 },
   numeros: { flexDirection: "row", gap: 12 },
   numero: { flex: 1, borderRadius: raio.m, borderWidth: 1, paddingVertical: 18, alignItems: "center", gap: 6 },
   numeroLinha: { flexDirection: "row", alignItems: "center", gap: 8 },
-  numeroValor: { fontFamily: familia.medio, fontSize: 28, lineHeight: 34 },
+  numeroValor: { fontFamily: familia.medio, fontSize: 22, lineHeight: 28 },
   item: {
     minHeight: toqueMinimo + 4,
     flexDirection: "row",

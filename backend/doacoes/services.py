@@ -135,6 +135,12 @@ def mudar_status_kit(kit: SolicitacaoKit, novo: str) -> SolicitacaoKit:
     return kit
 
 
+def cancelar_kit(kit: SolicitacaoKit) -> SolicitacaoKit:
+    if kit.status not in SolicitacaoKit.ABERTOS:
+        raise ErroDominio("transicao_invalida", "Este pedido não pode mais ser cancelado.")
+    return mudar_status_kit(kit, SolicitacaoKit.Status.CANCELADO)
+
+
 @transaction.atomic
 def simular_proxima_etapa(coleta: Coleta) -> Coleta:
     """Modo demonstração: faz o papel da equipe do banco e avança a coleta uma etapa."""

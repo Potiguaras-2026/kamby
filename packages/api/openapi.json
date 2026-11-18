@@ -321,6 +321,71 @@
             "JWTAuth": []
           }
         ]
+      },
+      "put": {
+        "operationId": "contas_api_editar_eu",
+        "summary": "Editar Eu",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoadoraSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoadoraEdicao"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/eu/excluir": {
+      "post": {
+        "operationId": "contas_api_excluir_eu",
+        "summary": "Excluir Eu",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "doadora"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExclusaoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
       }
     },
     "/api/v1/triagem/perguntas": {
@@ -671,6 +736,82 @@
           },
           "required": true
         },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/kits/{kit_id}": {
+      "get": {
+        "operationId": "doacoes_api_detalhar_kit",
+        "summary": "Detalhar Kit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kit_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Kit Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/kits/{kit_id}/cancelar": {
+      "post": {
+        "operationId": "doacoes_api_cancelar_kit",
+        "summary": "Cancelar Kit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kit_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Kit Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
         "security": [
           {
             "JWTAuth": []
@@ -1576,6 +1717,69 @@
           "uf"
         ],
         "title": "EnderecoSaida",
+        "type": "object"
+      },
+      "DoadoraEdicao": {
+        "properties": {
+          "nome_completo": {
+            "maxLength": 150,
+            "minLength": 3,
+            "title": "Nome Completo",
+            "type": "string"
+          },
+          "data_nascimento": {
+            "format": "date",
+            "title": "Data Nascimento",
+            "type": "string"
+          },
+          "data_parto": {
+            "format": "date",
+            "title": "Data Parto",
+            "type": "string"
+          },
+          "amamentando": {
+            "title": "Amamentando",
+            "type": "boolean"
+          },
+          "bebe_prematuro": {
+            "title": "Bebe Prematuro",
+            "type": "boolean"
+          },
+          "maternidade": {
+            "default": "",
+            "maxLength": 150,
+            "title": "Maternidade",
+            "type": "string"
+          },
+          "banco_id": {
+            "format": "uuid",
+            "title": "Banco Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome_completo",
+          "data_nascimento",
+          "data_parto",
+          "amamentando",
+          "bebe_prematuro",
+          "banco_id"
+        ],
+        "title": "DoadoraEdicao",
+        "type": "object"
+      },
+      "ExclusaoEntrada": {
+        "properties": {
+          "senha": {
+            "maxLength": 128,
+            "title": "Senha",
+            "type": "string"
+          }
+        },
+        "required": [
+          "senha"
+        ],
+        "title": "ExclusaoEntrada",
         "type": "object"
       },
       "PerguntaSaida": {

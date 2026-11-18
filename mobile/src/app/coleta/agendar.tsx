@@ -47,7 +47,7 @@ export default function TelaAgendarColeta() {
   const completo = !!data && !!escolhido;
 
   return (
-    <Tela voltar titulo="Agendar coleta" subtitulo="Os Bombeiros Amigos vão até o seu endereço cadastrado buscar os frascos.">
+    <Tela voltar titulo="Agendar coleta" subtitulo="A equipe do banco de leite busca os frascos no seu endereço cadastrado.">
       <Entrada ordem={1}>
         <Contador rotulo="Quantidade de frascos" valor={frascos} min={1} max={20} onChange={setFrascos} />
       </Entrada>

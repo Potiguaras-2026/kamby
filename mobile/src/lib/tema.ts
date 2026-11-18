@@ -50,12 +50,12 @@ export const familia = {
 
 /** Escala tipográfica. Use `tipo.x` e sobrescreva só a cor quando precisar. */
 export const tipo = {
-  display: { fontFamily: familia.semi, fontSize: 34, lineHeight: 40, letterSpacing: -0.6, color: cores.texto },
-  titulo: { fontFamily: familia.semi, fontSize: 22, lineHeight: 30, letterSpacing: -0.2, color: cores.texto },
-  subtitulo: { fontFamily: familia.semi, fontSize: 18, lineHeight: 24, letterSpacing: -0.2, color: cores.texto },
-  corpo: { fontFamily: familia.regular, fontSize: 16, lineHeight: 24, color: cores.texto },
-  corpoForte: { fontFamily: familia.medio, fontSize: 16, lineHeight: 24, color: cores.texto },
-  legenda: { fontFamily: familia.regular, fontSize: 14, lineHeight: 20, color: cores.textoSuave },
+  display: { fontFamily: familia.semi, fontSize: 28, lineHeight: 34, letterSpacing: -0.6, color: cores.texto },
+  titulo: { fontFamily: familia.semi, fontSize: 20, lineHeight: 26, letterSpacing: -0.2, color: cores.texto },
+  subtitulo: { fontFamily: familia.semi, fontSize: 16, lineHeight: 22, letterSpacing: -0.2, color: cores.texto },
+  corpo: { fontFamily: familia.regular, fontSize: 15, lineHeight: 22, color: cores.texto },
+  corpoForte: { fontFamily: familia.medio, fontSize: 15, lineHeight: 22, color: cores.texto },
+  legenda: { fontFamily: familia.regular, fontSize: 13, lineHeight: 18, color: cores.textoSuave },
 } satisfies Record<string, TextStyle>;
 
 export const sombra = {

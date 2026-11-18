@@ -56,7 +56,7 @@ export function Botao({ titulo, onPress, variante = "primaria", carregando, desa
       {carregando ? (
         <ActivityIndicator color={corTexto} />
       ) : (
-        <Text style={[estilos.texto, { color: corTexto }, compacto && { fontSize: 15 }]}>{titulo}</Text>
+        <Text style={[estilos.texto, { color: corTexto }, compacto && { fontSize: 14 }]}>{titulo}</Text>
       )}
     </Pressavel>
   );
@@ -72,5 +72,5 @@ const estilos = StyleSheet.create({
   },
   compacto: { minHeight: toqueMinimo, paddingHorizontal: 18 },
   secundaria: { backgroundColor: cores.superficie, borderWidth: 1, borderColor: cores.rosaClaro },
-  texto: { fontFamily: familia.semi, fontSize: 16, letterSpacing: 0.1 },
+  texto: { fontFamily: familia.semi, fontSize: 15, letterSpacing: 0.1 },
 });

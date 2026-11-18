@@ -21,6 +21,16 @@ export const useColeta = (id: string) =>
 export const useColetas = () =>
   useQuery({ queryKey: ["coletas"], queryFn: () => chamar(api.GET("/api/v1/coletas")) });
 
+// shortcut: só a primeira página (100 pedidos), como em useColetas.
+export const useKits = () => useQuery({ queryKey: ["kits"], queryFn: () => chamar(api.GET("/api/v1/kits")) });
+
+export const useKit = (id: string) =>
+  useQuery({
+    queryKey: ["kit", id],
+    queryFn: () => chamar(api.GET("/api/v1/kits/{kit_id}", { params: { path: { kit_id: id } } })),
+    refetchInterval: 15_000,
+  });
+
 export const useEu = () =>
   useQuery({ queryKey: ["eu"], queryFn: () => chamar(api.GET("/api/v1/eu")), staleTime: 5 * 60_000 });
 

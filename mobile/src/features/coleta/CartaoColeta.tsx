@@ -64,5 +64,5 @@ const estilos = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  quando: { fontFamily: familia.semi, fontSize: 16, lineHeight: 22, color: cores.turquesaTexto },
+  quando: { fontFamily: familia.semi, fontSize: 15, lineHeight: 20, color: cores.turquesaTexto },
 });

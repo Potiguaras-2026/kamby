@@ -21,7 +21,13 @@ export function diaRelativo(iso: string) {
 }
 
 export function dataCompleta(iso: string) {
-  return paraData(iso).toLocaleDateString("pt-BR");
+  // Data com hora vem em UTC: cortar em "AAAA-MM-DD" adiantaria o dia à noite no Brasil.
+  return (iso.length > 10 ? new Date(iso) : paraData(iso)).toLocaleDateString("pt-BR");
+}
+
+/** Pedidos antigos não têm dia de entrega; aí vale a data do pedido. */
+export function entregaKit(kit: { data_entrega?: string | null; horario_rotulo: string; criado_em: string }) {
+  return kit.data_entrega ? `${diaRelativo(kit.data_entrega)} • ${kit.horario_rotulo}` : `Pedido em ${dataCompleta(kit.criado_em)}`;
 }
 
 export function litros(ml: number) {

@@ -183,8 +183,26 @@ export interface paths {
         };
         /** Eu */
         get: operations["contas_api_eu"];
-        put?: never;
+        /** Editar Eu */
+        put: operations["contas_api_editar_eu"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eu/excluir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Excluir Eu */
+        post: operations["contas_api_excluir_eu"];
         delete?: never;
         options?: never;
         head?: never;
@@ -307,6 +325,40 @@ export interface paths {
         put?: never;
         /** Pedir Kit */
         post: operations["doacoes_api_pedir_kit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kits/{kit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalhar Kit */
+        get: operations["doacoes_api_detalhar_kit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kits/{kit_id}/cancelar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancelar Kit */
+        post: operations["doacoes_api_cancelar_kit"];
         delete?: never;
         options?: never;
         head?: never;
@@ -669,6 +721,40 @@ export interface components {
              * @default false
              */
             ativo: boolean;
+        };
+        /** DoadoraEdicao */
+        DoadoraEdicao: {
+            /** Nome Completo */
+            nome_completo: string;
+            /**
+             * Data Nascimento
+             * Format: date
+             */
+            data_nascimento: string;
+            /**
+             * Data Parto
+             * Format: date
+             */
+            data_parto: string;
+            /** Amamentando */
+            amamentando: boolean;
+            /** Bebe Prematuro */
+            bebe_prematuro: boolean;
+            /**
+             * Maternidade
+             * @default
+             */
+            maternidade: string;
+            /**
+             * Banco Id
+             * Format: uuid
+             */
+            banco_id: string;
+        };
+        /** ExclusaoEntrada */
+        ExclusaoEntrada: {
+            /** Senha */
+            senha: string;
         };
         /** PerguntaSaida */
         PerguntaSaida: {
@@ -1225,6 +1311,52 @@ export interface operations {
             };
         };
     };
+    contas_api_editar_eu: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DoadoraEdicao"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoadoraSaida"];
+                };
+            };
+        };
+    };
+    contas_api_excluir_eu: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExclusaoEntrada"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     contas_api_perguntas: {
         parameters: {
             query?: never;
@@ -1437,6 +1569,50 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitSaida"];
+                };
+            };
+        };
+    };
+    doacoes_api_detalhar_kit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitSaida"];
+                };
+            };
+        };
+    };
+    doacoes_api_cancelar_kit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

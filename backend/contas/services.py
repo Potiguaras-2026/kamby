@@ -46,9 +46,7 @@ def cadastrar_doadora(
     telefone = normalizar_telefone(telefone)
     if Usuario.objects.filter(telefone=telefone).exists():
         raise ErroDominio("conflito", "Esse número já tem conta. Entre com sua senha.", {"telefone": ["Já cadastrado."]})
-    banco = BancoDeLeite.objects.filter(id=banco_id, ativo=True).first()
-    if banco is None:
-        raise ErroDominio("validacao", "Escolha um banco de leite da lista.", {"banco_id": ["Banco inválido."]})
+    banco = _banco_ativo(banco_id)
 
     email = email.strip().lower()
     if email:
@@ -146,3 +144,29 @@ def avaliar_triagem(triagem: Triagem, *, apta: bool, avaliada_por: Usuario | Non
     doadora.status = Doadora.Status.APTA if apta else Doadora.Status.INAPTA
     doadora.save(update_fields=["status", "atualizado_em"])
     return triagem
+
+
+def _banco_ativo(banco_id) -> BancoDeLeite:
+    banco = BancoDeLeite.objects.filter(id=banco_id, ativo=True).first()
+    if banco is None:
+        raise ErroDominio("validacao", "Escolha um banco de leite da lista.", {"banco_id": ["Banco inválido."]})
+    return banco
+
+
+@transaction.atomic
+def editar_doadora(doadora: Doadora, *, nome_completo: str, banco_id, **dados) -> Doadora:
+    """Dados da mãe e do bebê. Coletas já marcadas guardam o banco que tinham."""
+    doadora.banco = _banco_ativo(banco_id)
+    for campo, valor in dados.items():
+        setattr(doadora, campo, valor.strip() if isinstance(valor, str) else valor)
+    doadora.save()
+    doadora.usuario.nome_completo = nome_completo.strip()
+    doadora.usuario.save(update_fields=["nome_completo"])
+    return doadora
+
+
+def excluir_conta(usuario: Usuario, senha: str) -> None:
+    """Apaga a conta e tudo da doadora (endereços, respostas de saúde, pedidos e coletas)."""
+    if not usuario.check_password(senha):
+        raise ErroDominio("validacao", "Senha incorreta.", {"senha": ["Confira a senha."]})
+    usuario.delete()

@@ -31,6 +31,20 @@ class CadastroEntrada(Schema):
     detalhes: dict[str, str] = {}
 
 
+class DoadoraEdicao(Schema):
+    nome_completo: str = Field(min_length=3, max_length=150)
+    data_nascimento: date
+    data_parto: date
+    amamentando: bool
+    bebe_prematuro: bool
+    maternidade: str = Field("", max_length=150)
+    banco_id: UUID
+
+
+class ExclusaoEntrada(Schema):
+    senha: str = Field(max_length=128)
+
+
 class EntrarEntrada(Schema):
     telefone: str = Field(max_length=20)
     senha: str = Field(max_length=128)

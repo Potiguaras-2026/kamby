@@ -1,10 +1,12 @@
 from datetime import date, time, timedelta
 
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from bancos.models import BancoDeLeite, HorarioColeta
 from contas import services as contas
+from contas.api import tokens
 from contas.models import Doadora, Endereco, PerguntaSaude, Usuario
 from core.erros import ErroDominio
 from doacoes import selectors, services
@@ -28,6 +30,7 @@ def proximo_dia_util() -> date:
 @override_settings(KAMBY_DEMO=False)
 class Base(TestCase):
     def setUp(self):
+        cache.clear()  # o limite de logins por minuto não pode vazar de um teste para outro
         self.banco = BancoDeLeite.objects.create(nome="BLH", telefone="84", endereco="R", cidade="Natal")
         self.horario = HorarioColeta.objects.create(banco=self.banco, inicio=time(9, 30), fim=time(11))
         contas.cadastrar_doadora(
@@ -326,3 +329,51 @@ class KitAgendadoTest(Base):
         services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
         services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
         self.assertEqual(selectors.inicio(self.doadora)["coletas_andamento"][0].quantidade_frascos, 2)
+
+
+class ContaTest(Base):
+    def entrar(self):
+        return {"HTTP_AUTHORIZATION": f"Bearer {tokens(self.doadora.usuario)['access']}"}
+
+    def test_edita_dados_da_mae_e_do_bebe(self):
+        outro = BancoDeLeite.objects.create(nome="Outro", telefone="84", endereco="R", cidade="Natal")
+        dados = {
+            "nome_completo": "Ana Souza Lima", "data_nascimento": "1999-03-11", "data_parto": "2026-10-21",
+            "amamentando": False, "bebe_prematuro": True, "maternidade": "Maternidade Escola Januário Cicco", "banco_id": str(outro.id),
+        }
+        r = self.client.put("/api/v1/eu", dados, content_type="application/json", **self.entrar())
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual((r.json()["nome_completo"], r.json()["banco"]["nome"], r.json()["bebe_prematuro"]), ("Ana Souza Lima", "Outro", True))
+        outro.ativo = False
+        outro.save()
+        r = self.client.put("/api/v1/eu", dados, content_type="application/json", **self.entrar())
+        self.assertIn("banco_id", r.json()["campos"])
+
+    def test_excluir_conta_pede_a_senha_e_apaga_tudo(self):
+        self.aprovar()
+        self.entregar_kit()
+        services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
+        auth = self.entrar()
+        r = self.client.post("/api/v1/eu/excluir", {"senha": "errada"}, content_type="application/json", **auth)
+        self.assertEqual(r.status_code, 422)
+        r = self.client.post("/api/v1/eu/excluir", {"senha": SENHA}, content_type="application/json", **auth)
+        self.assertEqual(r.status_code, 204)
+        self.assertFalse(Usuario.objects.filter(telefone="84999990000").exists())
+        self.assertFalse(Coleta.objects.exists())
+        self.assertFalse(SolicitacaoKit.objects.exists())
+
+    def test_cancelar_kit_so_em_aberto_e_so_o_proprio(self):
+        self.aprovar()
+        kit = services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
+        auth = self.entrar()
+        r = self.client.post(f"/api/v1/kits/{kit.id}/cancelar", **auth)
+        self.assertEqual((r.status_code, r.json()["status"]), (200, "cancelado"))
+        r = self.client.post(f"/api/v1/kits/{kit.id}/cancelar", **auth)
+        self.assertEqual(r.status_code, 409)
+        outra = contas.cadastrar_doadora(
+            senha=SENHA, telefone="84988887777", nome_completo="Outra", banco_id=self.banco.id, consentimento=True,
+            data_nascimento=date(1990, 1, 1), data_parto=date(2026, 9, 1), **EnderecosTest.dados, **dados_mae(),
+        )
+        contas.avaliar_triagem(outra.doadora.triagens.get(), apta=True, avaliada_por=self.equipe)
+        alheio = services.pedir_kit(outra.doadora, 1, data=proximo_dia_util(), horario_id=self.horario.id)
+        self.assertEqual(self.client.get(f"/api/v1/kits/{alheio.id}", **auth).status_code, 404)

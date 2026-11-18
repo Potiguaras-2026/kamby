@@ -64,7 +64,7 @@ const estilos = StyleSheet.create({
   cartao: { paddingVertical: 4, paddingLeft: 16, paddingRight: 6 },
   linha: { flexDirection: "row", alignItems: "center" },
   valorCaixa: { width: 36, alignItems: "center" },
-  valor: { fontFamily: familia.semi, fontSize: 18, color: cores.texto, fontVariant: ["tabular-nums"] },
+  valor: { fontFamily: familia.semi, fontSize: 16, color: cores.texto, fontVariant: ["tabular-nums"] },
   toque: { width: toqueMinimo, height: toqueMinimo + 4, alignItems: "center", justifyContent: "center" },
   circulo: { width: 30, height: 30, borderRadius: 15, backgroundColor: cores.rosa, alignItems: "center", justifyContent: "center" },
 });

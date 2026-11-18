@@ -44,7 +44,7 @@ export default function TelaInicio() {
     <Tela comAbas atualizar={{ atualizando: inicio.isRefetching, aoAtualizar: () => inicio.refetch() }}>
       <Entrada>
         <Text accessibilityRole="header" style={estilos.boasVindas}>
-          Bem-vinda, <Text style={{ color: cores.rosa }}>{primeiroNome(doadora.nome_completo)}</Text>!
+          Bem-vinda, <Text style={{ color: cores.primaria }}>{primeiroNome(doadora.nome_completo)}</Text>!
         </Text>
       </Entrada>
 
@@ -195,9 +195,8 @@ function Aviso({ titulo }: { titulo: string }) {
 
 const estilos = StyleSheet.create({
   doar: { alignItems: "center", gap: 12, paddingVertical: 20 },
-  // Rosa da marca no nome só passa no contraste como texto grande: não descer de 24px.
-  boasVindas: { fontFamily: familia.semi, fontSize: 24, lineHeight: 32, color: cores.texto },
-  secao: { fontFamily: familia.medio, fontSize: 17, color: cores.texto },
+  boasVindas: { fontFamily: familia.semi, fontSize: 20, lineHeight: 28, color: cores.texto },
+  secao: { fontFamily: familia.medio, fontSize: 15, color: cores.texto },
   linhaSecao: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   verTodas: { minHeight: toqueMinimo, justifyContent: "center", paddingHorizontal: 4 },
   verTodasTexto: { fontFamily: familia.semi, fontSize: 14, color: cores.primaria },

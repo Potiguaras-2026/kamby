@@ -46,6 +46,13 @@ def kits_da_doadora(doadora: Doadora):
     return SolicitacaoKit.objects.filter(doadora=doadora)
 
 
+def kit_da_doadora(doadora: Doadora, kit_id) -> SolicitacaoKit:
+    kit = kits_da_doadora(doadora).filter(id=kit_id).first()
+    if kit is None:
+        raise ErroDominio("nao_encontrado", "Pedido não encontrado.")
+    return kit
+
+
 def kit_aberto(doadora: Doadora) -> SolicitacaoKit | None:
     return kits_da_doadora(doadora).filter(status__in=SolicitacaoKit.ABERTOS).first()
 
