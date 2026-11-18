@@ -918,18 +918,29 @@
         ]
       }
     },
-    "/api/v1/demo/proxima-etapa": {
+    "/api/v1/demo/coletas/{coleta_id}/avancar": {
       "post": {
         "operationId": "doacoes_api_simular_proxima_etapa",
         "summary": "Simular Proxima Etapa",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coleta_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Coleta Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InicioSaida"
+                  "$ref": "#/components/schemas/ColetaSaida"
                 }
               }
             }
@@ -1854,6 +1865,17 @@
           "horario_rotulo": {
             "title": "Horario Rotulo",
             "type": "string"
+          },
+          "banco_nome": {
+            "title": "Banco Nome",
+            "type": "string"
+          },
+          "etapas": {
+            "items": {
+              "$ref": "#/components/schemas/EtapaSaida"
+            },
+            "title": "Etapas",
+            "type": "array"
           }
         },
         "required": [
@@ -1863,7 +1885,9 @@
           "quantidade_frascos",
           "criado_em",
           "status_rotulo",
-          "horario_rotulo"
+          "horario_rotulo",
+          "banco_nome",
+          "etapas"
         ],
         "title": "ColetaSaida",
         "type": "object"
@@ -1968,27 +1992,17 @@
       },
       "InicioSaida": {
         "properties": {
-          "jornada": {
+          "coletas_andamento": {
             "items": {
-              "$ref": "#/components/schemas/EtapaSaida"
+              "$ref": "#/components/schemas/ColetaSaida"
             },
-            "title": "Jornada",
+            "title": "Coletas Andamento",
             "type": "array"
           },
           "aviso": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/AvisoSaida"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "ultima_coleta": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ColetaSaida"
               },
               {
                 "type": "null"
@@ -2005,21 +2019,10 @@
               "contatar_banco",
               "pedir_kit",
               "aguardar_kit",
-              "agendar_coleta",
-              "acompanhar_coleta"
+              "agendar_coleta"
             ],
             "title": "Proxima Acao",
             "type": "string"
-          },
-          "coleta_ativa": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ColetaSaida"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "kit_aberto": {
             "anyOf": [
@@ -2050,12 +2053,10 @@
           }
         },
         "required": [
-          "jornada",
+          "coletas_andamento",
           "aviso",
-          "ultima_coleta",
           "doadora",
           "proxima_acao",
-          "coleta_ativa",
           "kit_aberto",
           "impacto",
           "historico",

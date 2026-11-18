@@ -1,3 +1,4 @@
+import type { Schemas } from "@kamby/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
@@ -9,27 +10,32 @@ import { useInicio } from "@/lib/consultas";
 import { haptico } from "@/lib/haptico";
 import { cores, familia, raio, tipo } from "@/lib/tema";
 
-import { doacaoComecou, etapaAtual } from "./Jornada";
+import { etapaAtual } from "./Jornada";
 
 const INTERVALO_MS = 2200;
 
+const proxima = (etapas: Schemas["EtapaSaida"][]) => etapas.find((e) => e.estado === "pendente");
+
 /**
  * Só no modo demonstração (a API diz em `demo`): a mãe faz o papel da equipe do banco
- * e vê a doação andar, uma etapa por toque ou todas em sequência.
+ * e vê esta coleta andar, uma etapa por toque ou todas em sequência.
  */
-export function SimularDoacao() {
+export function SimularDoacao({ coleta }: { coleta: Schemas["ColetaSaida"] }) {
   const inicio = useInicio();
+  const id = String(coleta.id);
   const queryClient = useQueryClient();
   const [automatico, setAutomatico] = useState(false);
   const rodando = useRef(false);
 
   const avancar = useMutation({
-    mutationFn: () => chamar(api.POST("/api/v1/demo/proxima-etapa")),
+    mutationFn: () => chamar(api.POST("/api/v1/demo/coletas/{coleta_id}/avancar", { params: { path: { coleta_id: id } } })),
     onSuccess: (dados) => {
-      queryClient.setQueryData(["inicio"], dados);
+      queryClient.setQueryData(["coleta", id], dados);
+      queryClient.invalidateQueries({ queryKey: ["inicio"] });
+      queryClient.invalidateQueries({ queryKey: ["coletas"] });
       haptico.sucesso();
-      const atual = etapaAtual(dados.jornada);
-      AccessibilityInfo.announceForAccessibility(atual ? `Agora: ${atual.etapa.rotulo}` : "Doação concluída");
+      const atual = etapaAtual(dados.etapas);
+      AccessibilityInfo.announceForAccessibility(atual ? `Agora: ${atual.etapa.rotulo}` : "Leite entregue ao banco");
     },
   });
 
@@ -42,7 +48,7 @@ export function SimularDoacao() {
     while (rodando.current) {
       try {
         const dados = await avancar.mutateAsync();
-        if (!etapaAtual(dados.jornada)) break;
+        if (!proxima(dados.etapas)) break;
       } catch {
         break;
       }
@@ -57,9 +63,9 @@ export function SimularDoacao() {
     setAutomatico(false);
   }
 
-  // A simulação só entra depois que a mãe começou a doar ("Doar leite" e pedido do kit).
-  if (!inicio.data?.demo || !doacaoComecou(inicio.data.jornada)) return null;
-  const atual = etapaAtual(inicio.data.jornada);
+  const seguinte = proxima(coleta.etapas);
+  // Cancelada, sem ninguém em casa ou já no banco: não há o que simular.
+  if (!inicio.data?.demo || !seguinte || coleta.status === "cancelada" || coleta.status === "ausente") return null;
 
   return (
     <View style={estilos.caixa}>
@@ -68,8 +74,8 @@ export function SimularDoacao() {
         <Text style={estilos.selo}>Modo demonstração</Text>
       </View>
       <Text style={tipo.legenda}>
-        Faça o papel da equipe do banco e veja a doação andar.{" "}
-        <Text style={{ color: cores.texto, fontFamily: familia.medio }}>{atual ? `Próxima: ${atual.etapa.rotulo}.` : "Ciclo completo: avance para começar outra coleta."}</Text>
+        Nada aqui é uma coleta real. Faça o papel da equipe do banco e veja a doação andar.{" "}
+        <Text style={{ color: cores.texto, fontFamily: familia.medio }}>Próxima: {seguinte.rotulo}.</Text>
       </Text>
       <View style={estilos.botoes}>
         <View style={{ flex: 1 }}>

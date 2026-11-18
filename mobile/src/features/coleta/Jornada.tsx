@@ -19,10 +19,7 @@ export const etapaAtual = (jornada: Etapa[]) => {
   return i === -1 ? null : { numero: i + 1, etapa: jornada[i] };
 };
 
-/** A doação começou quando a mãe tocou em "Doar leite" e pediu o primeiro kit. */
-export const doacaoComecou = (jornada: Etapa[]) => jornada.some((e) => e.codigo === "kit_solicitado" && e.estado === "feita");
-
-/** Linha do tempo da doação, do cadastro ao processamento. Status com ícone e texto, nunca só cor. */
+/** Linha do tempo de uma coleta, do pedido à entrega no banco. Status com ícone e texto, nunca só cor. */
 export function Jornada({ etapas }: { etapas: Etapa[] }) {
   return (
     <Cartao>

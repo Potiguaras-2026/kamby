@@ -1,6 +1,5 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
 
 from bancos.models import rotulo_horario
 from core.models import ModeloBase
@@ -27,9 +26,6 @@ class SolicitacaoKit(ModeloBase):
         verbose_name = "solicitação de kit"
         verbose_name_plural = "solicitações de kit"
         ordering = ["-criado_em"]
-        constraints = [
-            models.UniqueConstraint(fields=["doadora"], condition=Q(status__in=["solicitado", "em_preparo"]), name="um_kit_aberto_por_doadora")
-        ]
 
     @property
     def horario_rotulo(self) -> str:
@@ -73,9 +69,6 @@ class Coleta(ModeloBase):
 
     class Meta:
         ordering = ["-criado_em"]
-        constraints = [
-            models.UniqueConstraint(fields=["doadora"], condition=Q(status__in=["agendada", "confirmada", "a_caminho"]), name="uma_coleta_ativa_por_doadora")
-        ]
         indexes = [
             models.Index(fields=["banco", "data", "status"]),
             models.Index(fields=["doadora", "-criado_em"]),

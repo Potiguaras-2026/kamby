@@ -399,7 +399,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/demo/proxima-etapa": {
+    "/api/v1/demo/coletas/{coleta_id}/avancar": {
         parameters: {
             query?: never;
             header?: never;
@@ -795,6 +795,10 @@ export interface components {
             status_rotulo: string;
             /** Horario Rotulo */
             horario_rotulo: string;
+            /** Banco Nome */
+            banco_nome: string;
+            /** Etapas */
+            etapas: components["schemas"]["EtapaSaida"][];
         };
         /** DoadoraResumo */
         DoadoraResumo: {
@@ -837,17 +841,15 @@ export interface components {
         };
         /** InicioSaida */
         InicioSaida: {
-            /** Jornada */
-            jornada: components["schemas"]["EtapaSaida"][];
+            /** Coletas Andamento */
+            coletas_andamento: components["schemas"]["ColetaSaida"][];
             aviso: components["schemas"]["AvisoSaida"] | null;
-            ultima_coleta: components["schemas"]["ColetaSaida"] | null;
             doadora: components["schemas"]["DoadoraResumo"];
             /**
              * Proxima Acao
              * @enum {string}
              */
-            proxima_acao: "responder_triagem" | "aguardar_analise" | "contatar_banco" | "pedir_kit" | "aguardar_kit" | "agendar_coleta" | "acompanhar_coleta";
-            coleta_ativa: components["schemas"]["ColetaSaida"] | null;
+            proxima_acao: "responder_triagem" | "aguardar_analise" | "contatar_banco" | "pedir_kit" | "aguardar_kit" | "agendar_coleta";
             kit_aberto: components["schemas"]["KitSaida"] | null;
             impacto: components["schemas"]["ImpactoSaida"];
             /** Historico */
@@ -1583,7 +1585,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                coleta_id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -1594,7 +1598,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InicioSaida"];
+                    "application/json": components["schemas"]["ColetaSaida"];
                 };
             };
         };

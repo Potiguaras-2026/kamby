@@ -1,6 +1,6 @@
 import type { Schemas } from "@kamby/api";
 import { router } from "expo-router";
-import { CalendarDays, ChevronRight, Heart, MapPin, TriangleAlert } from "lucide-react-native";
+import { ChevronRight, Heart, MapPin, TriangleAlert } from "lucide-react-native";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
@@ -12,20 +12,19 @@ import { Estado } from "@/components/Estado";
 import { Mascote } from "@/components/Mascote";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
-import { doacaoComecou, etapaAtual } from "@/features/coleta/Jornada";
-import { SimularDoacao } from "@/features/coleta/SimularDoacao";
+import { CartaoColeta } from "@/features/coleta/CartaoColeta";
 import { AtalhosGuias } from "@/features/conteudo/AtalhosGuias";
 import { IMAGENS } from "@/features/conteudo/imagens";
 import { EmAnalise } from "@/features/inicio/EmAnalise";
 import { Historico } from "@/features/inicio/Historico";
 import { useInicio, useTexto } from "@/lib/consultas";
 import { diaRelativo, primeiroNome } from "@/lib/formato";
-import { cores, familia, raio, tipo } from "@/lib/tema";
+import { cores, familia, raio, tipo, toqueMinimo } from "@/lib/tema";
 
 type Inicio = Schemas["InicioSaida"];
-type Rota = "/kit" | "/coleta" | "/coleta/agendar";
+type Rota = "/kit" | "/coleta/agendar";
 
-const APTA: Inicio["proxima_acao"][] = ["pedir_kit", "aguardar_kit", "agendar_coleta", "acompanhar_coleta"];
+const APTA: Inicio["proxima_acao"][] = ["pedir_kit", "aguardar_kit", "agendar_coleta"];
 
 export default function TelaInicio() {
   const inicio = useInicio();
@@ -39,7 +38,7 @@ export default function TelaInicio() {
     );
   }
 
-  const { doadora, proxima_acao, coleta_ativa, kit_aberto, banco, historico, jornada, aviso } = inicio.data;
+  const { doadora, proxima_acao, coletas_andamento, kit_aberto, banco, historico, aviso } = inicio.data;
 
   return (
     <Tela comAbas atualizar={{ atualizando: inicio.isRefetching, aoAtualizar: () => inicio.refetch() }}>
@@ -60,10 +59,10 @@ export default function TelaInicio() {
       </Entrada>
 
       <Entrada ordem={2}>
-        {proxima_acao === "pedir_kit" && !doacaoComecou(jornada) ? (
+        {proxima_acao === "pedir_kit" ? (
           <DoarLeite />
         ) : APTA.includes(proxima_acao) ? (
-          <Atalhos acao={proxima_acao} kit={kit_aberto} />
+          <Atalhos kit={kit_aberto} />
         ) : proxima_acao === "aguardar_analise" ? (
           <EmAnalise texto={texto("inicio.aguardar_analise", "Recebemos seu cadastro. O banco de leite responde em até 2 dias úteis.").corpo} />
         ) : (
@@ -77,15 +76,26 @@ export default function TelaInicio() {
         )}
       </Entrada>
 
-      <Entrada ordem={3} style={{ gap: 12 }}>
-        <MinhaDoacao jornada={jornada} coleta={coleta_ativa} />
-        <SimularDoacao />
-      </Entrada>
+      {coletas_andamento.length ? (
+        <Entrada ordem={3} style={{ gap: 10 }}>
+          <Text accessibilityRole="header" style={estilos.secao}>
+            {coletas_andamento.length === 1 ? "Doação em andamento" : `${coletas_andamento.length} doações em andamento`}
+          </Text>
+          {coletas_andamento.map((coleta) => (
+            <CartaoColeta key={coleta.id} coleta={coleta} />
+          ))}
+        </Entrada>
+      ) : null}
 
       <Entrada ordem={4} style={{ gap: 10 }}>
-        <Text accessibilityRole="header" style={estilos.secao}>
-          Seu histórico de doações
-        </Text>
+        <View style={estilos.linhaSecao}>
+          <Text accessibilityRole="header" style={estilos.secao}>
+            Seu histórico de doações
+          </Text>
+          <Pressavel accessibilityRole="link" onPress={() => router.push("/coleta")} style={estilos.verTodas}>
+            <Text style={estilos.verTodasTexto}>Ver todas</Text>
+          </Pressavel>
+        </View>
         <Historico meses={historico} />
       </Entrada>
 
@@ -140,13 +150,8 @@ function Destaque({ texto }: { texto: string }) {
   );
 }
 
-function Atalhos({ acao, kit }: { acao: Inicio["proxima_acao"]; kit: Inicio["kit_aberto"] }) {
-  const coleta: { texto: string; rota?: Rota } =
-    acao === "agendar_coleta"
-      ? { texto: "Agende a retirada do seu leite", rota: "/coleta/agendar" }
-      : acao === "acompanhar_coleta"
-        ? { texto: "Você já tem uma coleta marcada", rota: "/coleta" }
-        : { texto: "Disponível quando o kit chegar" };
+function Atalhos({ kit }: { kit: Inicio["kit_aberto"] }) {
+  const coleta: { texto: string; rota: Rota } = { texto: "Agende a retirada do seu leite", rota: "/coleta/agendar" };
   const pedido: { texto: string; rota?: Rota } = kit
     ? { texto: kit.data_entrega ? `Entrega ${diaRelativo(kit.data_entrega).toLowerCase()}` : kit.status_rotulo, rota: "/kit" }
     : { texto: "Peça seu kit de coleta", rota: "/kit" };
@@ -160,7 +165,7 @@ function Atalhos({ acao, kit }: { acao: Inicio["proxima_acao"]; kit: Inicio["kit
         imagem={IMAGENS.poteLeite}
         larguraImagem={92}
         alturaImagem={96}
-        onPress={coleta.rota && (() => router.push(coleta.rota!))}
+        onPress={() => router.push(coleta.rota)}
       />
       <CartaoOnda
         titulo="Solicitar kit"
@@ -172,31 +177,6 @@ function Atalhos({ acao, kit }: { acao: Inicio["proxima_acao"]; kit: Inicio["kit
         onPress={pedido.rota && (() => router.push(pedido.rota!))}
       />
     </View>
-  );
-}
-
-/** "Minha doação em andamento": a etapa atual da jornada e, se houver, o dia da coleta. */
-function MinhaDoacao({ jornada, coleta }: { jornada: Inicio["jornada"]; coleta: Inicio["coleta_ativa"] }) {
-  const atual = etapaAtual(jornada);
-  const titulo = atual ? `Etapa ${atual.numero} de ${jornada.length}: ${atual.etapa.rotulo}` : "Doação concluída";
-  const quando = coleta ? `${diaRelativo(coleta.data)} • ${coleta.horario_rotulo}` : null;
-  return (
-    <Pressavel
-      accessibilityRole="button"
-      accessibilityLabel={`Minha doação. ${titulo}.${quando ? ` Coleta: ${quando}.` : ""} Ver detalhes`}
-      onPress={() => router.push("/coleta")}
-      style={estilos.proxima}
-    >
-      <View style={estilos.calendario}>
-        <CalendarDays size={22} color={cores.turquesaTexto} strokeWidth={1.8} />
-      </View>
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={[tipo.legenda, { fontSize: 13 }]}>Minha doação</Text>
-        <Text style={estilos.proximaData}>{quando ?? (atual ? atual.etapa.rotulo : "Doação concluída")}</Text>
-        <Text style={[tipo.legenda, { fontSize: 13 }]}>{quando && atual ? titulo : atual ? `Etapa ${atual.numero} de ${jornada.length}` : "Obrigada por doar!"}</Text>
-      </View>
-      <ChevronRight size={22} color={cores.textoSuave} />
-    </Pressavel>
   );
 }
 
@@ -218,6 +198,9 @@ const estilos = StyleSheet.create({
   // Rosa da marca no nome só passa no contraste como texto grande: não descer de 24px.
   boasVindas: { fontFamily: familia.semi, fontSize: 24, lineHeight: 32, color: cores.texto },
   secao: { fontFamily: familia.medio, fontSize: 17, color: cores.texto },
+  linhaSecao: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  verTodas: { minHeight: toqueMinimo, justifyContent: "center", paddingHorizontal: 4 },
+  verTodasTexto: { fontFamily: familia.semi, fontSize: 14, color: cores.primaria },
   destaque: {
     flexDirection: "row",
     alignItems: "center",
@@ -229,26 +212,6 @@ const estilos = StyleSheet.create({
   destaqueTexto: { flex: 1, fontFamily: familia.regular, fontSize: 15, lineHeight: 21, color: cores.textoSuave },
   ilustracao: { width: 104, height: 108, marginRight: 2 },
   atalhos: { gap: 10 },
-  proxima: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: cores.superficie,
-    borderRadius: raio.g,
-    borderWidth: 1,
-    borderColor: cores.borda,
-    padding: 16,
-  },
-  calendario: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: cores.turquesa,
-    backgroundColor: cores.turquesaSuave,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   aviso: {
     flexDirection: "row",
     alignItems: "center",
@@ -259,7 +222,6 @@ const estilos = StyleSheet.create({
     borderColor: cores.rosaClaro,
     padding: 16,
   },
-  proximaData: { fontFamily: familia.semi, fontSize: 18, lineHeight: 24, color: cores.turquesaTexto },
   bancos: {
     flexDirection: "row",
     alignItems: "center",

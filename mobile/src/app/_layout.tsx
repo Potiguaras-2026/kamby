@@ -47,6 +47,7 @@ export default function Layout() {
         <Stack.Protected guard={logada}>
           <Stack.Screen name="(abas)" />
           <Stack.Screen name="coleta/index" />
+          <Stack.Screen name="coleta/[id]" />
           <Stack.Screen name="coleta/agendar" />
           <Stack.Screen name="kit" />
           <Stack.Screen name="aviso" />

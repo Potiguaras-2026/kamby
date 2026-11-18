@@ -1,7 +1,7 @@
 from datetime import date
 
 from django.conf import settings
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
@@ -20,7 +20,7 @@ def horarios_do_banco(banco: BancoDeLeite):
 
 
 def coletas_da_doadora(doadora: Doadora):
-    return Coleta.objects.filter(doadora=doadora)
+    return Coleta.objects.filter(doadora=doadora).select_related("banco")
 
 
 def coleta_da_doadora(doadora: Doadora, coleta_id) -> Coleta:
@@ -30,8 +30,16 @@ def coleta_da_doadora(doadora: Doadora, coleta_id) -> Coleta:
     return coleta
 
 
-def coleta_ativa(doadora: Doadora) -> Coleta | None:
-    return coletas_da_doadora(doadora).filter(status__in=Coleta.ATIVAS).first()
+def coletas_andamento(doadora: Doadora):
+    """Pedidos que a doadora acompanha: do agendamento até o leite chegar ao banco."""
+    return (
+        coletas_da_doadora(doadora)
+        .filter(
+            Q(status__in=Coleta.ATIVAS)
+            | Q(status=Coleta.Status.COLETADA, entregue_banco_em__isnull=True, ajuste="")
+        )
+        .order_by("data", "horario_inicio")
+    )
 
 
 def kits_da_doadora(doadora: Doadora):
@@ -74,7 +82,7 @@ def historico(doadora: Doadora, hoje: date, meses: int = 6) -> list[dict]:
     return [{"mes": mes, "volume_ml": volumes.get(mes) or 0} for mes in primeiros]
 
 
-def proxima_acao(doadora: Doadora, ativa: Coleta | None, kit: SolicitacaoKit | None) -> str:
+def proxima_acao(doadora: Doadora, kit: SolicitacaoKit | None) -> str:
     """Única ação principal da tela Início."""
     status = Doadora.Status
     if doadora.status == status.CADASTRADA:
@@ -83,8 +91,6 @@ def proxima_acao(doadora: Doadora, ativa: Coleta | None, kit: SolicitacaoKit | N
         return "aguardar_analise"
     if doadora.status != status.APTA:
         return "contatar_banco"
-    if ativa:
-        return "acompanhar_coleta"
     if kit:
         return "aguardar_kit"
     if not tem_kit_entregue(doadora):
@@ -92,18 +98,13 @@ def proxima_acao(doadora: Doadora, ativa: Coleta | None, kit: SolicitacaoKit | N
     return "agendar_coleta"
 
 
-# Reserva caso a equipe apague o texto no admin. Os textos editáveis ficam em conteudo.Texto (jornada.<codigo>).
 ETAPAS = [
-    ("em_analise", "Cadastro em análise", "O banco de leite está lendo suas respostas."),
-    ("aprovada", "Cadastro aprovado", "Você já pode doar."),
-    ("kit_solicitado", "Kit solicitado", "Frascos de vidro, touca e etiquetas."),
-    ("kit_entregue", "Kit entregue", "Os frascos chegaram na sua casa."),
-    ("coleta_agendada", "Coleta agendada", "A equipe passa no dia e horário marcados."),
-    ("a_caminho", "Equipe a caminho", "Deixe os frascos prontos no congelador."),
-    ("coletada", "Leite coletado", "Seu leite está indo para o banco de leite."),
+    ("pedido_feito", "Pedido feito", "A equipe passa no dia e horário marcados."),
+    ("rota_iniciada", "Rota iniciada", "A equipe está a caminho. Deixe os frascos prontos no congelador."),
+    ("entregue", "Entregue", "A equipe está levando seu leite ao banco de leite."),
     ("entregue_banco", "Entregue ao banco", "Seu leite chegou ao banco de leite."),
-    ("processada", "Processado", "Pasteurizado e pronto para os bebês."),
 ]
+
 
 AVISOS = {
     Coleta.Status.AUSENTE: "ausente",
@@ -113,50 +114,32 @@ AVISOS = {
 
 
 def ultima_coleta(doadora: Doadora) -> Coleta | None:
-    """A coleta que a jornada acompanha: a ativa ou a mais recente que não foi cancelada."""
     return coletas_da_doadora(doadora).exclude(status=Coleta.Status.CANCELADA).order_by("-criado_em").first()
 
 
-def jornada(doadora: Doadora, coleta: Coleta | None) -> list[dict]:
-    triagem = doadora.triagens.first()
-    kit = kits_da_doadora(doadora).exclude(status=SolicitacaoKit.Status.CANCELADO).first()
-    entregue = kits_da_doadora(doadora).filter(status=SolicitacaoKit.Status.ENTREGUE).first()
-    # Ninguém em casa volta a jornada para o agendamento: a doadora precisa marcar de novo.
-    if coleta and coleta.status == Coleta.Status.AUSENTE:
-        coleta = None
-    passou = coleta is not None and coleta.status in (Coleta.Status.A_CAMINHO, Coleta.Status.COLETADA)
+def etapas(coleta: Coleta) -> list[dict]:
+    """Status da coleta em 4 etapas. A atual é a última que aconteceu; com todas feitas, não há atual."""
+    rota = coleta.status in (Coleta.Status.A_CAMINHO, Coleta.Status.COLETADA)
     datas = {
-        "em_analise": doadora.criado_em,
-        "aprovada": triagem.atualizado_em if triagem and doadora.status == Doadora.Status.APTA else None,
-        "kit_solicitado": kit.criado_em if kit else None,
-        # shortcut: o kit não guarda a data da entrega; usa a última mudança do pedido.
-        "kit_entregue": entregue.atualizado_em if entregue else None,
-        "coleta_agendada": coleta.criado_em if coleta else None,
-        "a_caminho": None,
-        "coletada": coleta.coletada_em if coleta else None,
-        "entregue_banco": coleta.entregue_banco_em if coleta else None,
-        "processada": coleta.processada_em if coleta else None,
+        "pedido_feito": coleta.criado_em,
+        "rota_iniciada": None,
+        "entregue": coleta.coletada_em,
+        "entregue_banco": coleta.entregue_banco_em,
     }
-    feitas = {c for c, d in datas.items() if d}
-    if passou:
-        feitas.add("a_caminho")
-    if doadora.status == Doadora.Status.APTA:
-        feitas.add("aprovada")
-    editaveis = {t.chave: t for t in Texto.objects.filter(chave__startswith="jornada.")}
-    etapas, achou_atual = [], False
-    for codigo, rotulo, detalhe in ETAPAS:
-        texto = editaveis.get(f"jornada.{codigo}")
-        estado = "feita" if codigo in feitas else "pendente"
-        if estado == "pendente" and not achou_atual:
-            estado, achou_atual = "atual", True
-        etapas.append({
+    lista = [
+        {
             "codigo": codigo,
-            "rotulo": (texto and texto.titulo) or rotulo,
-            "detalhe": (texto and texto.corpo) or detalhe,
+            "rotulo": rotulo,
+            "detalhe": detalhe,
             "data": datas[codigo],
-            "estado": estado,
-        })
-    return etapas
+            "estado": "feita" if datas[codigo] or (codigo == "rota_iniciada" and rota) else "pendente",
+        }
+        for codigo, rotulo, detalhe in ETAPAS
+    ]
+    feitas = [e for e in lista if e["estado"] == "feita"]
+    if feitas and len(feitas) < len(lista):
+        feitas[-1]["estado"] = "atual"
+    return lista
 
 
 def aviso(coleta: Coleta | None) -> dict | None:
@@ -171,15 +154,12 @@ def aviso(coleta: Coleta | None) -> dict | None:
 
 
 def inicio(doadora: Doadora) -> dict:
-    ativa, kit = coleta_ativa(doadora), kit_aberto(doadora)
-    ultima = ultima_coleta(doadora)
+    kit = kit_aberto(doadora)
     return {
-        "jornada": jornada(doadora, ultima),
-        "aviso": aviso(ultima),
-        "ultima_coleta": ultima,
+        "coletas_andamento": list(coletas_andamento(doadora)),
+        "aviso": aviso(ultima_coleta(doadora)),
         "doadora": doadora,
-        "proxima_acao": proxima_acao(doadora, ativa, kit),
-        "coleta_ativa": ativa,
+        "proxima_acao": proxima_acao(doadora, kit),
         "kit_aberto": kit,
         "impacto": impacto(doadora),
         "historico": historico(doadora, timezone.localdate()),

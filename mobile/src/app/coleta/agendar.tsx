@@ -25,20 +25,20 @@ export default function TelaAgendarColeta() {
   const queryClient = useQueryClient();
   const eu = useEu();
   const inicio = useInicio().data;
-  const kitAberto = inicio?.kit_aberto;
   // Sem nenhum kit entregue nem pedido, a primeira doação leva o kit junto: sem frascos não há o que coletar.
-  const primeiroKit = !!inicio && !kitAberto && !inicio.jornada.some((e) => e.codigo === "kit_entregue" && e.estado === "feita");
-  const levarKit = primeiroKit || (comKit && !kitAberto);
+  const primeiroKit = inicio?.proxima_acao === "pedir_kit";
+  const levarKit = primeiroKit || comKit;
   const horarios = useHorarios();
 
   const agendar = useMutation({
     mutationFn: () =>
       chamar(api.POST("/api/v1/coletas", { body: { data: data!, horario_id: horario!, quantidade_frascos: frascos, com_kit: levarKit } })),
-    onSuccess: async () => {
+    onSuccess: async (coleta) => {
       haptico.sucesso();
       await queryClient.invalidateQueries({ queryKey: ["inicio"] });
+      await queryClient.invalidateQueries({ queryKey: ["coletas"] });
       AccessibilityInfo.announceForAccessibility(levarKit ? "Coleta e kit agendados." : "Coleta agendada.");
-      router.replace({ pathname: "/coleta", params: { nova: levarKit ? "kit" : "1" } });
+      router.replace({ pathname: "/coleta/[id]", params: { id: String(coleta.id), nova: levarKit ? "kit" : "1" } });
     },
     onError: () => haptico.aviso(),
   });
@@ -54,7 +54,6 @@ export default function TelaAgendarColeta() {
 
       <DiaHorario de="da coleta" data={data} horario={horario} mudarData={setData} mudarHorario={setHorario} />
 
-      {/* Com um pedido de kit em andamento a API recusa outro; aí a opção nem aparece. */}
       {primeiroKit ? (
         <Entrada ordem={4}>
           <Cartao tom="turquesa" style={estilos.primeiro}>
@@ -65,16 +64,21 @@ export default function TelaAgendarColeta() {
             </View>
           </Cartao>
         </Entrada>
-      ) : !kitAberto ? (
+      ) : (
         <Entrada ordem={4} style={{ gap: 6 }}>
           <Concordo texto="Quero receber um kit novo de frascos no mesmo dia" marcado={comKit} onChange={setComKit} />
           <Text style={[tipo.legenda, { fontSize: 13, paddingHorizontal: 4 }]}>
             A equipe leva os frascos vazios quando for buscar o leite{frascos > 10 ? " (até 10 por kit)" : ""}.
           </Text>
         </Entrada>
-      ) : null}
+      )}
 
       <Entrada ordem={5} style={{ gap: 14 }}>
+        {inicio ? (
+          <Text style={[tipo.legenda, { textAlign: "center" }]}>
+            Seu leite vai para <Text style={{ fontFamily: familia.medio, color: cores.texto }}>{inicio.banco.nome}</Text>
+          </Text>
+        ) : null}
         {eu.data?.endereco_ativo ? (
           <Text style={[tipo.legenda, { textAlign: "center" }]}>
             {eu.data.endereco_ativo.apelido}:{" "}

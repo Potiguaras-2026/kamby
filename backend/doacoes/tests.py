@@ -74,7 +74,8 @@ class FluxoDaDoadoraTest(Base):
         services.mudar_status_kit(kit, SolicitacaoKit.Status.ENTREGUE)
         self.assertEqual(self.acao(), "agendar_coleta")
         coleta = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=3)
-        self.assertEqual(self.acao(), "acompanhar_coleta")
+        # Com coleta marcada, a doadora ainda pode pedir outra.
+        self.assertEqual(self.acao(), "agendar_coleta")
         for status in [Coleta.Status.CONFIRMADA, Coleta.Status.A_CAMINHO]:
             services.mudar_status_coleta(coleta, status)
         services.mudar_status_coleta(coleta, Coleta.Status.COLETADA, volume_ml=1200)
@@ -95,13 +96,14 @@ class RegrasTest(Base):
         with self.assertRaisesMessage(ErroDominio, "frascos"):
             services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
 
-    def test_uma_coleta_ativa_por_vez(self):
+    def test_varias_coletas_ativas_ao_mesmo_tempo(self):
         self.aprovar()
         self.entregar_kit()
-        services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
-        with self.assertRaises(ErroDominio) as erro:
-            services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
-        self.assertEqual(erro.exception.codigo, "conflito")
+        dias = services.dias_disponiveis(timezone.localdate())
+        primeira = services.agendar_coleta(self.doadora, data=dias[0], horario_id=self.horario.id, quantidade_frascos=1, com_kit=True)
+        segunda = services.agendar_coleta(self.doadora, data=dias[1], horario_id=self.horario.id, quantidade_frascos=1, com_kit=True)
+        self.assertEqual(list(selectors.coletas_andamento(self.doadora)), [primeira, segunda])
+        self.assertEqual(selectors.kits_da_doadora(self.doadora).filter(status__in=SolicitacaoKit.ABERTOS).count(), 2)
 
     def test_data_fora_da_janela_e_recusada(self):
         self.aprovar()
@@ -220,11 +222,8 @@ class EnderecosTest(Base):
         self.assertEqual(len(self.client.get("/api/v1/enderecos", **auth).json()), 1)
 
 
-class JornadaTest(Base):
-    def estados(self):
-        return {e["codigo"]: e["estado"] for e in selectors.inicio(self.doadora)["jornada"]}
-
-    def coleta_feita(self):
+class EtapasTest(Base):
+    def coleta_a_caminho(self):
         self.aprovar()
         self.entregar_kit()
         coleta = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
@@ -232,31 +231,34 @@ class JornadaTest(Base):
             services.mudar_status_coleta(coleta, status)
         return coleta
 
-    def test_jornada_avanca_ate_o_processamento(self):
-        estados = self.estados()
-        self.assertEqual((estados["em_analise"], estados["aprovada"], estados["processada"]), ("feita", "atual", "pendente"))
-        coleta = self.coleta_feita()
-        self.assertEqual(self.estados()["coletada"], "atual")
-        services.mudar_status_coleta(coleta, Coleta.Status.COLETADA, volume_ml=300)
-        services.registrar_entrega_banco(coleta)
-        self.assertEqual(self.estados()["processada"], "atual")
-        services.registrar_processamento(coleta)
-        self.assertNotIn("atual", self.estados().values())
-        self.assertEqual(selectors.inicio(self.doadora)["ultima_coleta"], coleta)
+    def atual(self, coleta):
+        return next((e["codigo"] for e in selectors.etapas(coleta) if e["estado"] == "atual"), "fim")
 
-    def test_ninguem_em_casa_avisa_e_libera_novo_agendamento(self):
-        coleta = self.coleta_feita()
+    def test_quatro_etapas_ate_o_banco(self):
+        coleta = self.coleta_a_caminho()
+        pedido = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
+        self.assertEqual(self.atual(pedido), "pedido_feito")
+        self.assertEqual(self.atual(coleta), "rota_iniciada")
+        services.mudar_status_coleta(coleta, Coleta.Status.COLETADA, volume_ml=300)
+        self.assertEqual(self.atual(coleta), "entregue")
+        services.cancelar_coleta(pedido)
+        self.assertEqual(list(selectors.coletas_andamento(self.doadora)), [coleta])
+        services.registrar_entrega_banco(coleta)
+        self.assertEqual(self.atual(coleta), "fim")
+        self.assertEqual(list(selectors.coletas_andamento(self.doadora)), [])
+
+    def test_ninguem_em_casa_avisa_e_sai_do_andamento(self):
+        coleta = self.coleta_a_caminho()
         services.mudar_status_coleta(coleta, Coleta.Status.AUSENTE)
         inicio = selectors.inicio(self.doadora)
         self.assertEqual(inicio["aviso"]["tipo"], "ausente")
         self.assertTrue(inicio["aviso"]["titulo"])
-        self.assertEqual(inicio["proxima_acao"], "agendar_coleta")
-        self.assertEqual(self.estados()["coleta_agendada"], "atual")
+        self.assertEqual(inicio["coletas_andamento"], [])
         services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
         self.assertIsNone(selectors.inicio(self.doadora)["aviso"])
 
     def test_ajuste_e_entrega_respeitam_a_ordem(self):
-        coleta = self.coleta_feita()
+        coleta = self.coleta_a_caminho()
         with self.assertRaises(ErroDominio):
             services.marcar_ajuste(coleta, Coleta.Ajuste.FORA_DO_PADRAO)
         with self.assertRaises(ErroDominio):
@@ -269,26 +271,32 @@ class JornadaTest(Base):
 
 
 class DemoTest(Base):
-    def test_simulacao_percorre_a_jornada_e_recomeca(self):
-        etapas = []
-        for _ in range(9):
-            services.simular_proxima_etapa(self.doadora)
-            self.doadora.refresh_from_db()
-            jornada = selectors.inicio(self.doadora)["jornada"]
-            etapas.append(next((e["codigo"] for e in jornada if e["estado"] == "atual"), "fim"))
-        self.assertEqual(etapas, [
-            "kit_solicitado", "kit_entregue", "coleta_agendada", "a_caminho", "coletada",
-            "entregue_banco", "processada", "fim", "a_caminho",
-        ])
+    def test_simulacao_leva_a_coleta_ate_o_banco_e_entrega_o_kit(self):
+        self.aprovar()
+        coleta = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2, com_kit=True)
+        atuais = []
+        for _ in range(3):
+            services.simular_proxima_etapa(coleta)
+            atuais.append(next((e["codigo"] for e in selectors.etapas(coleta) if e["estado"] == "atual"), "fim"))
+        self.assertEqual(atuais, ["rota_iniciada", "entregue", "fim"])
+        self.assertEqual(coleta.volume_ml, 360)
+        self.assertIsNone(selectors.kit_aberto(self.doadora))
+        with self.assertRaises(ErroDominio):
+            services.simular_proxima_etapa(coleta)
 
     def test_rota_so_existe_no_modo_demo(self):
+        self.aprovar()
+        self.entregar_kit()
+        coleta = services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
         token = self.client.post("/api/v1/auth/entrar", {"telefone": "84999990000", "senha": SENHA}, content_type="application/json").json()["access"]
         auth = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
-        self.assertEqual(self.client.post("/api/v1/demo/proxima-etapa", **auth).status_code, 404)
+        url = f"/api/v1/demo/coletas/{coleta.id}/avancar"
+        self.assertEqual(self.client.post(url, **auth).status_code, 404)
         with override_settings(KAMBY_DEMO=True):
-            resposta = self.client.post("/api/v1/demo/proxima-etapa", **auth)
+            resposta = self.client.post(url, **auth)
         self.assertEqual(resposta.status_code, 200)
-        self.assertTrue(resposta.json()["demo"])
+        self.assertEqual(resposta.json()["status"], "a_caminho")
+        self.assertEqual(resposta.json()["banco_nome"], "BLH")
 
 
 class KitAgendadoTest(Base):
@@ -314,9 +322,7 @@ class KitAgendadoTest(Base):
         services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2, com_kit=True)
         self.assertEqual(selectors.kit_aberto(self.doadora).data_entrega, proximo_dia_util())
 
-    def test_coleta_com_kit_nao_fica_pela_metade(self):
-        self.entregar_kit()
+    def test_kit_a_caminho_libera_agendar_sem_kit_novo(self):
         services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
-        with self.assertRaises(ErroDominio):
-            services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2, com_kit=True)
-        self.assertIsNone(selectors.coleta_ativa(self.doadora))
+        services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=2)
+        self.assertEqual(selectors.inicio(self.doadora)["coletas_andamento"][0].quantidade_frascos, 2)

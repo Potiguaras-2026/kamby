@@ -5,6 +5,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 ## [Não lançado]
 
 ### Alterado
+- Várias coletas ao mesmo tempo, cada uma com status em 4 etapas (Pedido feito, Rota iniciada, Entregue, Entregue ao banco) e o banco de leite que recebe; histórico com todas as doações em "Ver todas".
 - "(opcional)" entre parênteses nos campos, saudação da Início em Poppins e logo do topo leva para a Início.
 
 ### Adicionado

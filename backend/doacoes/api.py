@@ -62,11 +62,9 @@ def cancelar_coleta(request, coleta_id: UUID, dados: CancelamentoEntrada):
     return services.cancelar_coleta(coleta, dados.motivo)
 
 
-@router.post("/demo/proxima-etapa", response=InicioSaida)
-def simular_proxima_etapa(request):
+@router.post("/demo/coletas/{coleta_id}/avancar", response=ColetaSaida)
+def simular_proxima_etapa(request, coleta_id: UUID):
     if not settings.KAMBY_DEMO:
         raise ErroDominio("nao_encontrado", "Disponível só no modo demonstração.")
-    doadora = doadora_do_usuario(request.auth)
-    services.simular_proxima_etapa(doadora)
-    doadora.refresh_from_db()
-    return selectors.inicio(doadora)
+    coleta = selectors.coleta_da_doadora(doadora_do_usuario(request.auth), coleta_id)
+    return services.simular_proxima_etapa(coleta)

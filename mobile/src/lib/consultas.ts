@@ -10,6 +10,17 @@ export const useInicio = () =>
     refetchInterval: 15_000,
   });
 
+export const useColeta = (id: string) =>
+  useQuery({
+    queryKey: ["coleta", id],
+    queryFn: () => chamar(api.GET("/api/v1/coletas/{coleta_id}", { params: { path: { coleta_id: id } } })),
+    refetchInterval: 15_000,
+  });
+
+// shortcut: só a primeira página (100 coletas); paginar quando alguma doadora passar disso.
+export const useColetas = () =>
+  useQuery({ queryKey: ["coletas"], queryFn: () => chamar(api.GET("/api/v1/coletas")) });
+
 export const useEu = () =>
   useQuery({ queryKey: ["eu"], queryFn: () => chamar(api.GET("/api/v1/eu")), staleTime: 5 * 60_000 });
 

@@ -5,6 +5,7 @@ from uuid import UUID
 from ninja import Field, ModelSchema, Schema
 
 from bancos.schemas import BancoSaida
+from doacoes import selectors
 from doacoes.models import Coleta, SolicitacaoKit
 
 ProximaAcao = Literal[
@@ -14,7 +15,6 @@ ProximaAcao = Literal[
     "pedir_kit",
     "aguardar_kit",
     "agendar_coleta",
-    "acompanhar_coleta",
 ]
 
 
@@ -41,9 +41,19 @@ class KitEntrada(Schema):
     horario_id: UUID
 
 
+class EtapaSaida(Schema):
+    codigo: str
+    rotulo: str
+    detalhe: str
+    data: datetime | None
+    estado: Literal["feita", "atual", "pendente"]
+
+
 class ColetaSaida(ModelSchema):
     status_rotulo: str
     horario_rotulo: str
+    banco_nome: str = Field(alias="banco.nome")
+    etapas: list[EtapaSaida]
 
     class Meta:
         model = Coleta
@@ -59,6 +69,10 @@ class ColetaSaida(ModelSchema):
     @staticmethod
     def resolve_horario_rotulo(obj):
         return obj.horario_rotulo
+
+    @staticmethod
+    def resolve_etapas(obj):
+        return selectors.etapas(obj)
 
 
 class ColetaEntrada(Schema):
@@ -102,14 +116,6 @@ class DoadoraResumo(Schema):
         return obj.get_status_display()
 
 
-class EtapaSaida(Schema):
-    codigo: str
-    rotulo: str
-    detalhe: str
-    data: datetime | None
-    estado: Literal["feita", "atual", "pendente"]
-
-
 class AvisoSaida(Schema):
     tipo: str
     titulo: str
@@ -118,12 +124,10 @@ class AvisoSaida(Schema):
 
 
 class InicioSaida(Schema):
-    jornada: list[EtapaSaida]
+    coletas_andamento: list[ColetaSaida]
     aviso: AvisoSaida | None
-    ultima_coleta: ColetaSaida | None
     doadora: DoadoraResumo
     proxima_acao: ProximaAcao
-    coleta_ativa: ColetaSaida | None
     kit_aberto: KitSaida | None
     impacto: ImpactoSaida
     historico: list[MesSaida]

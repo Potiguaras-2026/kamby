@@ -3,6 +3,7 @@ from datetime import date, time, timedelta
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 
 from bancos.models import BancoDeLeite, HorarioColeta
@@ -77,14 +78,12 @@ class Command(BaseCommand):
                 complemento="Sala 4", bairro="Tirol", cidade="Natal", uf="RN",
             )
 
-        # A coleta mais recente da Maria já passou por todo o caminho até o processamento.
-        ultima = maria.coletas.filter(status=Coleta.Status.COLETADA, coletada_em__isnull=False).order_by("-data").first()
-        if ultima and not ultima.entregue_banco_em:
-            Coleta.objects.filter(pk=ultima.pk).update(
-                criado_em=ultima.coletada_em - timedelta(days=3),
-                entregue_banco_em=ultima.coletada_em + timedelta(hours=3),
-                processada_em=ultima.coletada_em + timedelta(days=1),
-            )
+        # O histórico da Maria já passou por todo o caminho até o banco; sem isso, cada coleta antiga fica "em andamento".
+        maria.coletas.filter(status=Coleta.Status.COLETADA, coletada_em__isnull=False, entregue_banco_em__isnull=True).update(
+            criado_em=F("coletada_em") - timedelta(days=3),
+            entregue_banco_em=F("coletada_em") + timedelta(hours=3),
+            processada_em=F("coletada_em") + timedelta(days=1),
+        )
 
         # Uma doadora fictícia em cada momento da jornada, para demonstrar as telas.
         respostas = {c: True for c in PerguntaSaude.objects.filter(ativa=True).values_list("codigo", flat=True)}

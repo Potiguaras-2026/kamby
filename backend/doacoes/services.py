@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from contas.models import Doadora
@@ -47,48 +47,36 @@ def escolher_dia_e_horario(doadora: Doadora, data: date, horario_id):
 
 def pedir_kit(doadora: Doadora, quantidade_frascos: int, *, data: date, horario_id) -> SolicitacaoKit:
     exigir_apta(doadora, "pedir frascos")
-    if selectors.kit_aberto(doadora):
-        raise ErroDominio("conflito", "Você já tem um pedido de frascos em andamento.")
     horario = escolher_dia_e_horario(doadora, data, horario_id)
-    try:
-        with transaction.atomic():
-            return SolicitacaoKit.objects.create(
-                doadora=doadora,
-                quantidade_frascos=quantidade_frascos,
-                data_entrega=data,
-                horario_inicio=horario.inicio,
-                horario_fim=horario.fim,
-            )
-    except IntegrityError:
-        raise ErroDominio("conflito", "Você já tem um pedido de frascos em andamento.")
+    return SolicitacaoKit.objects.create(
+        doadora=doadora,
+        quantidade_frascos=quantidade_frascos,
+        data_entrega=data,
+        horario_inicio=horario.inicio,
+        horario_fim=horario.fim,
+    )
 
 
 @transaction.atomic
 def agendar_coleta(doadora: Doadora, *, data: date, horario_id, quantidade_frascos: int, com_kit: bool = False) -> Coleta:
     """com_kit: a equipe leva um kit novo na mesma visita. Coleta e kit são criados juntos ou nenhum."""
     exigir_apta(doadora, "agendar coletas")
-    # Primeira doação: o kit pode ir junto, na mesma visita da coleta.
-    if not com_kit and not selectors.tem_kit_entregue(doadora):
+    # Primeira doação: o kit pode ir junto, na mesma visita da coleta. Kit a caminho também vale.
+    if not com_kit and not selectors.tem_kit_entregue(doadora) and not selectors.kit_aberto(doadora):
         raise ErroDominio("conflito", "Peça seus frascos antes de agendar a coleta.")
     horario = escolher_dia_e_horario(doadora, data, horario_id)
     endereco = doadora.enderecos.filter(ativo=True).first()
     if endereco is None:
         raise ErroDominio("conflito", "Cadastre um endereço para a equipe buscar o leite.")
-    if selectors.coleta_ativa(doadora):
-        raise ErroDominio("conflito", "Você já tem uma coleta agendada.")
-    try:
-        with transaction.atomic():
-            coleta = Coleta.objects.create(
-                doadora=doadora,
-                banco=doadora.banco,
-                data=data,
-                horario_inicio=horario.inicio,
-                horario_fim=horario.fim,
-                endereco=endereco.linha + (f" (Ref.: {endereco.referencia})" if endereco.referencia else ""),
-                quantidade_frascos=quantidade_frascos,
-            )
-    except IntegrityError:
-        raise ErroDominio("conflito", "Você já tem uma coleta agendada.")
+    coleta = Coleta.objects.create(
+        doadora=doadora,
+        banco=doadora.banco,
+        data=data,
+        horario_inicio=horario.inicio,
+        horario_fim=horario.fim,
+        endereco=endereco.linha + (f" (Ref.: {endereco.referencia})" if endereco.referencia else ""),
+        quantidade_frascos=quantidade_frascos,
+    )
     if com_kit:
         # Kit tem no máximo 10 frascos; a coleta aceita até 20.
         pedir_kit(doadora, min(quantidade_frascos, 10), data=data, horario_id=horario_id)
@@ -148,47 +136,19 @@ def mudar_status_kit(kit: SolicitacaoKit, novo: str) -> SolicitacaoKit:
 
 
 @transaction.atomic
-def simular_proxima_etapa(doadora: Doadora) -> None:
-    """Modo demonstração: faz o papel da equipe do banco e avança a jornada uma etapa."""
-    from contas.services import avaliar_triagem
-
-    ultima = selectors.ultima_coleta(doadora)
-    etapas = selectors.jornada(doadora, ultima)
-    atual = next((e["codigo"] for e in etapas if e["estado"] == "atual"), None)
-    ativa = selectors.coleta_ativa(doadora)
-
-    if atual == "em_analise" or atual == "aprovada":
-        triagem = doadora.triagens.first()
-        if triagem is None:
-            raise ErroDominio("conflito", "Responda as perguntas de saúde antes.")
-        avaliar_triagem(triagem, apta=True, avaliada_por=None, observacao="Aprovada no modo demonstração.")
-    elif atual == "kit_solicitado":
-        horario = selectors.horarios_do_banco(doadora.banco).first()
-        if horario is None:
-            raise ErroDominio("conflito", "O banco de leite ainda não tem horários de entrega.")
-        pedir_kit(doadora, 5, data=dias_disponiveis(timezone.localdate())[0], horario_id=horario.id)
-    elif atual == "kit_entregue":
-        kit = selectors.kit_aberto(doadora)
-        if kit.status == SolicitacaoKit.Status.SOLICITADO:
-            mudar_status_kit(kit, SolicitacaoKit.Status.EM_PREPARO)
-        mudar_status_kit(kit, SolicitacaoKit.Status.ENTREGUE)
-    elif atual in ("coleta_agendada", None) and not ativa:
-        # None: ciclo completo; a demo recomeça com uma coleta nova.
-        horario = selectors.horarios_do_banco(doadora.banco).first()
-        if horario is None:
-            raise ErroDominio("conflito", "O banco de leite ainda não tem horários de coleta.")
-        agendar_coleta(
-            doadora, data=dias_disponiveis(timezone.localdate())[0], horario_id=horario.id, quantidade_frascos=5
-        )
-    elif atual == "a_caminho" and ativa:
-        if ativa.status == Coleta.Status.AGENDADA:
-            mudar_status_coleta(ativa, Coleta.Status.CONFIRMADA)
-        mudar_status_coleta(ativa, Coleta.Status.A_CAMINHO)
-    elif atual == "coletada" and ativa:
-        mudar_status_coleta(ativa, Coleta.Status.COLETADA, volume_ml=ativa.quantidade_frascos * 180)
-    elif atual == "entregue_banco":
-        registrar_entrega_banco(ultima)
-    elif atual == "processada":
-        registrar_processamento(ultima)
-    else:
-        raise ErroDominio("conflito", "Não há próxima etapa para simular agora.")
+def simular_proxima_etapa(coleta: Coleta) -> Coleta:
+    """Modo demonstração: faz o papel da equipe do banco e avança a coleta uma etapa."""
+    if coleta.status == Coleta.Status.AGENDADA:
+        mudar_status_coleta(coleta, Coleta.Status.CONFIRMADA)
+    if coleta.status == Coleta.Status.CONFIRMADA:
+        return mudar_status_coleta(coleta, Coleta.Status.A_CAMINHO)
+    if coleta.status == Coleta.Status.A_CAMINHO:
+        # A equipe entrega os kits pedidos na mesma visita.
+        for kit in selectors.kits_da_doadora(coleta.doadora).filter(status__in=SolicitacaoKit.ABERTOS):
+            if kit.status == SolicitacaoKit.Status.SOLICITADO:
+                mudar_status_kit(kit, SolicitacaoKit.Status.EM_PREPARO)
+            mudar_status_kit(kit, SolicitacaoKit.Status.ENTREGUE)
+        return mudar_status_coleta(coleta, Coleta.Status.COLETADA, volume_ml=coleta.quantidade_frascos * 180)
+    if coleta.status == Coleta.Status.COLETADA and not coleta.entregue_banco_em:
+        return registrar_entrega_banco(coleta)
+    raise ErroDominio("conflito", "Não há próxima etapa para simular nesta coleta.")
