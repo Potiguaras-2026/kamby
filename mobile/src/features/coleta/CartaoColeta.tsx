@@ -48,18 +48,18 @@ export function CartaoColeta({ coleta }: { coleta: Coleta }) {
       onPress={() => router.push({ pathname: "/coleta/[id]", params: { id: String(coleta.id) } })}
       style={[estilos.cartao, ativa ? estilos.ativa : estilos.passada]}
     >
-      <View style={[estilos.calendario, !ativa && estilos.calendarioPassado]}>
-        <CalendarDays size={22} color={ativa ? cores.turquesaTexto : cores.textoSuave} strokeWidth={1.8} />
-      </View>
       <View style={{ flex: 1, gap: 3 }}>
-        <Selo {...selo} />
+        <View style={estilos.topo}>
+          <CalendarDays size={14} color={ativa ? cores.turquesaTexto : cores.textoSuave} strokeWidth={2} />
+          <Selo {...selo} />
+        </View>
         <Text style={[estilos.quando, !ativa && { color: cores.texto }]}>{quando}</Text>
         <Text style={[tipo.corpoForte, { fontSize: 13 }]}>{status}</Text>
         <Text numberOfLines={1} style={[tipo.legenda, { fontSize: 12 }]}>
           {coleta.banco_nome}
         </Text>
       </View>
-      <ChevronRight size={22} color={cores.textoSuave} />
+      <ChevronRight size={20} color={cores.textoSuave} />
     </Pressavel>
   );
 }
@@ -68,24 +68,15 @@ const estilos = StyleSheet.create({
   cartao: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 10,
     borderRadius: raio.g,
     borderWidth: 1,
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
   // Em andamento: cartão branco com faixa turquesa. Anterior: sem fundo, para não competir.
   ativa: { backgroundColor: cores.superficie, borderColor: cores.bordaTurquesa, borderLeftWidth: 4, borderLeftColor: cores.turquesa },
   passada: { backgroundColor: "transparent", borderColor: cores.borda },
-  calendario: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: cores.turquesa,
-    backgroundColor: cores.turquesaSuave,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  calendarioPassado: { borderColor: cores.borda, backgroundColor: "transparent" },
+  topo: { flexDirection: "row", alignItems: "center", gap: 6 },
   quando: { fontFamily: familia.semi, fontSize: 14, lineHeight: 18, color: cores.turquesaTexto },
 });

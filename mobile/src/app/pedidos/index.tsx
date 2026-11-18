@@ -70,35 +70,25 @@ function CartaoKit({ kit }: { kit: Kit }) {
       onPress={() => router.push({ pathname: "/pedidos/[id]", params: { id: String(kit.id) } })}
       style={[estilos.cartao, ativo ? estilos.ativo : estilos.passado]}
     >
-      <View style={[estilos.icone, !ativo && estilos.iconePassado]}>
-        <Package size={22} color={ativo ? cores.primaria : cores.textoSuave} strokeWidth={1.8} />
-      </View>
       <View style={{ flex: 1, gap: 3 }}>
-        <Selo {...selo} />
+        <View style={estilos.topo}>
+          <Package size={14} color={ativo ? cores.primaria : cores.textoSuave} strokeWidth={2} />
+          <Selo {...selo} />
+        </View>
         <Text style={[estilos.quando, !ativo && { color: cores.texto }]}>{entregaKit(kit)}</Text>
         <Text style={[tipo.legenda, { fontSize: 12 }]}>
           {kit.status_rotulo} · {kit.quantidade_frascos} {kit.quantidade_frascos === 1 ? "kit" : "kits"}
         </Text>
       </View>
-      <ChevronRight size={22} color={cores.textoSuave} />
+      <ChevronRight size={20} color={cores.textoSuave} />
     </Pressavel>
   );
 }
 
 const estilos = StyleSheet.create({
-  cartao: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: raio.g, borderWidth: 1, padding: 16 },
+  cartao: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: raio.g, borderWidth: 1, paddingVertical: 12, paddingHorizontal: 14 },
   ativo: { backgroundColor: cores.superficie, borderColor: cores.rosaClaro, borderLeftWidth: 4, borderLeftColor: cores.rosa },
   passado: { backgroundColor: "transparent", borderColor: cores.borda },
-  icone: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: cores.rosaClaro,
-    backgroundColor: cores.rosaSuave,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconePassado: { borderColor: cores.borda, backgroundColor: "transparent" },
+  topo: { flexDirection: "row", alignItems: "center", gap: 6 },
   quando: { fontFamily: familia.semi, fontSize: 14, lineHeight: 18, color: cores.primaria },
 });
