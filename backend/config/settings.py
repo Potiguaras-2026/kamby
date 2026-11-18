@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 from dotenv import load_dotenv
 
@@ -68,7 +69,20 @@ TEMPLATES = [
     },
 ]
 
-if os.environ.get("POSTGRES_DB"):
+if url := os.environ.get("DATABASE_URL"):
+    # Render entrega o Postgres como uma URL só (fromDatabase.connectionString).
+    banco = urlparse(url)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": banco.path.lstrip("/"),
+            "USER": unquote(banco.username or ""),
+            "PASSWORD": unquote(banco.password or ""),
+            "HOST": banco.hostname,
+            "PORT": banco.port or 5432,
+        }
+    }
+elif os.environ.get("POSTGRES_DB"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",

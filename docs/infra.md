@@ -46,7 +46,7 @@ For showing the app before the VPS exists. Free plans, so demo data only: never 
 
 API (Render, `render.yaml`):
 1. Render dashboard: New, Blueprint, pick this repository. It creates `kamby-db` (Postgres) and `kamby-api` (Docker, `backend/Dockerfile`).
-2. Fill `SEED_SENHA` when asked. The other variables come from the blueprint; `RENDER_EXTERNAL_HOSTNAME` adds the service domain to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
+2. Fill `SEED_SENHA` when asked. The other variables come from the blueprint (the database arrives as `DATABASE_URL`, which `settings.py` reads before the `POSTGRES_*` variables); `RENDER_EXTERNAL_HOSTNAME` adds the service domain to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
 3. On start the container migrates, collects static files (served by WhiteNoise, so the admin has CSS), runs `seed_demo` because `KAMBY_DEMO=1`, and starts Gunicorn on `$PORT` with `WEB_CONCURRENCY` workers.
 4. Admin: `https://kamby-api.onrender.com/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app. If Render gives the service another domain, update it in `mobile/vercel.json` and `mobile/eas.json`.
 

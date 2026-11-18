@@ -17,12 +17,13 @@ export const useColeta = (id: string) =>
     refetchInterval: 15_000,
   });
 
-// shortcut: só a primeira página (100 coletas); paginar quando alguma doadora passar disso.
+// shortcut: só a primeira página (100, o máximo da API); paginar quando alguma doadora passar disso.
 export const useColetas = () =>
-  useQuery({ queryKey: ["coletas"], queryFn: () => chamar(api.GET("/api/v1/coletas")) });
+  useQuery({ queryKey: ["coletas"], queryFn: () => chamar(api.GET("/api/v1/coletas", { params: { query: { page_size: 100 } } })) });
 
 // shortcut: só a primeira página (100 pedidos), como em useColetas.
-export const useKits = () => useQuery({ queryKey: ["kits"], queryFn: () => chamar(api.GET("/api/v1/kits")) });
+export const useKits = () =>
+  useQuery({ queryKey: ["kits"], queryFn: () => chamar(api.GET("/api/v1/kits", { params: { query: { page_size: 100 } } })) });
 
 export const useKit = (id: string) =>
   useQuery({
