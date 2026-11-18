@@ -34,7 +34,7 @@ The VPS is small (1 vCPU). Keep 3 Gunicorn workers at most. Add no service (Redi
 - Dev needs no `.env` for Docker; values are in `compose.yaml`.
 - Production root `.env`: `DOMINIO`, read by compose.
 - Production `backend/.env`: Django and Postgres variables, listed in `backend/.env.example`. Postgres reads the same file.
-- `mobile/.env`: `EXPO_PUBLIC_API_URL`.
+- `mobile/.env`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_DEMO=1` (only in published test builds: shows the "Versão de demonstração" banner on every screen).
 - `.env` files are never committed.
 - `KAMBY_DEMO=1` (on in dev): signups are approved at once and the app shows a button that plays the milk bank's part, step by step. Turn it off once the bank reviews donors for real.
 - Production: `DJANGO_DEBUG` unset, a long random `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` set to the real domain.

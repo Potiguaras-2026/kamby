@@ -9,6 +9,7 @@ import { cores, espaco, familia, sombra, tipo, toqueMinimo } from "@/lib/tema";
 
 import { Avatar } from "./Avatar";
 import { Entrada } from "./Entrada";
+import { FaixaDemo } from "./FaixaDemo";
 import { Fundo } from "./Fundo";
 import { Logo } from "./Marca";
 import { Pressavel } from "./Pressavel";
@@ -41,6 +42,7 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, aoVoltar, 
     <View style={estilos.raiz}>
       <Fundo />
       <Cabecalho topo={top} publica={publica} />
+      <FaixaDemo />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[estilos.conteudo, { paddingBottom: (comAbas ? 112 : espaco.gg) + bottom }]}

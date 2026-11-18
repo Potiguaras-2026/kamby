@@ -5,6 +5,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 ## [Não lançado]
 
 ### Alterado
+- Versão de demonstração (`EXPO_PUBLIC_DEMO=1`) mostra em todas as telas que não é para usar dados reais; a simulação avisa que nada ali é uma coleta real.
 - Várias coletas ao mesmo tempo, cada uma com status em 4 etapas (Pedido feito, Rota iniciada, Entregue, Entregue ao banco) e o banco de leite que recebe; histórico com todas as doações em "Ver todas".
 - "(opcional)" entre parênteses nos campos, saudação da Início em Poppins e logo do topo leva para a Início.
 

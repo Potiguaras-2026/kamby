@@ -10,6 +10,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { Botao } from "@/components/Botao";
 import { Campo } from "@/components/Campo";
+import { FaixaDemo } from "@/components/FaixaDemo";
 import { Logo } from "@/components/Marca";
 import { api, chamar, lerErro } from "@/lib/api";
 import { mascaraTelefone } from "@/lib/formato";
@@ -36,6 +37,7 @@ export default function TelaEntrar() {
     <View style={estilos.raiz}>
       <LinearGradient colors={gradiente.marca} style={StyleSheet.absoluteFill} />
       <Ondas />
+      <FaixaDemo topo={top} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
           <Animated.View entering={FadeIn.duration(400)} style={[estilos.marca, { paddingTop: top + 48 }]}>
