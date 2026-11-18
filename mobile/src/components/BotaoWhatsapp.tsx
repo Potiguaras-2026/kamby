@@ -34,7 +34,7 @@ export function BotaoWhatsapp({ telefone, banco, titulo = "Conversar no WhatsApp
           </Text>
         </View>
       ) : (
-        <Text style={[estilos.texto, compacto && { fontSize: 14 }]}>{titulo}</Text>
+        <Text style={[estilos.texto, compacto && { fontSize: 13 }]}>{titulo}</Text>
       )}
     </Pressavel>
   );
@@ -55,6 +55,6 @@ const estilos = StyleSheet.create({
     backgroundColor: "#EAF9F0",
   },
   compacto: { minHeight: toqueMinimo - 4, paddingHorizontal: 12, gap: 6 },
-  texto: { fontFamily: familia.semi, fontSize: 15, color: VERDE_TEXTO },
+  texto: { fontFamily: familia.semi, fontSize: 14, color: VERDE_TEXTO },
   banco: { fontFamily: familia.regular, fontSize: 12, color: VERDE_TEXTO },
 });

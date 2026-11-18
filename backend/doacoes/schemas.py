@@ -85,6 +85,10 @@ class ColetaEntrada(Schema):
     com_kit: bool = False
 
 
+class DemoSaida(Schema):
+    ativo: bool
+
+
 class RemarcacaoEntrada(Schema):
     data: date
     horario_id: UUID

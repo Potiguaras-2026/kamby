@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { LockKeyhole, Phone } from "lucide-react-native";
+import { FlaskConical, LockKeyhole, Phone } from "lucide-react-native";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
@@ -15,8 +15,9 @@ import { Logo } from "@/components/Marca";
 import { api, chamar, lerErro } from "@/lib/api";
 import { mascaraTelefone } from "@/lib/formato";
 import { haptico } from "@/lib/haptico";
+import { useDemo } from "@/lib/consultas";
 import { salvarTokens } from "@/lib/sessao";
-import { cores, espaco, familia, gradiente, tipo } from "@/lib/tema";
+import { cores, demo, espaco, familia, gradiente, raio, tipo } from "@/lib/tema";
 
 export default function TelaEntrar() {
   const { top, bottom } = useSafeAreaInsets();
@@ -30,6 +31,14 @@ export default function TelaEntrar() {
     },
     onError: () => haptico.aviso(),
   });
+  const modoDemo = useDemo();
+  const entrarDemo = useMutation({
+    mutationFn: () => chamar(api.POST("/api/v1/auth/demo")),
+    onSuccess: (tokens) => {
+      haptico.sucesso();
+      salvarTokens(tokens);
+    },
+  });
   const erro = entrar.error ? lerErro(entrar.error) : null;
   const pronto = telefone.replace(/\D/g, "").length >= 10 && senha.length > 0;
 
@@ -37,7 +46,7 @@ export default function TelaEntrar() {
     <View style={estilos.raiz}>
       <LinearGradient colors={gradiente.marca} style={StyleSheet.absoluteFill} />
       <Ondas />
-      <FaixaDemo topo={top} publica />
+      <FaixaDemo solta topo={top} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
           <Animated.View entering={FadeIn.duration(400)} style={[estilos.marca, { paddingTop: top + 48 }]}>
@@ -87,6 +96,21 @@ export default function TelaEntrar() {
                 Quero ser doadora
               </Text>
             </Text>
+            {modoDemo ? (
+              <View style={estilos.demo}>
+                <View style={estilos.demoTopo}>
+                  <FlaskConical size={16} color={demo.texto} />
+                  <Text style={[tipo.corpoForte, { color: demo.texto, fontFamily: familia.semi }]}>Só quer conhecer o app?</Text>
+                </View>
+                <Text style={[tipo.legenda, { color: demo.texto }]}>Entre numa conta de demonstração, com doações fictícias, sem cadastro nem senha.</Text>
+                <Botao titulo="Entrar sem cadastro" variante="demo" compacto carregando={entrarDemo.isPending} onPress={() => entrarDemo.mutate()} />
+                {entrarDemo.error ? (
+                  <Text accessibilityRole="alert" style={[tipo.legenda, { color: cores.erro }]}>
+                    {lerErro(entrarDemo.error).mensagem}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -114,4 +138,6 @@ const estilos = StyleSheet.create({
     paddingTop: 28,
     gap: espaco.m,
   },
+  demo: { gap: 8, padding: 14, marginTop: 4, borderRadius: raio.g, borderWidth: 1.5, borderStyle: "dashed", borderColor: demo.borda, backgroundColor: demo.fundo },
+  demoTopo: { flexDirection: "row", alignItems: "center", gap: 6 },
 });

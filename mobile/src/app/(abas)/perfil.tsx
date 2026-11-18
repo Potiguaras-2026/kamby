@@ -34,7 +34,7 @@ export default function TelaPerfil() {
       <Entrada style={estilos.topo}>
         <Avatar nome={eu.data.nome_completo} tamanho={104} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text accessibilityRole="header" style={[tipo.titulo, { fontSize: 18, lineHeight: 24 }]}>
+          <Text accessibilityRole="header" style={[tipo.titulo, { fontSize: 16, lineHeight: 22 }]}>
             {eu.data.nome_completo}
           </Text>
           <Text style={[tipo.legenda, { color: cores.texto }]}>Doadora desde {dataCompleta(eu.data.criado_em)}</Text>
@@ -157,7 +157,7 @@ function Atalho({ rotulo, icone: Icone, onPress }: { rotulo: string; icone: Luci
   return (
     <Pressavel accessibilityRole="button" onPress={onPress} escala={0.97} style={estilos.atalho}>
       <Icone size={22} color={cores.primaria} strokeWidth={1.8} />
-      <Text style={[tipo.corpoForte, { textAlign: "center", fontSize: 14 }]}>{rotulo}</Text>
+      <Text style={[tipo.corpoForte, { textAlign: "center", fontSize: 13 }]}>{rotulo}</Text>
     </Pressavel>
   );
 }
@@ -207,7 +207,7 @@ const estilos = StyleSheet.create({
   numeros: { flexDirection: "row", gap: 12 },
   numero: { flex: 1, borderRadius: raio.m, borderWidth: 1, paddingVertical: 18, alignItems: "center", gap: 6 },
   numeroLinha: { flexDirection: "row", alignItems: "center", gap: 8 },
-  numeroValor: { fontFamily: familia.medio, fontSize: 22, lineHeight: 28 },
+  numeroValor: { fontFamily: familia.medio, fontSize: 19, lineHeight: 26 },
   item: {
     minHeight: toqueMinimo + 4,
     flexDirection: "row",

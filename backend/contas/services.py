@@ -12,6 +12,10 @@ from contas.models import Doadora, Endereco, PerguntaSaude, Triagem, Usuario
 from core.erros import ErroDominio
 
 
+# Doadora do seed_demo com histórico completo: é quem entra pelo "Entrar sem cadastro" no modo demonstração.
+DOADORA_DEMO = "84911111111"
+
+
 def so_digitos(valor: str) -> str:
     return re.sub(r"\D", "", valor)
 

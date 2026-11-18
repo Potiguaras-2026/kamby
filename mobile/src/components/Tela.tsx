@@ -42,7 +42,7 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, aoVoltar, 
     <View style={estilos.raiz}>
       <Fundo />
       <Cabecalho topo={top} publica={publica} />
-      <FaixaDemo publica={publica} />
+      <FaixaDemo />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[estilos.conteudo, { paddingBottom: (comAbas ? 112 : espaco.gg) + bottom }]}
@@ -132,7 +132,7 @@ const estilos = StyleSheet.create({
   },
   marca: { flexDirection: "row", alignItems: "center", gap: 10 },
   divisor: { width: 1, height: 20, backgroundColor: cores.rosaClaro },
-  maes: { fontFamily: familia.regular, fontSize: 15, color: cores.primaria },
+  maes: { fontFamily: familia.regular, fontSize: 14, color: cores.primaria },
   toque: { width: toqueMinimo, height: toqueMinimo, alignItems: "center", justifyContent: "center" },
   conteudo: { paddingHorizontal: 20, paddingTop: 22, gap: 16 },
   topo: { gap: 6, marginBottom: 4 },

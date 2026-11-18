@@ -47,7 +47,7 @@ export function CabecalhoEtapa({ icone: Icone, titulo, texto, tom = "rosa" }: { 
         <Text accessibilityRole="header" style={tipo.titulo}>
           {titulo}
         </Text>
-        {texto ? <Text style={[tipo.legenda, { fontSize: 15, lineHeight: 22 }]}>{texto}</Text> : null}
+        {texto ? <Text style={[tipo.legenda, { fontSize: 14, lineHeight: 20 }]}>{texto}</Text> : null}
       </View>
     </View>
   );
@@ -176,7 +176,7 @@ const estilos = StyleSheet.create({
   perguntaTopo: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   numero: { width: 26, height: 26, borderRadius: 13, backgroundColor: cores.primaria, alignItems: "center", justifyContent: "center", marginTop: 1 },
   numeroTexto: { fontFamily: familia.semi, fontSize: 13, color: cores.sobrePrimaria },
-  rotulo: { fontFamily: familia.medio, fontSize: 14, color: cores.texto },
+  rotulo: { fontFamily: familia.medio, fontSize: 13, color: cores.texto },
   linha: { flexDirection: "row", gap: 12 },
   opcao: {
     flex: 1,
@@ -191,7 +191,7 @@ const estilos = StyleSheet.create({
     backgroundColor: cores.rosaSuave,
   },
   opcaoMarcada: { backgroundColor: cores.primaria, borderColor: cores.primaria },
-  opcaoTexto: { fontFamily: familia.semi, fontSize: 16, color: cores.primaria },
+  opcaoTexto: { fontFamily: familia.semi, fontSize: 15, color: cores.primaria },
   concordo: {
     flexDirection: "row",
     gap: 12,

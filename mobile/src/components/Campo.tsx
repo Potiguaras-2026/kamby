@@ -83,7 +83,7 @@ export function Campo({ rotulo, ajuda, erro, icone: Icone, opcional, carregando,
 }
 
 export const estilosCampo = StyleSheet.create({
-  rotulo: { fontFamily: familia.medio, fontSize: 14, lineHeight: 20, color: cores.texto },
+  rotulo: { fontFamily: familia.medio, fontSize: 13, lineHeight: 18, color: cores.texto },
   caixa: {
     minHeight: 52,
     flexDirection: "row",

@@ -9,7 +9,9 @@ from ninja.pagination import PageNumberPagination, paginate
 from contas.selectors import doadora_do_usuario
 from core.erros import ErroDominio
 from doacoes import selectors, services
-from doacoes.schemas import CancelamentoEntrada, ColetaEntrada, ColetaSaida, HorarioSaida, InicioSaida, KitEntrada, KitSaida, RemarcacaoEntrada
+from doacoes.schemas import (
+    CancelamentoEntrada, ColetaEntrada, ColetaSaida, DemoSaida, HorarioSaida, InicioSaida, KitEntrada, KitSaida, RemarcacaoEntrada,
+)
 
 router = Router(tags=["doacoes"])
 
@@ -80,6 +82,12 @@ def remarcar_coleta(request, coleta_id: UUID, dados: RemarcacaoEntrada):
 def cancelar_coleta(request, coleta_id: UUID, dados: CancelamentoEntrada):
     coleta = selectors.coleta_da_doadora(doadora_do_usuario(request.auth), coleta_id)
     return services.cancelar_coleta(coleta, dados.motivo)
+
+
+@router.get("/demo", response=DemoSaida, auth=None)
+def demo(request):
+    # Pública: a tela de entrar precisa saber antes do login se mostra a faixa e o "Entrar sem cadastro".
+    return {"ativo": settings.KAMBY_DEMO}
 
 
 @router.post("/demo/coletas/{coleta_id}/avancar", response=ColetaSaida)

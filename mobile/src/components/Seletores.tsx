@@ -192,7 +192,7 @@ function BotaoMes({ icone, desabilitado, onPress }: { icone: "voltar" | "avancar
 }
 
 const estilos = StyleSheet.create({
-  rotulo: { flex: 1, fontSize: 15, lineHeight: 22 },
+  rotulo: { flex: 1, fontSize: 14, lineHeight: 20 },
   linha: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: toqueMinimo },
   caixa: {
     minHeight: 40,
@@ -208,7 +208,7 @@ const estilos = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: cores.superficie,
   },
-  valor: { fontFamily: familia.regular, fontSize: 15, color: cores.texto, fontVariant: ["tabular-nums"] },
+  valor: { fontFamily: familia.regular, fontSize: 14, color: cores.texto, fontVariant: ["tabular-nums"] },
   data: { minHeight: toqueMinimo, flexDirection: "row", alignItems: "center", gap: 10, paddingLeft: 8 },
   popover: {
     position: "absolute",

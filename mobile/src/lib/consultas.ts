@@ -31,6 +31,10 @@ export const useKit = (id: string) =>
     refetchInterval: 15_000,
   });
 
+// Pública e fixa por servidor: decide a faixa e o "Entrar sem cadastro" antes do login.
+export const useDemo = () =>
+  useQuery({ queryKey: ["demo"], queryFn: () => chamar(api.GET("/api/v1/demo")), staleTime: Infinity }).data?.ativo ?? false;
+
 export const useEu = () =>
   useQuery({ queryKey: ["eu"], queryFn: () => chamar(api.GET("/api/v1/eu")), staleTime: 5 * 60_000 });
 

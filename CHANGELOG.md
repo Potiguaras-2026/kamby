@@ -9,7 +9,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas em AA
 - Admin entra por e-mail e senha, só para a equipe; o telefone fica para as doadoras no app.
 - Bancos de leite reais de Natal (Januário Cicco, Dr. José Pedro Bezerra e Hospital Central Coronel Pedro Germano), com endereço e telefone da rBLH; textos e dados de exemplo trocados por realistas.
 - Perfil com atalhos para "Minhas doações" e "Meus pedidos de kit", edição dos dados da mãe e do bebê; pedidos de kit com detalhe e cancelamento; fontes menores em todo o app.
-- Versão de demonstração (`EXPO_PUBLIC_DEMO=1`) mostra em todas as telas que não é para usar dados reais; a simulação avisa que nada ali é uma coleta real.
+- Modo demonstração (`KAMBY_DEMO=1`) com faixa em todas as telas, saindo de trás do cabeçalho, "Entrar sem cadastro" na conta fictícia do seed e tudo da demonstração na mesma paleta azul; fontes ainda menores.
 - Várias coletas ao mesmo tempo, cada uma com status em 4 etapas (Pedido feito, Rota iniciada, Entregue, Entregue ao banco) e o banco de leite que recebe; histórico com todas as doações em "Ver todas".
 - "(opcional)" entre parênteses nos campos, saudação da Início em Poppins e logo do topo leva para a Início.
 

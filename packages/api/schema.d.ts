@@ -38,6 +38,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Entrar Demo
+         * @description Só no modo demonstração: entra sem senha na conta fictícia do seed.
+         */
+        post: operations["contas_api_entrar_demo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/renovar": {
         parameters: {
             query?: never;
@@ -462,6 +482,23 @@ export interface paths {
         put?: never;
         /** Cancelar Coleta */
         post: operations["doacoes_api_cancelar_coleta"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo */
+        get: operations["doacoes_api_demo"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1091,6 +1128,11 @@ export interface components {
              */
             motivo: string;
         };
+        /** DemoSaida */
+        DemoSaida: {
+            /** Ativo */
+            ativo: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -1136,6 +1178,26 @@ export interface operations {
                 "application/json": components["schemas"]["EntrarEntrada"];
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokensSaida"];
+                };
+            };
+        };
+    };
+    contas_api_entrar_demo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -1810,6 +1872,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ColetaSaida"];
+                };
+            };
+        };
+    };
+    doacoes_api_demo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoSaida"];
                 };
             };
         };

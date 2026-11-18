@@ -85,7 +85,7 @@ export default function TelaSobre() {
           {contatos.map(([rotulo, url]) => (
             <Pressavel key={url} accessibilityRole="link" accessibilityLabel={`${rotulo}, abre fora do app`} onPress={() => Linking.openURL(url)} style={estilos.contato}>
               <Icone url={url} />
-              <Text style={[tipo.corpoForte, { flex: 1, fontSize: 15 }]} numberOfLines={1}>
+              <Text style={[tipo.corpoForte, { flex: 1, fontSize: 14 }]} numberOfLines={1}>
                 {rotulo}
               </Text>
               <ExternalLink size={16} color={cores.textoSuave} />

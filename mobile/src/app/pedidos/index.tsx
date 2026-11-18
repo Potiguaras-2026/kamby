@@ -100,5 +100,5 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   iconePassado: { borderColor: cores.borda, backgroundColor: "transparent" },
-  quando: { fontFamily: familia.semi, fontSize: 15, lineHeight: 20, color: cores.primaria },
+  quando: { fontFamily: familia.semi, fontSize: 14, lineHeight: 18, color: cores.primaria },
 });

@@ -54,7 +54,7 @@ export function CartaoColeta({ coleta }: { coleta: Coleta }) {
       <View style={{ flex: 1, gap: 3 }}>
         <Selo {...selo} />
         <Text style={[estilos.quando, !ativa && { color: cores.texto }]}>{quando}</Text>
-        <Text style={[tipo.corpoForte, { fontSize: 14 }]}>{status}</Text>
+        <Text style={[tipo.corpoForte, { fontSize: 13 }]}>{status}</Text>
         <Text numberOfLines={1} style={[tipo.legenda, { fontSize: 12 }]}>
           {coleta.banco_nome}
         </Text>
@@ -87,5 +87,5 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   calendarioPassado: { borderColor: cores.borda, backgroundColor: "transparent" },
-  quando: { fontFamily: familia.semi, fontSize: 15, lineHeight: 20, color: cores.turquesaTexto },
+  quando: { fontFamily: familia.semi, fontSize: 14, lineHeight: 18, color: cores.turquesaTexto },
 });

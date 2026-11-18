@@ -5,11 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
-import { AZUL_DEMO } from "@/components/FaixaDemo";
 import { api, chamar, lerErro } from "@/lib/api";
 import { useInicio } from "@/lib/consultas";
 import { haptico } from "@/lib/haptico";
-import { cores, familia, raio, tipo } from "@/lib/tema";
+import { cores, demo, familia, raio, tipo } from "@/lib/tema";
 
 import { etapaAtual } from "./Jornada";
 
@@ -71,7 +70,7 @@ export function SimularDoacao({ coleta }: { coleta: Schemas["ColetaSaida"] }) {
   return (
     <View style={estilos.caixa}>
       <View style={estilos.topo}>
-        <FlaskConical size={18} color={AZUL_DEMO.texto} />
+        <FlaskConical size={16} color={demo.texto} />
         <Text style={estilos.selo}>Modo demonstração</Text>
       </View>
       <Text style={tipo.legenda}>
@@ -80,10 +79,10 @@ export function SimularDoacao({ coleta }: { coleta: Schemas["ColetaSaida"] }) {
       </Text>
       <View style={estilos.botoes}>
         <View style={{ flex: 1 }}>
-          <Botao titulo="Avançar etapa" compacto carregando={avancar.isPending && !automatico} desabilitado={automatico} onPress={() => avancar.mutate()} />
+          <Botao titulo="Avançar etapa" variante="demo" compacto carregando={avancar.isPending && !automatico} desabilitado={automatico} onPress={() => avancar.mutate()} />
         </View>
         <View style={{ flex: 1 }}>
-          <Botao titulo={automatico ? "Parar" : "Simular tudo"} variante="secundaria" compacto onPress={automatico ? parar : simularTudo} />
+          <Botao titulo={automatico ? "Parar" : "Simular tudo"} variante="demoContorno" compacto onPress={automatico ? parar : simularTudo} />
         </View>
       </View>
       {avancar.error ? (
@@ -102,10 +101,10 @@ const estilos = StyleSheet.create({
     borderRadius: raio.g,
     borderWidth: 2,
     borderStyle: "dashed",
-    borderColor: AZUL_DEMO.borda,
-    backgroundColor: AZUL_DEMO.fundo,
+    borderColor: demo.borda,
+    backgroundColor: demo.fundo,
   },
   topo: { flexDirection: "row", alignItems: "center", gap: 6 },
-  selo: { fontFamily: familia.semi, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: AZUL_DEMO.texto },
+  selo: { fontFamily: familia.semi, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: demo.texto },
   botoes: { flexDirection: "row", gap: 10 },
 });

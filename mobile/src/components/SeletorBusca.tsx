@@ -121,7 +121,7 @@ export function SeletorBusca({ rotulo, placeholder, opcoes, valor, onChange, ico
 const estilos = StyleSheet.create({
   topo: { flexDirection: "row", alignItems: "baseline", gap: 6 },
   opcional: { fontFamily: familia.regular, fontSize: 13, color: cores.textoSuave },
-  valor: { flex: 1, fontFamily: familia.regular, fontSize: 16, color: cores.texto },
+  valor: { flex: 1, fontFamily: familia.regular, fontSize: 15, color: cores.texto },
   fundo: { flex: 1, backgroundColor: "rgba(36, 27, 34, 0.4)" },
   folha: {
     maxHeight: "85%",

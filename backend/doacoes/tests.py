@@ -287,6 +287,16 @@ class DemoTest(Base):
         with self.assertRaises(ErroDominio):
             services.simular_proxima_etapa(coleta)
 
+    def test_entrar_sem_cadastro_so_no_modo_demo(self):
+        Usuario.objects.filter(telefone="84999990000").update(telefone=contas.DOADORA_DEMO)
+        self.assertFalse(self.client.get("/api/v1/demo").json()["ativo"])
+        self.assertEqual(self.client.post("/api/v1/auth/demo").status_code, 404)
+        with override_settings(KAMBY_DEMO=True):
+            self.assertTrue(self.client.get("/api/v1/demo").json()["ativo"])
+            access = self.client.post("/api/v1/auth/demo").json()["access"]
+            r = self.client.get("/api/v1/eu", HTTP_AUTHORIZATION=f"Bearer {access}")
+        self.assertEqual(r.json()["nome_completo"], "Ana Souza")
+
     def test_rota_so_existe_no_modo_demo(self):
         self.aprovar()
         self.entregar_kit()

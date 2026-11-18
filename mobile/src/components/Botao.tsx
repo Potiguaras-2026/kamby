@@ -2,11 +2,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import type { LucideIcon } from "lucide-react-native";
 import { ActivityIndicator, StyleSheet, Text } from "react-native";
 
-import { cores, familia, gradiente, raio, sombra, toqueMinimo } from "@/lib/tema";
+import { cores, demo, familia, gradiente, raio, sombra, toqueMinimo } from "@/lib/tema";
 
 import { Pressavel } from "./Pressavel";
 
-type Variante = "primaria" | "secundaria" | "suave" | "perigo";
+type Variante = "primaria" | "secundaria" | "suave" | "perigo" | "demo" | "demoContorno";
 
 type Props = {
   titulo: string;
@@ -23,6 +23,8 @@ const COR_TEXTO: Record<Variante, string> = {
   secundaria: cores.primaria,
   suave: cores.primaria,
   perigo: cores.erro,
+  demo: "#FFFFFF",
+  demoContorno: demo.texto,
 };
 
 export function Botao({ titulo, onPress, variante = "primaria", carregando, desabilitado, compacto, icone: Icone }: Props) {
@@ -44,6 +46,8 @@ export function Botao({ titulo, onPress, variante = "primaria", carregando, desa
         variante === "secundaria" && estilos.secundaria,
         variante === "suave" && { backgroundColor: cores.rosaSuave },
         variante === "perigo" && { backgroundColor: cores.erroSuave },
+        variante === "demo" && { backgroundColor: demo.forte },
+        variante === "demoContorno" && { backgroundColor: cores.superficie, borderWidth: 1.5, borderColor: demo.borda },
         desabilitado && { backgroundColor: cores.desabilitado, borderColor: cores.desabilitado },
       ]}
     >
@@ -60,7 +64,7 @@ export function Botao({ titulo, onPress, variante = "primaria", carregando, desa
       ) : (
         <>
           {Icone ? <Icone size={compacto ? 18 : 20} color={corTexto} strokeWidth={2.2} /> : null}
-          <Text style={[estilos.texto, { color: corTexto }, compacto && { fontSize: 14 }]}>{titulo}</Text>
+          <Text style={[estilos.texto, { color: corTexto }, compacto && { fontSize: 13 }]}>{titulo}</Text>
         </>
       )}
     </Pressavel>
@@ -69,7 +73,7 @@ export function Botao({ titulo, onPress, variante = "primaria", carregando, desa
 
 const estilos = StyleSheet.create({
   base: {
-    minHeight: 56,
+    minHeight: 50,
     borderRadius: raio.pilula,
     paddingHorizontal: 24,
     flexDirection: "row",
@@ -79,5 +83,5 @@ const estilos = StyleSheet.create({
   },
   compacto: { minHeight: toqueMinimo, paddingHorizontal: 18 },
   secundaria: { backgroundColor: cores.superficie, borderWidth: 1, borderColor: cores.rosaClaro },
-  texto: { fontFamily: familia.semi, fontSize: 15, letterSpacing: 0.1 },
+  texto: { fontFamily: familia.semi, fontSize: 14, letterSpacing: 0.1 },
 });

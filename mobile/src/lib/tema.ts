@@ -42,6 +42,9 @@ export const raio = { p: 6, m: 8, g: 12, pilula: 999 };
 
 export const toqueMinimo = 48;
 
+/** Tudo que é do modo demonstração usa esta paleta, para nunca se confundir com o app de verdade. */
+export const demo = { texto: "#2B3A87", forte: "#4152B3", borda: "#6B7BD0", fundo: "#ECEFFB" };
+
 export const familia = {
   regular: "Poppins_400Regular",
   medio: "Poppins_500Medium",
@@ -50,12 +53,12 @@ export const familia = {
 
 /** Escala tipográfica. Use `tipo.x` e sobrescreva só a cor quando precisar. */
 export const tipo = {
-  display: { fontFamily: familia.semi, fontSize: 28, lineHeight: 34, letterSpacing: -0.6, color: cores.texto },
-  titulo: { fontFamily: familia.semi, fontSize: 20, lineHeight: 26, letterSpacing: -0.2, color: cores.texto },
-  subtitulo: { fontFamily: familia.semi, fontSize: 16, lineHeight: 22, letterSpacing: -0.2, color: cores.texto },
-  corpo: { fontFamily: familia.regular, fontSize: 15, lineHeight: 22, color: cores.texto },
-  corpoForte: { fontFamily: familia.medio, fontSize: 15, lineHeight: 22, color: cores.texto },
-  legenda: { fontFamily: familia.regular, fontSize: 13, lineHeight: 18, color: cores.textoSuave },
+  display: { fontFamily: familia.semi, fontSize: 24, lineHeight: 30, letterSpacing: -0.6, color: cores.texto },
+  titulo: { fontFamily: familia.semi, fontSize: 18, lineHeight: 24, letterSpacing: -0.2, color: cores.texto },
+  subtitulo: { fontFamily: familia.semi, fontSize: 15, lineHeight: 21, letterSpacing: -0.2, color: cores.texto },
+  corpo: { fontFamily: familia.regular, fontSize: 14, lineHeight: 20, color: cores.texto },
+  corpoForte: { fontFamily: familia.medio, fontSize: 14, lineHeight: 20, color: cores.texto },
+  legenda: { fontFamily: familia.regular, fontSize: 12, lineHeight: 17, color: cores.textoSuave },
 } satisfies Record<string, TextStyle>;
 
 export const sombra = {

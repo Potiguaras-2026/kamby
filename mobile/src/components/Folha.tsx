@@ -41,7 +41,7 @@ export function Folha({ visivel, aoFechar, titulo, texto, confirmar, manter, aoC
       <Text accessibilityRole="header" style={[tipo.subtitulo, { textAlign: "center" }]}>
         {titulo}
       </Text>
-      <Text style={[tipo.legenda, { textAlign: "center", fontSize: 15, lineHeight: 22 }]}>{texto}</Text>
+      <Text style={[tipo.legenda, { textAlign: "center", fontSize: 14, lineHeight: 20 }]}>{texto}</Text>
       <View style={estilos.botoes}>
         <Botao titulo={confirmar} variante={perigo ? "perigo" : "primaria"} carregando={carregando} onPress={aoConfirmar} />
         <Botao titulo={manter} variante="secundaria" onPress={aoFechar} />

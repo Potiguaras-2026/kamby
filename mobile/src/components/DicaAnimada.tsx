@@ -125,5 +125,5 @@ const estilos = StyleSheet.create({
   },
   seloLinha: { flexDirection: "row", alignItems: "center", gap: 4 },
   selo: { fontFamily: familia.semi, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase" },
-  titulo: { fontFamily: familia.semi, fontSize: 16, lineHeight: 22, color: cores.texto },
+  titulo: { fontFamily: familia.semi, fontSize: 15, lineHeight: 20, color: cores.texto },
 });

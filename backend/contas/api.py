@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from ninja import Router
 from ninja.throttling import AnonRateThrottle
@@ -22,7 +23,7 @@ from contas.schemas import (
     TriagemEntrada,
 )
 from contas.selectors import doadora_do_usuario, endereco_da_doadora
-from contas.models import PerguntaSaude
+from contas.models import PerguntaSaude, Usuario
 from core.erros import ErroDominio
 
 router_auth = Router(tags=["auth"], auth=None, throttle=AnonRateThrottle("10/m"))
@@ -46,6 +47,15 @@ def entrar(request, dados: EntrarEntrada):
     usuario = authenticate(request, telefone=telefone, password=dados.senha)
     if usuario is None:
         raise ErroDominio("nao_autenticado", "Telefone ou senha incorretos.")
+    return tokens(usuario)
+
+
+@router_auth.post("/demo", response=TokensSaida)
+def entrar_demo(request):
+    """Só no modo demonstração: entra sem senha na conta fictícia do seed."""
+    usuario = Usuario.objects.filter(telefone=services.DOADORA_DEMO).first() if settings.KAMBY_DEMO else None
+    if usuario is None:
+        raise ErroDominio("nao_encontrado", "Entrada de demonstração indisponível.")
     return tokens(usuario)
 
 

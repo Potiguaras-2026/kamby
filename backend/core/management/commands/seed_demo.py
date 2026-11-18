@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from bancos.models import BancoDeLeite
 from contas.models import Doadora, PerguntaSaude, Triagem, Usuario
-from contas.services import criar_endereco
+from contas.services import DOADORA_DEMO, criar_endereco
 from doacoes.models import Coleta, SolicitacaoKit
 
 
@@ -43,8 +43,8 @@ class Command(BaseCommand):
             "cidade": "Natal",
             "uf": "RN",
         }
-        if not Usuario.objects.filter(telefone="84911111111").exists():
-            usuario = Usuario.objects.create_user("84911111111", senha, nome_completo="Maria Fernandes")
+        if not Usuario.objects.filter(telefone=DOADORA_DEMO).exists():
+            usuario = Usuario.objects.create_user(DOADORA_DEMO, senha, nome_completo="Maria Fernandes")
             maria = Doadora.objects.create(
                 usuario=usuario,
                 banco=banco,
@@ -71,7 +71,7 @@ class Command(BaseCommand):
                     coletada_em=timezone.now() - timedelta(days=dias),
                 )
 
-        maria = Doadora.objects.get(usuario__telefone="84911111111")
+        maria = Doadora.objects.get(usuario__telefone=DOADORA_DEMO)
         if maria.enderecos.count() < 2:
             criar_endereco(
                 maria, apelido="Trabalho", cep="59020000", logradouro="Avenida Hermes da Fonseca", numero="1500",

@@ -61,5 +61,5 @@ export default function TelaGuia() {
 const estilos = StyleSheet.create({
   imagem: { width: "100%", height: 220, borderRadius: raio.g },
   passo: { flexDirection: "row", gap: 14 },
-  numero: { fontFamily: familia.semi, fontSize: 15, lineHeight: 24, width: 24 },
+  numero: { fontFamily: familia.semi, fontSize: 14, lineHeight: 22, width: 24 },
 });

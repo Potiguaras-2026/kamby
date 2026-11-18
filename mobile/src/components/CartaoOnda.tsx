@@ -72,7 +72,7 @@ const estilos = StyleSheet.create({
   compacto: { minHeight: 84, paddingHorizontal: 12 },
   texto: { gap: 2, paddingVertical: 14 },
   imagem: { position: "absolute", right: 14, bottom: -10 },
-  titulo: { fontFamily: familia.semi, fontSize: 17, lineHeight: 22 },
-  tituloCompacto: { fontFamily: familia.semi, fontSize: 14, lineHeight: 18 },
+  titulo: { fontFamily: familia.semi, fontSize: 15, lineHeight: 20 },
+  tituloCompacto: { fontFamily: familia.semi, fontSize: 13, lineHeight: 18 },
   descricao: { fontFamily: familia.regular, fontSize: 13, lineHeight: 18, color: "#4A4048" },
 });

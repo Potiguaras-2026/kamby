@@ -157,7 +157,7 @@ function LinhaDica({ dica: d }: { dica: Dica }) {
 }
 
 const estilos = StyleSheet.create({
-  secao: { fontFamily: familia.medio, fontSize: 15, color: cores.texto },
+  secao: { fontFamily: familia.medio, fontSize: 14, color: cores.texto },
   busca: {
     minHeight: 50,
     flexDirection: "row",
@@ -169,7 +169,7 @@ const estilos = StyleSheet.create({
     borderWidth: 1,
     borderColor: cores.borda,
   },
-  buscaCampo: { flex: 1, fontFamily: familia.regular, fontSize: 16, color: cores.texto, paddingVertical: 12, outlineWidth: 0 },
+  buscaCampo: { flex: 1, fontFamily: familia.regular, fontSize: 15, color: cores.texto, paddingVertical: 12, outlineWidth: 0 },
   limpar: { width: toqueMinimo, height: toqueMinimo, alignItems: "center", justifyContent: "center" },
   artigo: { backgroundColor: cores.superficie, borderRadius: raio.g, borderWidth: 1, borderColor: cores.borda, overflow: "hidden" },
   artigoImagem: { width: "100%", height: 176 },

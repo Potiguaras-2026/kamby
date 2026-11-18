@@ -195,11 +195,11 @@ function Aviso({ titulo }: { titulo: string }) {
 
 const estilos = StyleSheet.create({
   doar: { alignItems: "center", gap: 12, paddingVertical: 20 },
-  boasVindas: { fontFamily: familia.semi, fontSize: 20, lineHeight: 28, color: cores.texto },
-  secao: { fontFamily: familia.medio, fontSize: 15, color: cores.texto },
+  boasVindas: { fontFamily: familia.semi, fontSize: 17, lineHeight: 26, color: cores.texto },
+  secao: { fontFamily: familia.medio, fontSize: 14, color: cores.texto },
   linhaSecao: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   verTodas: { minHeight: toqueMinimo, justifyContent: "center", paddingHorizontal: 4 },
-  verTodasTexto: { fontFamily: familia.semi, fontSize: 14, color: cores.primaria },
+  verTodasTexto: { fontFamily: familia.semi, fontSize: 13, color: cores.primaria },
   destaque: {
     flexDirection: "row",
     alignItems: "center",
@@ -208,7 +208,7 @@ const estilos = StyleSheet.create({
   },
   coracaoFora: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#FAD9EA", alignItems: "center", justifyContent: "center" },
   coracaoDentro: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F6C3DF", alignItems: "center", justifyContent: "center" },
-  destaqueTexto: { flex: 1, fontFamily: familia.regular, fontSize: 15, lineHeight: 21, color: cores.textoSuave },
+  destaqueTexto: { flex: 1, fontFamily: familia.regular, fontSize: 14, lineHeight: 19, color: cores.textoSuave },
   ilustracao: { width: 104, height: 108, marginRight: 2 },
   atalhos: { gap: 10 },
   aviso: {

@@ -70,6 +70,29 @@
         }
       }
     },
+    "/api/v1/auth/demo": {
+      "post": {
+        "operationId": "contas_api_entrar_demo",
+        "summary": "Entrar Demo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensSaida"
+                }
+              }
+            }
+          }
+        },
+        "description": "Só no modo demonstração: entra sem senha na conta fictícia do seed.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/renovar": {
       "post": {
         "operationId": "contas_api_renovar",
@@ -1122,6 +1145,28 @@
           {
             "JWTAuth": []
           }
+        ]
+      }
+    },
+    "/api/v1/demo": {
+      "get": {
+        "operationId": "doacoes_api_demo",
+        "summary": "Demo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
         ]
       }
     },
@@ -2591,6 +2636,19 @@
           }
         },
         "title": "CancelamentoEntrada",
+        "type": "object"
+      },
+      "DemoSaida": {
+        "properties": {
+          "ativo": {
+            "title": "Ativo",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ativo"
+        ],
+        "title": "DemoSaida",
         "type": "object"
       }
     },
