@@ -51,7 +51,7 @@ API (Vercel project `kamby-api`, Root Directory `backend`):
 4. `backend/vercel.json` build: fails without `DATABASE_URL`, then `collectstatic`, `migrate` over the unpooled connection, and `seed_demo` when `KAMBY_DEMO=1`. Static files (admin CSS) go to the Vercel CDN.
 5. Admin: `https://kamby-api.vercel.app/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app.
 
-Donor app (Vercel project `kamby`, Root Directory `mobile`):
+Donor app (Vercel project `kamby`, Root Directory `mobile`, at `https://kamby-kappa.vercel.app`; `kamby.vercel.app` belongs to someone else):
 1. Framework "Other". Keep "Include files outside the root directory" on: the install runs `npm ci` at the repo root for the workspaces.
 2. `mobile/vercel.json` builds with `expo export -p web` and rewrites `/api/*` to the API project, so the app calls its own origin and needs no CORS. If the API project gets another domain, update it there and in `mobile/eas.json`.
 
