@@ -49,7 +49,8 @@ API (Vercel project `kamby-api`, Root Directory `backend`):
 2. Storage: add Neon from the Vercel Marketplace (free plan) and connect it to the project. It injects `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED`; `settings.py` reads `DATABASE_URL`, keeping `sslmode` from the query.
 3. Environment variables: `DJANGO_SECRET_KEY` (long random), `SEED_SENHA`, `KAMBY_DEMO=1`. `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` get the Vercel domains from `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL` and `VERCEL_URL`.
 4. `backend/vercel.json` build: fails without `DATABASE_URL`, then `collectstatic`, `migrate` over the unpooled connection, and `seed_demo` when `KAMBY_DEMO=1`. Static files (admin CSS) go to the Vercel CDN.
-5. Admin: `https://kamby-api.vercel.app/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app.
+5. Custom domain: `kamby-api.potiguaras.org` (CNAME and `_vercel` TXT in Cloudflare, proxy off); the app project uses `kamby-demo.potiguaras.org`. Set `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` (with `https://`) to the API domain.
+6. Admin: `https://kamby-api.potiguaras.org/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app.
 
 Donor app (Vercel project `kamby`, Root Directory `mobile`, at `https://kamby-kappa.vercel.app`; `kamby.vercel.app` belongs to someone else):
 1. Framework "Other". Keep "Include files outside the root directory" on: the install runs `npm ci` at the repo root for the workspaces.
