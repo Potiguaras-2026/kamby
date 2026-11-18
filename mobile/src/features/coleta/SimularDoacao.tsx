@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
+import { AZUL_DEMO } from "@/components/FaixaDemo";
 import { api, chamar, lerErro } from "@/lib/api";
 import { useInicio } from "@/lib/consultas";
 import { haptico } from "@/lib/haptico";
@@ -70,7 +71,7 @@ export function SimularDoacao({ coleta }: { coleta: Schemas["ColetaSaida"] }) {
   return (
     <View style={estilos.caixa}>
       <View style={estilos.topo}>
-        <FlaskConical size={18} color={cores.azulTexto} />
+        <FlaskConical size={18} color={AZUL_DEMO.texto} />
         <Text style={estilos.selo}>Modo demonstração</Text>
       </View>
       <Text style={tipo.legenda}>
@@ -99,12 +100,12 @@ const estilos = StyleSheet.create({
     gap: 10,
     padding: 16,
     borderRadius: raio.g,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderStyle: "dashed",
-    borderColor: "#A9BEE0",
-    backgroundColor: "#F2F6FC",
+    borderColor: AZUL_DEMO.borda,
+    backgroundColor: AZUL_DEMO.fundo,
   },
   topo: { flexDirection: "row", alignItems: "center", gap: 6 },
-  selo: { fontFamily: familia.semi, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: cores.azulTexto },
+  selo: { fontFamily: familia.semi, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: AZUL_DEMO.texto },
   botoes: { flexDirection: "row", gap: 10 },
 });

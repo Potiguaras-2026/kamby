@@ -16,7 +16,6 @@ from contas.schemas import (
     DoadoraEdicao,
     DoadoraSaida,
     EntrarEntrada,
-    ExclusaoEntrada,
     PerguntaSaida,
     RenovarEntrada,
     TokensSaida,
@@ -66,13 +65,6 @@ def eu(request):
 @router_doadora.put("/eu", response=DoadoraSaida)
 def editar_eu(request, dados: DoadoraEdicao):
     return services.editar_doadora(doadora_do_usuario(request.auth), **dados.dict())
-
-
-@router_doadora.post("/eu/excluir", response={204: None})
-def excluir_eu(request, dados: ExclusaoEntrada):
-    doadora_do_usuario(request.auth)  # equipe do banco não se apaga por aqui
-    services.excluir_conta(request.auth, dados.senha)
-    return 204, None
 
 
 # Pública: o cadastro mostra as perguntas antes de existir conta.

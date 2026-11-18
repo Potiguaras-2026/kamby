@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { HeartHandshake, Hospital } from "lucide-react-native";
+import { CalendarClock, HeartHandshake, Hospital } from "lucide-react-native";
 import { useState } from "react";
 import { AccessibilityInfo, Image, StyleSheet, Text, View } from "react-native";
 
+import { Botao } from "@/components/Botao";
 import { BotaoWhatsapp } from "@/components/BotaoWhatsapp";
 import { Cartao } from "@/components/Cartao";
 import { Celebracao } from "@/components/Celebracao";
@@ -13,10 +14,11 @@ import { Folha } from "@/components/Folha";
 import { Pressavel } from "@/components/Pressavel";
 import { Tela } from "@/components/Tela";
 import { etapaAtual, Jornada } from "@/features/coleta/Jornada";
+import { podeMudar } from "@/features/coleta/CartaoColeta";
 import { SimularDoacao } from "@/features/coleta/SimularDoacao";
 import { IMAGENS } from "@/features/conteudo/imagens";
 import { api, chamar, lerErro } from "@/lib/api";
-import { useColeta, useInicio, useTexto } from "@/lib/consultas";
+import { useColeta, useTexto } from "@/lib/consultas";
 import { diaRelativo, litros } from "@/lib/formato";
 import { cores, raio, tipo, toqueMinimo } from "@/lib/tema";
 
@@ -25,7 +27,6 @@ const ATIVAS = ["agendada", "confirmada", "a_caminho"];
 export default function TelaColeta() {
   const { id, nova } = useLocalSearchParams<{ id: string; nova?: string }>();
   const consulta = useColeta(id);
-  const inicio = useInicio();
   const texto = useTexto();
   const queryClient = useQueryClient();
   const [confirmando, setConfirmando] = useState(false);
@@ -52,9 +53,8 @@ export default function TelaColeta() {
 
   const atual = etapaAtual(coleta.etapas);
   const ativa = ATIVAS.includes(coleta.status);
-  const podeCancelar = coleta.status === "agendada" || coleta.status === "confirmada";
+  const podeCancelar = podeMudar(coleta);
   const final = texto("jornada.final");
-  const telefone = inicio.data?.banco.telefone;
 
   return (
     <Tela voltar titulo={nova ? undefined : "Minha doação"} atualizar={{ atualizando: consulta.isRefetching, aoAtualizar: () => consulta.refetch() }}>
@@ -126,8 +126,11 @@ export default function TelaColeta() {
         </Entrada>
       ) : null}
 
-      <Entrada ordem={4} style={{ gap: 4 }}>
-        {telefone ? <BotaoWhatsapp telefone={telefone} /> : null}
+      <Entrada ordem={4} style={{ gap: 10 }}>
+        {podeCancelar ? (
+          <Botao titulo="Remarcar coleta" icone={CalendarClock} variante="secundaria" onPress={() => router.push({ pathname: "/remarcar", params: { tipo: "coleta", id } })} />
+        ) : null}
+        <BotaoWhatsapp telefone={coleta.banco_telefone} banco={coleta.banco_nome} />
         {podeCancelar ? (
           <Pressavel accessibilityRole="button" onPress={() => setConfirmando(true)} style={estilos.cancelar}>
             <Text style={[tipo.corpoForte, { color: cores.erro }]}>Cancelar coleta</Text>
@@ -163,5 +166,6 @@ const estilos = StyleSheet.create({
   foto: { backgroundColor: cores.superficie, borderRadius: raio.g, borderWidth: 1, borderColor: cores.borda, overflow: "hidden" },
   fotoImagem: { width: "100%", height: 140 },
   fotoTexto: { padding: 16, gap: 2 },
-  cancelar: { minHeight: toqueMinimo, alignItems: "center", justifyContent: "center" },
+  // Borda vermelha discreta: dá para achar, mas não chama mais atenção que remarcar.
+  cancelar: { minHeight: toqueMinimo, alignItems: "center", justifyContent: "center", borderRadius: raio.pilula, borderWidth: 1, borderColor: "#EBC2BE" },
 });

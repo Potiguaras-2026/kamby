@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { CalendarClock } from "lucide-react-native";
 import { useState } from "react";
 import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 
+import { Botao } from "@/components/Botao";
 import { BotaoWhatsapp } from "@/components/BotaoWhatsapp";
 import { Cartao } from "@/components/Cartao";
 import { Celebracao } from "@/components/Celebracao";
@@ -14,7 +16,7 @@ import { Tela } from "@/components/Tela";
 import { api, chamar, lerErro } from "@/lib/api";
 import { useEu, useKit, useTexto } from "@/lib/consultas";
 import { dataCompleta, entregaKit } from "@/lib/formato";
-import { cores, tipo, toqueMinimo } from "@/lib/tema";
+import { cores, raio, tipo, toqueMinimo } from "@/lib/tema";
 
 const ABERTOS = ["solicitado", "em_preparo"];
 
@@ -69,8 +71,11 @@ export default function TelaPedido() {
         </Cartao>
       </Entrada>
 
-      <Entrada ordem={2} style={{ gap: 4 }}>
-        {banco ? <BotaoWhatsapp telefone={banco.telefone} /> : null}
+      <Entrada ordem={2} style={{ gap: 10 }}>
+        {aberto ? (
+          <Botao titulo="Remarcar entrega" icone={CalendarClock} variante="secundaria" onPress={() => router.push({ pathname: "/remarcar", params: { tipo: "kit", id } })} />
+        ) : null}
+        {banco ? <BotaoWhatsapp telefone={banco.telefone} banco={banco.nome} /> : null}
         {aberto ? (
           <Pressavel accessibilityRole="button" onPress={() => setConfirmando(true)} style={estilos.cancelar}>
             <Text style={[tipo.corpoForte, { color: cores.erro }]}>Cancelar pedido</Text>
@@ -109,5 +114,5 @@ function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
 
 const estilos = StyleSheet.create({
   linha: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12 },
-  cancelar: { minHeight: toqueMinimo, alignItems: "center", justifyContent: "center" },
+  cancelar: { minHeight: toqueMinimo, alignItems: "center", justifyContent: "center", borderRadius: raio.pilula, borderWidth: 1, borderColor: "#EBC2BE" },
 });

@@ -84,6 +84,8 @@ else:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 
 AUTH_USER_MODEL = "contas.Usuario"
+# Telefone: doadoras no app. E-mail: equipe no admin (contas.admin.LoginEquipe).
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend", "contas.backends.EmailEquipe"]
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},

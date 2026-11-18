@@ -4,12 +4,28 @@ import { CalendarDays, ChevronRight } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Pressavel } from "@/components/Pressavel";
+import { Selo, type TomSelo } from "@/components/Selo";
 import { diaRelativo, litros } from "@/lib/formato";
 import { cores, familia, raio, tipo } from "@/lib/tema";
 
 import { etapaAtual } from "./Jornada";
 
 type Coleta = Schemas["ColetaSaida"];
+
+const ATIVAS = ["agendada", "confirmada", "a_caminho"];
+
+/** Mesma regra de "em andamento" da API (selectors.coletas_andamento): do agendamento até chegar ao banco. */
+export const emAndamento = (c: Coleta) => ATIVAS.includes(c.status) || (c.status === "coletada" && !c.entregue_banco_em && !c.ajuste);
+
+export const podeMudar = (c: Coleta) => c.status === "agendada" || c.status === "confirmada";
+
+export function situacao(c: Coleta): { texto: string; tom: TomSelo } {
+  if (c.status === "cancelada") return { texto: "Cancelada", tom: "cancelado" };
+  if (c.status === "ausente") return { texto: "Ninguém em casa", tom: "atencao" };
+  if (c.ajuste) return { texto: "Ajuste no frasco", tom: "atencao" };
+  if (c.entregue_banco_em) return { texto: "Concluída", tom: "concluido" };
+  return { texto: "Em andamento", tom: "andamento" };
+}
 
 /** Status de uma coleta numa frase: etapa atual, exceção do banco ou o volume que chegou. */
 export function resumo(coleta: Coleta) {
@@ -19,24 +35,29 @@ export function resumo(coleta: Coleta) {
   return coleta.volume_ml ? `Entregue ao banco · ${litros(coleta.volume_ml)}` : "Entregue ao banco";
 }
 
-/** Uma coleta na Início ou no histórico. Toque abre o acompanhamento. */
+/** Uma coleta na Início ou no histórico. As anteriores ficam apagadas; as em andamento, destacadas. */
 export function CartaoColeta({ coleta }: { coleta: Coleta }) {
   const quando = `${diaRelativo(coleta.data)} • ${coleta.horario_rotulo}`;
   const status = resumo(coleta);
+  const selo = situacao(coleta);
+  const ativa = emAndamento(coleta);
   return (
     <Pressavel
       accessibilityRole="button"
-      accessibilityLabel={`Coleta ${quando}. ${status}. ${coleta.banco_nome}. Ver detalhes`}
+      accessibilityLabel={`Coleta ${quando}. ${selo.texto}. ${status}. ${coleta.banco_nome}. Ver detalhes`}
       onPress={() => router.push({ pathname: "/coleta/[id]", params: { id: String(coleta.id) } })}
-      style={estilos.cartao}
+      style={[estilos.cartao, ativa ? estilos.ativa : estilos.passada]}
     >
-      <View style={estilos.calendario}>
-        <CalendarDays size={22} color={cores.turquesaTexto} strokeWidth={1.8} />
+      <View style={[estilos.calendario, !ativa && estilos.calendarioPassado]}>
+        <CalendarDays size={22} color={ativa ? cores.turquesaTexto : cores.textoSuave} strokeWidth={1.8} />
       </View>
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={estilos.quando}>{quando}</Text>
+      <View style={{ flex: 1, gap: 3 }}>
+        <Selo {...selo} />
+        <Text style={[estilos.quando, !ativa && { color: cores.texto }]}>{quando}</Text>
         <Text style={[tipo.corpoForte, { fontSize: 14 }]}>{status}</Text>
-        <Text style={[tipo.legenda, { fontSize: 13 }]}>{coleta.banco_nome}</Text>
+        <Text numberOfLines={1} style={[tipo.legenda, { fontSize: 12 }]}>
+          {coleta.banco_nome}
+        </Text>
       </View>
       <ChevronRight size={22} color={cores.textoSuave} />
     </Pressavel>
@@ -48,12 +69,13 @@ const estilos = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    backgroundColor: cores.superficie,
     borderRadius: raio.g,
     borderWidth: 1,
-    borderColor: cores.borda,
     padding: 16,
   },
+  // Em andamento: cartão branco com faixa turquesa. Anterior: sem fundo, para não competir.
+  ativa: { backgroundColor: cores.superficie, borderColor: cores.bordaTurquesa, borderLeftWidth: 4, borderLeftColor: cores.turquesa },
+  passada: { backgroundColor: "transparent", borderColor: cores.borda },
   calendario: {
     width: 48,
     height: 48,
@@ -64,5 +86,6 @@ const estilos = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  calendarioPassado: { borderColor: cores.borda, backgroundColor: "transparent" },
   quando: { fontFamily: familia.semi, fontSize: 15, lineHeight: 20, color: cores.turquesaTexto },
 });

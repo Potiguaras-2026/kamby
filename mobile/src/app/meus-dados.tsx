@@ -1,16 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Baby, CalendarDays, Hospital, User } from "lucide-react-native";
+import { Baby, Building2, CalendarDays, Hospital, User } from "lucide-react-native";
 import { useState } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
 import { Botao } from "@/components/Botao";
 import { Campo } from "@/components/Campo";
-import { Cartao } from "@/components/Cartao";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
 import { SeletorBusca } from "@/components/SeletorBusca";
-import { Seletor } from "@/components/Seletores";
 import { Tela } from "@/components/Tela";
 import { SimNao } from "@/features/cadastro/partes";
 import { api, chamar, lerErro } from "@/lib/api";
@@ -109,17 +107,16 @@ function Formulario({ eu }: { eu: Eu }) {
           erro={erroCampo("data_nascimento") ?? erroData(dados.data_nascimento)}
         />
         <SimNao rotulo="Você está amamentando?" valor={dados.amamentando} onChange={(v) => mudar("amamentando", v)} erro={erroCampo("amamentando")} />
-        {bancos.data && bancos.data.length > 1 ? (
-          <Cartao>
-            <Seletor
-              rotulo="Banco de leite"
-              opcoes={bancos.data.map((b) => ({ valor: String(b.id), rotulo: b.nome }))}
-              selecionado={dados.banco_id}
-              onChange={(v) => mudar("banco_id", v)}
-            />
-          </Cartao>
-        ) : null}
-        {erroCampo("banco_id") ? <Text style={[tipo.legenda, { color: cores.erro }]}>{erroCampo("banco_id")}</Text> : null}
+        <SeletorBusca
+          rotulo="Banco de leite"
+          placeholder="Escolha o banco"
+          icone={Building2}
+          opcoes={(bancos.data ?? []).map((b) => ({ valor: String(b.id), rotulo: b.nome, detalhe: b.endereco }))}
+          valor={dados.banco_id}
+          onChange={(v) => mudar("banco_id", v)}
+          ajuda="Coletas já marcadas continuam com o banco de antes."
+          erro={erroCampo("banco_id")}
+        />
       </Entrada>
 
       <Entrada ordem={2} style={{ gap: 14 }}>

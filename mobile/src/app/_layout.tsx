@@ -53,7 +53,7 @@ export default function Layout() {
           <Stack.Screen name="pedidos/index" />
           <Stack.Screen name="pedidos/[id]" />
           <Stack.Screen name="meus-dados" />
-          <Stack.Screen name="excluir-conta" />
+          <Stack.Screen name="remarcar" />
           <Stack.Screen name="aviso" />
           <Stack.Screen name="enderecos/index" />
           <Stack.Screen name="enderecos/[id]" />

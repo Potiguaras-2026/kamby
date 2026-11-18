@@ -111,7 +111,8 @@ const estilos = StyleSheet.create({
   caixaErro: { backgroundColor: cores.erroSuave },
   caixaFixa: { backgroundColor: cores.desabilitado },
   // outlineWidth: o navegador desenha contorno próprio; a borda da caixa já marca o foco.
-  campo: { flex: 1, alignSelf: "stretch", fontFamily: familia.regular, fontSize: 16, color: cores.texto, paddingRight: 14, paddingVertical: 12, outlineWidth: 0, outlineColor: "transparent" },
+  // minWidth 0: na web o input tem largura mínima própria e empurra a caixa para fora da tela estreita.
+  campo: { flex: 1, minWidth: 0, alignSelf: "stretch", fontFamily: familia.regular, fontSize: 16, color: cores.texto, paddingRight: 14, paddingVertical: 12, outlineWidth: 0, outlineColor: "transparent" },
   multilinha: { minHeight: 88, textAlignVertical: "top" },
   lado: { marginRight: 14 },
   olho: { width: toqueMinimo, height: toqueMinimo, alignItems: "center", justifyContent: "center" },

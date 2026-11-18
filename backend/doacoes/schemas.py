@@ -53,6 +53,8 @@ class ColetaSaida(ModelSchema):
     status_rotulo: str
     horario_rotulo: str
     banco_nome: str = Field(alias="banco.nome")
+    # A coleta fica com o banco do agendamento, mesmo que a doadora troque de banco depois.
+    banco_telefone: str = Field(alias="banco.telefone")
     etapas: list[EtapaSaida]
 
     class Meta:
@@ -81,6 +83,11 @@ class ColetaEntrada(Schema):
     quantidade_frascos: int = Field(ge=1, le=20)
     # Pede um kit novo para a equipe entregar na mesma visita.
     com_kit: bool = False
+
+
+class RemarcacaoEntrada(Schema):
+    data: date
+    horario_id: UUID
 
 
 class HorarioSaida(Schema):

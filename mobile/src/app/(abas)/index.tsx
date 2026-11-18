@@ -70,7 +70,7 @@ export default function TelaInicio() {
             <Text style={[tipo.subtitulo, { color: cores.primaria }]}>{doadora.status_rotulo}</Text>
             <Text style={tipo.corpo}>{texto(`inicio.${proxima_acao}`).corpo}</Text>
             {proxima_acao === "contatar_banco" ? (
-              <BotaoWhatsapp telefone={banco.telefone} />
+              <BotaoWhatsapp telefone={banco.telefone} banco={banco.nome} />
             ) : null}
           </Cartao>
         )}

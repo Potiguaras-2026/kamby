@@ -163,10 +163,3 @@ def editar_doadora(doadora: Doadora, *, nome_completo: str, banco_id, **dados) -
     doadora.usuario.nome_completo = nome_completo.strip()
     doadora.usuario.save(update_fields=["nome_completo"])
     return doadora
-
-
-def excluir_conta(usuario: Usuario, senha: str) -> None:
-    """Apaga a conta e tudo da doadora (endereços, respostas de saúde, pedidos e coletas)."""
-    if not usuario.check_password(senha):
-        raise ErroDominio("validacao", "Senha incorreta.", {"senha": ["Confira a senha."]})
-    usuario.delete()

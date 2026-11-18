@@ -37,7 +37,7 @@ export default function TelaEntrar() {
     <View style={estilos.raiz}>
       <LinearGradient colors={gradiente.marca} style={StyleSheet.absoluteFill} />
       <Ondas />
-      <FaixaDemo topo={top} />
+      <FaixaDemo topo={top} publica />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
           <Animated.View entering={FadeIn.duration(400)} style={[estilos.marca, { paddingTop: top + 48 }]}>

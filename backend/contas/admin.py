@@ -1,4 +1,7 @@
+from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.forms import AdminAuthenticationForm
+from django.contrib.auth import authenticate
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
 from django.utils.html import format_html_join
@@ -8,10 +11,29 @@ from contas.models import Doadora, Endereco, PerguntaSaude, Triagem, Usuario
 from core.erros import ErroDominio
 
 
+class LoginEquipe(AdminAuthenticationForm):
+    """O admin entra por e-mail; o telefone é o login das doadoras no app."""
+
+    username = forms.EmailField(label="E-mail", widget=forms.EmailInput(attrs={"autofocus": True, "autocomplete": "email"}))
+    error_messages = {**AdminAuthenticationForm.error_messages, "invalid_login": "E-mail ou senha incorretos, ou a conta não é da equipe."}
+
+    def clean(self):
+        email, senha = self.cleaned_data.get("username"), self.cleaned_data.get("password")
+        if email and senha:
+            self.user_cache = authenticate(self.request, email=email, password=senha)
+            if self.user_cache is None:
+                raise self.get_invalid_login_error()
+            self.confirm_login_allowed(self.user_cache)
+        return self.cleaned_data
+
+
+admin.site.login_form = LoginEquipe
+
+
 class UsuarioCriacaoForm(AdminUserCreationForm):
     class Meta:
         model = Usuario
-        fields = ("telefone", "nome_completo")
+        fields = ("telefone", "nome_completo", "email")
 
 
 class UsuarioAlteracaoForm(UserChangeForm):
@@ -27,14 +49,15 @@ class UsuarioAdmin(UserAdmin):
     ordering = ["nome_completo"]
     list_display = ["nome_completo", "telefone", "papel", "banco", "is_staff"]
     list_filter = ["papel", "banco", "is_staff"]
-    search_fields = ["nome_completo", "telefone"]
+    search_fields = ["nome_completo", "telefone", "email"]
     fieldsets = [
         (None, {"fields": ["telefone", "password"]}),
-        ("Dados", {"fields": ["nome_completo", "papel", "banco"]}),
+        ("Dados", {"fields": ["nome_completo", "email", "papel", "banco"]}),
         ("Permissões", {"fields": ["is_active", "is_staff", "is_superuser", "groups"]}),
     ]
     add_fieldsets = [
-        (None, {"fields": ["telefone", "nome_completo", "password1", "password2"]}),
+        # E-mail: é com ele que a equipe entra no admin.
+        (None, {"fields": ["telefone", "nome_completo", "email", "password1", "password2"]}),
     ]
 
 

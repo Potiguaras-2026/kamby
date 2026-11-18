@@ -358,36 +358,6 @@
         ]
       }
     },
-    "/api/v1/eu/excluir": {
-      "post": {
-        "operationId": "contas_api_excluir_eu",
-        "summary": "Excluir Eu",
-        "parameters": [],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          }
-        },
-        "tags": [
-          "doadora"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExclusaoEntrada"
-              }
-            }
-          },
-          "required": true
-        },
-        "security": [
-          {
-            "JWTAuth": []
-          }
-        ]
-      }
-    },
     "/api/v1/triagem/perguntas": {
       "get": {
         "operationId": "contas_api_perguntas",
@@ -819,6 +789,54 @@
         ]
       }
     },
+    "/api/v1/kits/{kit_id}/remarcar": {
+      "post": {
+        "operationId": "doacoes_api_remarcar_kit",
+        "summary": "Remarcar Kit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kit_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Kit Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemarcacaoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/coletas/dias-disponiveis": {
       "get": {
         "operationId": "doacoes_api_dias_disponiveis",
@@ -1004,6 +1022,54 @@
         "tags": [
           "doacoes"
         ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coletas/{coleta_id}/remarcar": {
+      "post": {
+        "operationId": "doacoes_api_remarcar_coleta",
+        "summary": "Remarcar Coleta",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coleta_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Coleta Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColetaSaida"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "doacoes"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemarcacaoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
         "security": [
           {
             "JWTAuth": []
@@ -1768,20 +1834,6 @@
         "title": "DoadoraEdicao",
         "type": "object"
       },
-      "ExclusaoEntrada": {
-        "properties": {
-          "senha": {
-            "maxLength": 128,
-            "title": "Senha",
-            "type": "string"
-          }
-        },
-        "required": [
-          "senha"
-        ],
-        "title": "ExclusaoEntrada",
-        "type": "object"
-      },
       "PerguntaSaida": {
         "properties": {
           "codigo": {
@@ -2074,6 +2126,10 @@
             "title": "Banco Nome",
             "type": "string"
           },
+          "banco_telefone": {
+            "title": "Banco Telefone",
+            "type": "string"
+          },
           "etapas": {
             "items": {
               "$ref": "#/components/schemas/EtapaSaida"
@@ -2091,6 +2147,7 @@
           "status_rotulo",
           "horario_rotulo",
           "banco_nome",
+          "banco_telefone",
           "etapas"
         ],
         "title": "ColetaSaida",
@@ -2418,6 +2475,26 @@
           "horario_id"
         ],
         "title": "KitEntrada",
+        "type": "object"
+      },
+      "RemarcacaoEntrada": {
+        "properties": {
+          "data": {
+            "format": "date",
+            "title": "Data",
+            "type": "string"
+          },
+          "horario_id": {
+            "format": "uuid",
+            "title": "Horario Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "horario_id"
+        ],
+        "title": "RemarcacaoEntrada",
         "type": "object"
       },
       "HorarioSaida": {

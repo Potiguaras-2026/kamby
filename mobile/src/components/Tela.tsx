@@ -42,7 +42,7 @@ export function Tela({ titulo, subtitulo, voltar, comAbas, atualizar, aoVoltar, 
     <View style={estilos.raiz}>
       <Fundo />
       <Cabecalho topo={top} publica={publica} />
-      <FaixaDemo />
+      <FaixaDemo publica={publica} />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[estilos.conteudo, { paddingBottom: (comAbas ? 112 : espaco.gg) + bottom }]}

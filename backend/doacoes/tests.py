@@ -349,19 +349,6 @@ class ContaTest(Base):
         r = self.client.put("/api/v1/eu", dados, content_type="application/json", **self.entrar())
         self.assertIn("banco_id", r.json()["campos"])
 
-    def test_excluir_conta_pede_a_senha_e_apaga_tudo(self):
-        self.aprovar()
-        self.entregar_kit()
-        services.agendar_coleta(self.doadora, data=proximo_dia_util(), horario_id=self.horario.id, quantidade_frascos=1)
-        auth = self.entrar()
-        r = self.client.post("/api/v1/eu/excluir", {"senha": "errada"}, content_type="application/json", **auth)
-        self.assertEqual(r.status_code, 422)
-        r = self.client.post("/api/v1/eu/excluir", {"senha": SENHA}, content_type="application/json", **auth)
-        self.assertEqual(r.status_code, 204)
-        self.assertFalse(Usuario.objects.filter(telefone="84999990000").exists())
-        self.assertFalse(Coleta.objects.exists())
-        self.assertFalse(SolicitacaoKit.objects.exists())
-
     def test_cancelar_kit_so_em_aberto_e_so_o_proprio(self):
         self.aprovar()
         kit = services.pedir_kit(self.doadora, 2, data=proximo_dia_util(), horario_id=self.horario.id)
@@ -377,3 +364,42 @@ class ContaTest(Base):
         contas.avaliar_triagem(outra.doadora.triagens.get(), apta=True, avaliada_por=self.equipe)
         alheio = services.pedir_kit(outra.doadora, 1, data=proximo_dia_util(), horario_id=self.horario.id)
         self.assertEqual(self.client.get(f"/api/v1/kits/{alheio.id}", **auth).status_code, 404)
+
+    def test_remarcar_coleta_volta_para_agendada_e_respeita_o_status(self):
+        self.aprovar()
+        self.entregar_kit()
+        dias = services.dias_disponiveis(timezone.localdate())
+        coleta = services.agendar_coleta(self.doadora, data=dias[0], horario_id=self.horario.id, quantidade_frascos=1)
+        services.mudar_status_coleta(coleta, Coleta.Status.CONFIRMADA)
+        tarde = HorarioColeta.objects.create(banco=self.banco, inicio=time(14), fim=time(16))
+        r = self.client.post(
+            f"/api/v1/coletas/{coleta.id}/remarcar", {"data": str(dias[3]), "horario_id": str(tarde.id)}, content_type="application/json", **self.entrar()
+        )
+        self.assertEqual((r.status_code, r.json()["data"], r.json()["status"], r.json()["horario_rotulo"]), (200, str(dias[3]), "agendada", "14h00 - 16h00"))
+        coleta.refresh_from_db()
+        services.mudar_status_coleta(coleta, Coleta.Status.CONFIRMADA)
+        services.mudar_status_coleta(coleta, Coleta.Status.A_CAMINHO)
+        with self.assertRaises(ErroDominio):
+            services.remarcar_coleta(coleta, data=dias[1], horario_id=self.horario.id)
+
+    def test_remarcar_kit_so_em_aberto(self):
+        self.aprovar()
+        dias = services.dias_disponiveis(timezone.localdate())
+        kit = services.pedir_kit(self.doadora, 2, data=dias[0], horario_id=self.horario.id)
+        self.assertEqual(services.remarcar_kit(kit, data=dias[2], horario_id=self.horario.id).data_entrega, dias[2])
+        services.cancelar_kit(kit)
+        with self.assertRaises(ErroDominio):
+            services.remarcar_kit(kit, data=dias[1], horario_id=self.horario.id)
+
+
+class AdminTest(Base):
+    def test_admin_entra_por_email_e_nao_por_telefone(self):
+        Usuario.objects.filter(pk=self.equipe.pk).update(email="equipe@example.com", is_staff=True, is_superuser=True)
+        por_telefone = self.client.post("/admin/login/", {"username": "84900000000", "password": SENHA})
+        self.assertEqual(por_telefone.status_code, 200)  # volta ao formulário com erro
+        por_email = self.client.post("/admin/login/", {"username": "Equipe@Example.com", "password": SENHA})
+        self.assertEqual(por_email.status_code, 302)
+        # Doadora com o mesmo tipo de login não entra no admin.
+        Usuario.objects.filter(telefone="84999990000").update(email="ana@example.com")
+        self.client.logout()
+        self.assertEqual(self.client.post("/admin/login/", {"username": "ana@example.com", "password": SENHA}).status_code, 200)

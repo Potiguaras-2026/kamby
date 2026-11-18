@@ -12,6 +12,9 @@ from contas.services import criar_endereco
 from doacoes.models import Coleta, SolicitacaoKit
 
 
+EMAIL_EQUIPE = "equipe@example.com"
+
+
 class Command(BaseCommand):
     help = "Cria dados fictícios para demonstração. Idempotente."
 
@@ -26,8 +29,11 @@ class Command(BaseCommand):
 
         if not Usuario.objects.filter(telefone="84900000000").exists():
             Usuario.objects.create_superuser(
-                "84900000000", senha, nome_completo="Equipe do Banco de Leite", papel="equipe_banco", banco=banco
+                "84900000000", senha, nome_completo="Equipe do Banco de Leite", papel="equipe_banco", banco=banco,
+                email=EMAIL_EQUIPE,
             )
+        # O admin entra por e-mail; contas criadas antes disso ainda não têm um.
+        Usuario.objects.filter(telefone="84900000000", email="").update(email=EMAIL_EQUIPE)
 
         endereco = {
             "cep": "59012300",
@@ -122,6 +128,6 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(
-            "Pronto. Equipe: 84900000000. Doadoras: 84911111111 (doando), 84922222222 (em análise), "
+            f"Pronto. Admin: {EMAIL_EQUIPE}. Doadoras: 84911111111 (doando), 84922222222 (em análise), "
             "84933333333 (equipe a caminho), 84944444444 (ninguém em casa), 84955555555 (ajuste no frasco). Senha: SEED_SENHA."
         )

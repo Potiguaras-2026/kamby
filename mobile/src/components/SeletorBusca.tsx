@@ -125,6 +125,10 @@ const estilos = StyleSheet.create({
   fundo: { flex: 1, backgroundColor: "rgba(36, 27, 34, 0.4)" },
   folha: {
     maxHeight: "85%",
+    // Na web o app fica numa moldura de celular (440px); sem isso a lista ocupa a janela toda.
+    width: "100%",
+    maxWidth: 440,
+    alignSelf: "center",
     backgroundColor: cores.fundo,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,

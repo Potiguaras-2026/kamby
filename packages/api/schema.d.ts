@@ -192,23 +192,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/eu/excluir": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Excluir Eu */
-        post: operations["contas_api_excluir_eu"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/triagem/perguntas": {
         parameters: {
             query?: never;
@@ -365,6 +348,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kits/{kit_id}/remarcar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remarcar Kit */
+        post: operations["doacoes_api_remarcar_kit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/coletas/dias-disponiveis": {
         parameters: {
             query?: never;
@@ -428,6 +428,23 @@ export interface paths {
         get: operations["doacoes_api_detalhar_coleta"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coletas/{coleta_id}/remarcar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remarcar Coleta */
+        post: operations["doacoes_api_remarcar_coleta"];
         delete?: never;
         options?: never;
         head?: never;
@@ -751,11 +768,6 @@ export interface components {
              */
             banco_id: string;
         };
-        /** ExclusaoEntrada */
-        ExclusaoEntrada: {
-            /** Senha */
-            senha: string;
-        };
         /** PerguntaSaida */
         PerguntaSaida: {
             /** Codigo */
@@ -883,6 +895,8 @@ export interface components {
             horario_rotulo: string;
             /** Banco Nome */
             banco_nome: string;
+            /** Banco Telefone */
+            banco_telefone: string;
             /** Etapas */
             etapas: components["schemas"]["EtapaSaida"][];
         };
@@ -998,6 +1012,19 @@ export interface components {
         KitEntrada: {
             /** Quantidade Frascos */
             quantidade_frascos: number;
+            /**
+             * Data
+             * Format: date
+             */
+            data: string;
+            /**
+             * Horario Id
+             * Format: uuid
+             */
+            horario_id: string;
+        };
+        /** RemarcacaoEntrada */
+        RemarcacaoEntrada: {
             /**
              * Data
              * Format: date
@@ -1335,28 +1362,6 @@ export interface operations {
             };
         };
     };
-    contas_api_excluir_eu: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExclusaoEntrada"];
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     contas_api_perguntas: {
         parameters: {
             query?: never;
@@ -1622,6 +1627,32 @@ export interface operations {
             };
         };
     };
+    doacoes_api_remarcar_kit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemarcacaoEntrada"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitSaida"];
+                };
+            };
+        };
+    };
     doacoes_api_dias_disponiveis: {
         parameters: {
             query?: never;
@@ -1719,6 +1750,32 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ColetaSaida"];
+                };
+            };
+        };
+    };
+    doacoes_api_remarcar_coleta: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coleta_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemarcacaoEntrada"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

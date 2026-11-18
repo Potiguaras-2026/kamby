@@ -9,7 +9,7 @@ from ninja.pagination import PageNumberPagination, paginate
 from contas.selectors import doadora_do_usuario
 from core.erros import ErroDominio
 from doacoes import selectors, services
-from doacoes.schemas import CancelamentoEntrada, ColetaEntrada, ColetaSaida, HorarioSaida, InicioSaida, KitEntrada, KitSaida
+from doacoes.schemas import CancelamentoEntrada, ColetaEntrada, ColetaSaida, HorarioSaida, InicioSaida, KitEntrada, KitSaida, RemarcacaoEntrada
 
 router = Router(tags=["doacoes"])
 
@@ -40,6 +40,11 @@ def cancelar_kit(request, kit_id: UUID):
     return services.cancelar_kit(selectors.kit_da_doadora(doadora_do_usuario(request.auth), kit_id))
 
 
+@router.post("/kits/{kit_id}/remarcar", response=KitSaida)
+def remarcar_kit(request, kit_id: UUID, dados: RemarcacaoEntrada):
+    return services.remarcar_kit(selectors.kit_da_doadora(doadora_do_usuario(request.auth), kit_id), **dados.dict())
+
+
 @router.get("/coletas/dias-disponiveis", response=list[date])
 def dias_disponiveis(request):
     return services.dias_disponiveis(timezone.localdate())
@@ -64,6 +69,11 @@ def agendar_coleta(request, dados: ColetaEntrada):
 @router.get("/coletas/{coleta_id}", response=ColetaSaida)
 def detalhar_coleta(request, coleta_id: UUID):
     return selectors.coleta_da_doadora(doadora_do_usuario(request.auth), coleta_id)
+
+
+@router.post("/coletas/{coleta_id}/remarcar", response=ColetaSaida)
+def remarcar_coleta(request, coleta_id: UUID, dados: RemarcacaoEntrada):
+    return services.remarcar_coleta(selectors.coleta_da_doadora(doadora_do_usuario(request.auth), coleta_id), **dados.dict())
 
 
 @router.post("/coletas/{coleta_id}/cancelar", response=ColetaSaida)

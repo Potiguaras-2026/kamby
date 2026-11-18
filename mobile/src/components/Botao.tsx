@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import type { LucideIcon } from "lucide-react-native";
 import { ActivityIndicator, StyleSheet, Text } from "react-native";
 
 import { cores, familia, gradiente, raio, sombra, toqueMinimo } from "@/lib/tema";
@@ -14,6 +15,7 @@ type Props = {
   carregando?: boolean;
   desabilitado?: boolean;
   compacto?: boolean;
+  icone?: LucideIcon;
 };
 
 const COR_TEXTO: Record<Variante, string> = {
@@ -23,7 +25,7 @@ const COR_TEXTO: Record<Variante, string> = {
   perigo: cores.erro,
 };
 
-export function Botao({ titulo, onPress, variante = "primaria", carregando, desabilitado, compacto }: Props) {
+export function Botao({ titulo, onPress, variante = "primaria", carregando, desabilitado, compacto, icone: Icone }: Props) {
   const inativo = desabilitado || carregando;
   const corTexto = desabilitado ? cores.textoSuave : COR_TEXTO[variante];
   const comGradiente = variante === "primaria" && !desabilitado;
@@ -56,7 +58,10 @@ export function Botao({ titulo, onPress, variante = "primaria", carregando, desa
       {carregando ? (
         <ActivityIndicator color={corTexto} />
       ) : (
-        <Text style={[estilos.texto, { color: corTexto }, compacto && { fontSize: 14 }]}>{titulo}</Text>
+        <>
+          {Icone ? <Icone size={compacto ? 18 : 20} color={corTexto} strokeWidth={2.2} /> : null}
+          <Text style={[estilos.texto, { color: corTexto }, compacto && { fontSize: 14 }]}>{titulo}</Text>
+        </>
       )}
     </Pressavel>
   );
@@ -67,8 +72,10 @@ const estilos = StyleSheet.create({
     minHeight: 56,
     borderRadius: raio.pilula,
     paddingHorizontal: 24,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 8,
   },
   compacto: { minHeight: toqueMinimo, paddingHorizontal: 18 },
   secundaria: { backgroundColor: cores.superficie, borderWidth: 1, borderColor: cores.rosaClaro },

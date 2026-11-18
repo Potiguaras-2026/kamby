@@ -1,7 +1,7 @@
 import type { Schemas } from "@kamby/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Baby, CalendarDays, ChevronDown, ChevronUp, HeartPulse, Hospital, House, LockKeyhole, Phone, ShieldCheck, User } from "lucide-react-native";
+import { Baby, Building2, CalendarDays, ChevronDown, ChevronUp, HeartPulse, Hospital, House, LockKeyhole, Phone, ShieldCheck, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { AccessibilityInfo, BackHandler, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -13,7 +13,6 @@ import { DicaAnimada } from "@/components/DicaAnimada";
 import { Entrada } from "@/components/Entrada";
 import { Estado } from "@/components/Estado";
 import { SeletorBusca } from "@/components/SeletorBusca";
-import { Seletor } from "@/components/Seletores";
 import { Tela } from "@/components/Tela";
 import { CabecalhoEtapa, CartaoPergunta, Concordo, Progresso, SimNao, TextoLongo } from "@/features/cadastro/partes";
 import { CAMPOS_OBRIGATORIOS, CamposEndereco, type DadosEndereco } from "@/features/enderecos/CamposEndereco";
@@ -296,14 +295,16 @@ export default function TelaCadastro() {
             erro={erroCampo}
           />
           {bancos.data.length > 1 ? (
-            <Cartao>
-              <Seletor
-                rotulo="Banco de leite"
-                opcoes={bancos.data.map((b) => ({ valor: String(b.id), rotulo: b.nome }))}
-                selecionado={dados.banco_id}
-                onChange={(v) => mudar("banco_id", v)}
-              />
-            </Cartao>
+            <SeletorBusca
+              rotulo="Banco de leite"
+              placeholder="Escolha o banco"
+              icone={Building2}
+              opcoes={bancos.data.map((b) => ({ valor: String(b.id), rotulo: b.nome, detalhe: b.endereco }))}
+              valor={dados.banco_id ?? ""}
+              onChange={(v) => mudar("banco_id", v)}
+              ajuda="Escolha o mais perto de você. Dá para trocar depois no perfil."
+              erro={erroCampo("banco_id")}
+            />
           ) : bancos.data[0] ? (
             <Text style={tipo.legenda}>
               Banco de leite de referência: <Text style={{ color: cores.texto, fontFamily: familia.medio }}>{bancos.data[0].nome}</Text>

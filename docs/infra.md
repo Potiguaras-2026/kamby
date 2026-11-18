@@ -48,7 +48,7 @@ API (Render, `render.yaml`):
 1. Render dashboard: New, Blueprint, pick this repository. It creates `kamby-db` (Postgres) and `kamby-api` (Docker, `backend/Dockerfile`).
 2. Fill `SEED_SENHA` when asked. The other variables come from the blueprint; `RENDER_EXTERNAL_HOSTNAME` adds the service domain to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
 3. On start the container migrates, collects static files (served by WhiteNoise, so the admin has CSS), runs `seed_demo` because `KAMBY_DEMO=1`, and starts Gunicorn on `$PORT` with `WEB_CONCURRENCY` workers.
-4. Admin: `https://kamby-api.onrender.com/admin/`. If Render gives the service another domain, update it in `mobile/vercel.json` and `mobile/eas.json`.
+4. Admin: `https://kamby-api.onrender.com/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app. If Render gives the service another domain, update it in `mobile/vercel.json` and `mobile/eas.json`.
 
 Donor app (Vercel, `mobile/vercel.json`):
 1. Vercel dashboard: New Project, this repository, Root Directory `mobile`, framework "Other". Keep "Include files outside the root directory" on: the install runs `npm ci` at the repo root for the workspaces.

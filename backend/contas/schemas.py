@@ -41,10 +41,6 @@ class DoadoraEdicao(Schema):
     banco_id: UUID
 
 
-class ExclusaoEntrada(Schema):
-    senha: str = Field(max_length=128)
-
-
 class EntrarEntrada(Schema):
     telefone: str = Field(max_length=20)
     senha: str = Field(max_length=128)

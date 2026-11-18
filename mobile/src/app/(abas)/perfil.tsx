@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Baby, Building2, ClipboardList, Droplet, Heart, History, LogOut, MapPin, Package, Pencil, Phone, Trash2, UserRound, type LucideIcon } from "lucide-react-native";
+import { Baby, Building2, ClipboardList, Droplet, Heart, History, LogOut, MapPin, Package, Pencil, Phone, UserRound, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -82,7 +82,6 @@ export default function TelaPerfil() {
         <ItemMenu rotulo="Bancos de leite" icone={Building2} onPress={() => router.push("/bancos")} />
         <ItemMenu rotulo="Por trás do Kamby" icone={Heart} tom="azul" onPress={() => router.push("/sobre")} />
         <ItemMenu rotulo="Sair" icone={LogOut} tom="erro" onPress={() => setSaindo(true)} />
-        <ItemMenu rotulo="Excluir minha conta" icone={Trash2} tom="erro" onPress={() => router.push("/excluir-conta")} />
       </Entrada>
 
       <Folha
@@ -145,7 +144,7 @@ function Bloco({ titulo, icone: Icone, tom = "rosa", editar, children }: BlocoPr
             onPress={() => router.push(editar === true ? "/meus-dados" : editar)}
             style={estilos.editar}
           >
-            <Text style={estilos.editarTexto}>Editar</Text>
+            <Pencil size={18} color={cor} strokeWidth={2} />
           </Pressavel>
         ) : null}
       </View>
@@ -193,7 +192,6 @@ const estilos = StyleSheet.create({
   telefone: { flexDirection: "row", alignItems: "center", gap: 6 },
   blocoTopo: { flexDirection: "row", alignItems: "center", gap: 8 },
   editar: { minHeight: toqueMinimo, minWidth: toqueMinimo, alignItems: "flex-end", justifyContent: "center", marginVertical: -12 },
-  editarTexto: { fontFamily: familia.semi, fontSize: 13, color: cores.primaria },
   atalho: {
     flex: 1,
     alignItems: "center",
