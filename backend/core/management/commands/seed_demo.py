@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-from bancos.models import BancoDeLeite, HorarioColeta
+from bancos.models import BancoDeLeite
 from contas.models import Doadora, PerguntaSaude, Triagem, Usuario
 from contas.services import criar_endereco
 from doacoes.models import Coleta, SolicitacaoKit
@@ -21,30 +21,24 @@ class Command(BaseCommand):
         if not senha:
             raise CommandError("Defina SEED_SENHA no .env")
 
-        banco, _ = BancoDeLeite.objects.get_or_create(
-            nome="Banco de Leite Humano (demonstração)",
-            defaults={"telefone": "8400000000", "endereco": "Rua Exemplo, 100, Petrópolis", "cidade": "Natal"},
-        )
-
-        if not banco.horarios.exists():
-            for inicio, fim in [(time(8), time(9, 30)), (time(9, 30), time(11)), (time(13, 30), time(15)), (time(15), time(16, 30))]:
-                HorarioColeta.objects.create(banco=banco, inicio=inicio, fim=fim)
+        # Os bancos reais de Natal vêm da migração bancos.0005; as doadoras fictícias doam para a Januário Cicco.
+        banco = BancoDeLeite.objects.get(nome="Banco de Leite Humano da Maternidade Escola Januário Cicco")
 
         if not Usuario.objects.filter(telefone="84900000000").exists():
             Usuario.objects.create_superuser(
-                "84900000000", senha, nome_completo="Equipe Demonstração", papel="equipe_banco", banco=banco
+                "84900000000", senha, nome_completo="Equipe do Banco de Leite", papel="equipe_banco", banco=banco
             )
 
         endereco = {
             "cep": "59012300",
-            "logradouro": "Rua Exemplo",
+            "logradouro": "Rua Seridó",
             "numero": "200",
             "bairro": "Petrópolis",
             "cidade": "Natal",
             "uf": "RN",
         }
         if not Usuario.objects.filter(telefone="84911111111").exists():
-            usuario = Usuario.objects.create_user("84911111111", senha, nome_completo="Maria Exemplo")
+            usuario = Usuario.objects.create_user("84911111111", senha, nome_completo="Maria Fernandes")
             maria = Doadora.objects.create(
                 usuario=usuario,
                 banco=banco,
@@ -74,7 +68,7 @@ class Command(BaseCommand):
         maria = Doadora.objects.get(usuario__telefone="84911111111")
         if maria.enderecos.count() < 2:
             criar_endereco(
-                maria, apelido="Trabalho", cep="59020000", logradouro="Avenida Exemplo", numero="1500",
+                maria, apelido="Trabalho", cep="59020000", logradouro="Avenida Hermes da Fonseca", numero="1500",
                 complemento="Sala 4", bairro="Tirol", cidade="Natal", uf="RN",
             )
 
@@ -88,10 +82,10 @@ class Command(BaseCommand):
         # Uma doadora fictícia em cada momento da jornada, para demonstrar as telas.
         respostas = {c: True for c in PerguntaSaude.objects.filter(ativa=True).values_list("codigo", flat=True)}
         for telefone, nome, momento in [
-            ("84922222222", "Bruna Exemplo", "em_analise"),
-            ("84933333333", "Carla Exemplo", "a_caminho"),
-            ("84944444444", "Dora Exemplo", "ausente"),
-            ("84955555555", "Elisa Exemplo", "ajuste"),
+            ("84922222222", "Bruna Alves", "em_analise"),
+            ("84933333333", "Carla Souza", "a_caminho"),
+            ("84944444444", "Dora Lima", "ausente"),
+            ("84955555555", "Elisa Costa", "ajuste"),
         ]:
             if Usuario.objects.filter(telefone=telefone).exists():
                 continue
@@ -118,7 +112,7 @@ class Command(BaseCommand):
             hoje = timezone.localdate()
             coleta = {"doadora": doadora, "banco": banco, "horario_inicio": time(9, 30), "horario_fim": time(11), "quantidade_frascos": 3}
             if momento == "a_caminho":
-                Coleta.objects.create(**coleta, data=hoje, status=Coleta.Status.A_CAMINHO, endereco="Rua Exemplo, 200, Petrópolis, Natal-RN")
+                Coleta.objects.create(**coleta, data=hoje, status=Coleta.Status.A_CAMINHO, endereco="Rua Seridó, 200, Petrópolis, Natal-RN")
             elif momento == "ausente":
                 Coleta.objects.create(**coleta, data=hoje - timedelta(days=1), status=Coleta.Status.AUSENTE)
             else:
