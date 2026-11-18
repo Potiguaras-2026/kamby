@@ -4,10 +4,10 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_API_URL": "https://kamby-api.onrender.com" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://kamby-api.vercel.app" }
     },
     "production": {
-      "env": { "EXPO_PUBLIC_API_URL": "https://kamby-api.onrender.com" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://kamby-api.vercel.app" }
     }
   }
 }

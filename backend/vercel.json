@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "test -n \"$DATABASE_URL\" && python manage.py collectstatic --noinput && DATABASE_URL=\"${DATABASE_URL_UNPOOLED:-$DATABASE_URL}\" python manage.py migrate --noinput && if [ \"$KAMBY_DEMO\" = 1 ]; then python manage.py seed_demo; fi"
+}

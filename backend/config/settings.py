@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qsl, unquote, urlparse
 
 from dotenv import load_dotenv
 
@@ -19,10 +19,11 @@ if not SECRET_KEY:
     raise RuntimeError("Defina DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = lista("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,10.0.2.2")
 CSRF_TRUSTED_ORIGINS = lista("DJANGO_CSRF_TRUSTED_ORIGINS")
-# O Render define o domínio do serviço; assim o render.yaml não precisa repeti-lo.
-if render := os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
-    ALLOWED_HOSTS.append(render)
-    CSRF_TRUSTED_ORIGINS.append(f"https://{render}")
+# Domínios que o Vercel define em cada deploy (produção, branch e o endereço do próprio deploy).
+for variavel in ("VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_BRANCH_URL", "VERCEL_URL"):
+    if dominio := os.environ.get(variavel):
+        ALLOWED_HOSTS.append(dominio)
+        CSRF_TRUSTED_ORIGINS.append(f"https://{dominio}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -70,7 +71,7 @@ TEMPLATES = [
 ]
 
 if url := os.environ.get("DATABASE_URL"):
-    # Render entrega o Postgres como uma URL só (fromDatabase.connectionString).
+    # Neon (integração do Vercel) entrega o Postgres como uma URL só, com sslmode e afins na query.
     banco = urlparse(url)
     DATABASES = {
         "default": {
@@ -80,6 +81,9 @@ if url := os.environ.get("DATABASE_URL"):
             "PASSWORD": unquote(banco.password or ""),
             "HOST": banco.hostname,
             "PORT": banco.port or 5432,
+            "OPTIONS": dict(parse_qsl(banco.query)),
+            # A URL padrão do Neon passa pelo PgBouncer, que não guarda cursores entre transações.
+            "DISABLE_SERVER_SIDE_CURSORS": True,
         }
     }
 elif os.environ.get("POSTGRES_DB"):

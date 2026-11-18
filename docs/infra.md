@@ -2,7 +2,7 @@
 
 ```yaml
 dev: compose.yaml        # docker compose up --build
-demo: Vercel (donor app web) + Render (API, admin, Postgres), free plans
+demo: Vercel (API, admin and donor app web, two projects) + Neon (Postgres), free plans
 production: compose.prod.yaml on one Hostinger KVM 1 VPS
 domain: pending          # one domain; Caddy splits by path
 ```
@@ -25,7 +25,7 @@ Docker is the default for backend and web from day 1, so every developer runs th
 
 Donor app:
 - Web: `https://<DOMINIO>/app`, same origin as the API, so no production CORS. Also the iPhone option without an Apple account (Safari, "Adicionar à Tela de Início"). `mobile/app.config.js` sets the `/app` base only when `EXPO_BASE_URL` is set.
-- Android APK: `mobile/eas.json`, profile `preview`. `EXPO_PUBLIC_API_URL` points to the Render demo; for the VPS, change it to the real domain. Then from `mobile/` run `npx eas login` once and `npx eas build -p android --profile preview`. A new domain needs a new build.
+- Android APK: `mobile/eas.json`, profile `preview`. `EXPO_PUBLIC_API_URL` points to the Vercel demo API; for the VPS, change it to the real domain. Then from `mobile/` run `npx eas login` once and `npx eas build -p android --profile preview`. A new domain needs a new build.
 - iOS: needs an Apple Developer account; `npx eas build -p ios` and `npx eas submit -p ios` to TestFlight.
 
 The VPS is small (1 vCPU). Keep 3 Gunicorn workers at most. Add no service (Redis, Celery, monitoring stack) without a concrete need.
@@ -40,23 +40,24 @@ The VPS is small (1 vCPU). Keep 3 Gunicorn workers at most. Add no service (Redi
 - `KAMBY_DEMO=1` (on in dev): signups are approved at once, the app shows the demo banner on every screen (read from the public `GET /api/v1/demo`), the sign-in screen offers "Entrar sem cadastro" into the seeded donor account, and a button plays the milk bank's part, step by step. Turn it off once the bank reviews donors for real.
 - Production: `DJANGO_DEBUG` unset, a long random `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` set to the real domain.
 
-## Demo: Vercel + Render
+## Demo: Vercel + Neon
 
 For showing the app before the VPS exists. Free plans, so demo data only: never real donors.
 
-API (Render, `render.yaml`):
-1. Render dashboard: New, Blueprint, pick this repository. It creates `kamby-db` (Postgres) and `kamby-api` (Docker, `backend/Dockerfile`).
-2. Fill `SEED_SENHA` when asked. The other variables come from the blueprint (the database arrives as `DATABASE_URL`, which `settings.py` reads before the `POSTGRES_*` variables); `RENDER_EXTERNAL_HOSTNAME` adds the service domain to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
-3. On start the container migrates, collects static files (served by WhiteNoise, so the admin has CSS), runs `seed_demo` because `KAMBY_DEMO=1`, and starts Gunicorn on `$PORT` with `WEB_CONCURRENCY` workers.
-4. Admin: `https://kamby-api.onrender.com/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app. If Render gives the service another domain, update it in `mobile/vercel.json` and `mobile/eas.json`.
+API (Vercel project `kamby-api`, Root Directory `backend`):
+1. Vercel detects Django from `manage.py` and serves `config.wsgi` as a function. Python version comes from `backend/.python-version`.
+2. Storage: add Neon from the Vercel Marketplace (free plan) and connect it to the project. It injects `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED`; `settings.py` reads `DATABASE_URL`, keeping `sslmode` from the query.
+3. Environment variables: `DJANGO_SECRET_KEY` (long random), `SEED_SENHA`, `KAMBY_DEMO=1`. `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` get the Vercel domains from `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL` and `VERCEL_URL`.
+4. `backend/vercel.json` build: fails without `DATABASE_URL`, then `collectstatic`, `migrate` over the unpooled connection, and `seed_demo` when `KAMBY_DEMO=1`. Static files (admin CSS) go to the Vercel CDN.
+5. Admin: `https://kamby-api.vercel.app/admin/`, login with e-mail and password (staff only; the seed's team account is `equipe@example.com` with `SEED_SENHA`). Phone login is for donors in the app.
 
-Donor app (Vercel, `mobile/vercel.json`):
-1. Vercel dashboard: New Project, this repository, Root Directory `mobile`, framework "Other". Keep "Include files outside the root directory" on: the install runs `npm ci` at the repo root for the workspaces.
-2. `vercel.json` builds with `expo export -p web` and rewrites `/api/*` to Render, so the app calls its own origin and needs no CORS.
+Donor app (Vercel project `kamby`, Root Directory `mobile`):
+1. Framework "Other". Keep "Include files outside the root directory" on: the install runs `npm ci` at the repo root for the workspaces.
+2. `mobile/vercel.json` builds with `expo export -p web` and rewrites `/api/*` to the API project, so the app calls its own origin and needs no CORS. If the API project gets another domain, update it there and in `mobile/eas.json`.
 
 Limits:
-- Render free sleeps after about 15 minutes idle. The first request takes up to a minute and may time out through the Vercel rewrite; open the admin once before a demo to wake it.
-- Render free Postgres expires after about 30 days and has no backups. Recreate it from the blueprint; the seed runs again on start.
+- Hobby plan is for non-commercial use. Functions start in about a second after idle; Neon free suspends compute when idle and resumes in about a second.
+- Neon free has 0.5 GB of storage. Migrations run on every deploy, before the new code is live.
 
 ## Deploy
 

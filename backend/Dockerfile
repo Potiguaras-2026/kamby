@@ -4,5 +4,5 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-# Sem shell no Render free: o seed de demonstração roda na subida (é idempotente).
+# Com KAMBY_DEMO=1 o seed roda na subida (é idempotente): hosts gratuitos não dão shell.
 CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && if [ \"$KAMBY_DEMO\" = 1 ]; then python manage.py seed_demo; fi && gunicorn config.wsgi -b 0.0.0.0:${PORT:-8000} -w ${WEB_CONCURRENCY:-3}"]
