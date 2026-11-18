@@ -1,0 +1,34 @@
+# Demo no Render free: API + admin + Postgres. Ver docs/infra.md, seção "Demo: Vercel + Render".
+services:
+  - type: web
+    name: kamby-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: KAMBY_DEMO
+        value: "1"
+      - key: SEED_SENHA
+        sync: false
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: POSTGRES_HOST
+        fromDatabase: { name: kamby-db, property: host }
+      - key: POSTGRES_PORT
+        fromDatabase: { name: kamby-db, property: port }
+      - key: POSTGRES_DB
+        fromDatabase: { name: kamby-db, property: database }
+      - key: POSTGRES_USER
+        fromDatabase: { name: kamby-db, property: user }
+      - key: POSTGRES_PASSWORD
+        fromDatabase: { name: kamby-db, property: password }
+
+databases:
+  - name: kamby-db
+    plan: free
+    databaseName: kamby
+    user: kamby

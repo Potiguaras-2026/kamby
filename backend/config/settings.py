@@ -18,6 +18,10 @@ if not SECRET_KEY:
     raise RuntimeError("Defina DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = lista("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,10.0.2.2")
 CSRF_TRUSTED_ORIGINS = lista("DJANGO_CSRF_TRUSTED_ORIGINS")
+# O Render define o domínio do serviço; assim o render.yaml não precisa repeti-lo.
+if render := os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(render)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -37,6 +41,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "config.cors_dev.cors_dev",
     "django.middleware.security.SecurityMiddleware",
+    # Admin com CSS sem um servidor de estáticos na frente (Render).
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

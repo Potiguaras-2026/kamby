@@ -4,10 +4,10 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_API_URL": "https://DOMINIO" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://kamby-api.onrender.com" }
     },
     "production": {
-      "env": { "EXPO_PUBLIC_API_URL": "https://DOMINIO" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://kamby-api.onrender.com" }
     }
   }
 }
